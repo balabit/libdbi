@@ -1,3 +1,12 @@
+2001-08-23  David Parker  <david at neongoat dot com>
+
+	* release 0.6.2
+	* (switched to x.y.z versioning scheme)
+	* fixed one-off errors
+	* win32 port, better framework for portability
+	* better debian packaging
+	* first shot at a plugin author's guide
+
 2001-08-15  David Parker  <david at neongoat dot com>
 
 	* release 0.6
