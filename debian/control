@@ -1,0 +1,30 @@
+Source: libdbi
+Section: devel
+Priority: optional
+Maintainer: David Parker <david@neongoat.com>
+Standards-Version: 3.0.1
+
+Package: libdbi0-dev
+Architecture: any
+Depends: libdbi0 (= ${Source-Version}), libc6-dev
+Description: Database independent abstraction layer for C (development files)
+ The libdbi-dev package contains the header files, static libraries,
+ and documentation needed to develop applications with libdbi.
+
+Package: libdbi0
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: libdbd-template
+Description: Database independent abstraction layer for C
+ libdbi provides developers with a database independent abstraction layer for C,
+ allowing for multiple simultaneous connections to different types of servers.
+ The plugin architecture allows for new database drivers to be easily added by a
+ third party.
+
+Package: libdbd-template
+Architecture: any
+Depends: libdbi0 (= ${Source-Version})
+Description: template database server plugin for libdbi
+ This plugin provides connectivity to template database servers through the
+ libdbi database independent abstraction layer. Switching a program's plugin
+ does not require recompilation or rewriting source code.

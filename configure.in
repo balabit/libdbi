@@ -79,4 +79,4 @@ dnl ==============================
 
 CFLAGS="$CFLAGS -DDBI_PLUGIN_DIR=\\\"$plugindir\\\""
 
-AC_OUTPUT(Makefile src/Makefile doc/Makefile include/Makefile include/dbi/Makefile plugins/Makefile plugins/template/Makefile)
+AC_OUTPUT(Makefile src/Makefile debian/Makefile doc/Makefile include/Makefile include/dbi/Makefile plugins/Makefile plugins/template/Makefile)
