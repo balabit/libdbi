@@ -14,3 +14,12 @@ $Id$
 	* others?
 - finish plugin author's guide
 - determine datatype information (how many bits an 'int' is, etc. mainly for portability to non-lintel systems)
+
+
+--
+
+
+int -> long, ulonglong portable?
+create result without row count, -1 for rowcount accessors
+_get_field_info -> query, not firstrow
+

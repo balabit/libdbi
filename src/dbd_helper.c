@@ -55,7 +55,7 @@ int _dbd_result_add_to_conn(dbi_result_t *result) {
 	return 1;
 }
 
-dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
+dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
 	result->conn = conn;
@@ -96,11 +96,11 @@ dbi_row_t *_dbd_row_allocate(unsigned int numfields) {
 	dbi_row_t *row = malloc(sizeof(dbi_row_t));
 	if (!row) return NULL;
 	row->field_values = calloc(numfields, sizeof(dbi_data_t));
-	row->field_sizes = calloc(numfields, sizeof(int));
+	row->field_sizes = calloc(numfields, sizeof(unsigned long long));
 	return row;
 }
 
-void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned int idx) {
+void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned long long idx) {
 	/* rowidx is one-based in the DBI user level */
 	result->rows[idx+1] = row;
 }
@@ -144,9 +144,9 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 	}
 }
 
-dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int numrows_matched, const char **stringarray) {
+dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned long long numrows_matched, const char **stringarray) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
-	unsigned int currow = 0;
+	unsigned long long currow = 0;
 	const int numfields = 1;
 	
 	if (!result) return NULL;

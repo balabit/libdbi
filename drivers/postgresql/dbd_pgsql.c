@@ -55,7 +55,7 @@ static const char *reserved_words[] = PGSQL_RESERVED_WORDS;
 
 void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
-void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx);
 
 void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the driver module is loaded into memory */
@@ -126,7 +126,7 @@ int dbd_disconnect(dbi_conn_t *conn) {
 	return 0;
 }
 
-int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
+int dbd_fetch_row(dbi_result_t *result, unsigned long long rownum) {
 	dbi_row_t *row = NULL;
 
 	if (result->result_state == NOTHING_RETURNED) return -1;
@@ -151,7 +151,7 @@ int dbd_free_query(dbi_result_t *result) {
 	return 0;
 }
 
-int dbd_goto_row(dbi_result_t *result, unsigned int row) {
+int dbd_goto_row(dbi_result_t *result, unsigned long long row) {
 	/* libpq doesn't have to do anything, the row index is specified when
 	 * fetching fields */
 	return 1;
@@ -386,26 +386,24 @@ void _get_field_info(dbi_result_t *result) {
 	}
 }
 
-void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx) {
 	int curfield = 0;
 	char *raw = NULL;
-	int strsize = 0;
+	unsigned long long strsize = 0;
 	unsigned long sizeattrib;
 	dbi_data_t *data;
 
 	while (curfield < result->numfields) {
 		raw = PQgetvalue((PGresult *)result->result_handle, rowidx, curfield);
-		strsize = PQfmod((PGresult *)result->result_handle, curfield);
+		strsize = (unsigned long long) PQfmod((PGresult *)result->result_handle, curfield);
 		data = &row->field_values[curfield];
 
+		row->field_sizes[curfield] = 0;
+		/* will be set to strlen later on for strings */
+		
 		if (PQgetisnull((PGresult *)result->result_handle, rowidx, curfield) == 1) {
-			row->field_sizes[curfield] = 0;
 			curfield++;
 			continue;
-		}
-		else {
-			row->field_sizes[curfield] = -1;
-			/* will be set to strlen later on for strings */
 		}
 		
 		switch (result->field_types[curfield]) {
@@ -442,6 +440,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				break;
 			case DBI_TYPE_BINARY:
 				row->field_sizes[curfield] = strsize;
+				data->d_string = malloc(strsize);
 				memcpy(data->d_string, raw, strsize);
 				break;
 				

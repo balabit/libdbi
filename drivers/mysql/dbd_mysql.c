@@ -56,7 +56,7 @@ static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
-void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx);
 time_t _parse_datetime(const char *raw, unsigned long attribs);
 
 void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words) {
@@ -107,7 +107,7 @@ int dbd_disconnect(dbi_conn_t *conn) {
 	return 0;
 }
 
-int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
+int dbd_fetch_row(dbi_result_t *result, unsigned long long rownum) {
 	dbi_row_t *row = NULL;
 
 	if (result->result_state == NOTHING_RETURNED) return -1;
@@ -132,7 +132,7 @@ int dbd_free_query(dbi_result_t *result) {
 	return 0;
 }
 
-int dbd_goto_row(dbi_result_t *result, unsigned int row) {
+int dbd_goto_row(dbi_result_t *result, unsigned long long row) {
 	// XXX TODO: kosherize this, handle efficient queries.
 	mysql_data_seek((MYSQL_RES *)result->result_handle, row);
 	return 1;
@@ -141,7 +141,7 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 int dbd_get_socket(dbi_conn_t *conn){
 	MYSQL *mycon = (MYSQL*)conn->connection;
 
-	if(!mycon) return -1;
+	if (!mycon) return -1;
 
 	return (int)mycon->net.fd;
 }
@@ -357,7 +357,7 @@ void _get_field_info(dbi_result_t *result) {
 	}
 }
 
-void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx) {
 	MYSQL_RES *_res = result->result_handle;
 	MYSQL_ROW _row;
 	
@@ -373,15 +373,13 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 	while (curfield < result->numfields) {
 		raw = _row[curfield];
 		data = &row->field_values[curfield];
+		
+		row->field_sizes[curfield] = 0;
+		/* this will be set to the string size later on if the field is indeed a string */
 
 		if (strsizes[curfield] == 0) {
-			row->field_sizes[curfield] = 0;
 			curfield++;
 			continue;
-		}
-		else {
-			row->field_sizes[curfield] = -1;
-			/* this will be set to the string size later on if the field is indeed a string */
 		}
 		
 		switch (result->field_types[curfield]) {
@@ -414,10 +412,11 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				break;
 			case DBI_TYPE_STRING:
 				data->d_string = strdup(raw);
-				row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = (unsigned long long) strsizes[curfield];
 				break;
 			case DBI_TYPE_BINARY:
-				row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = (unsigned long long) strsizes[curfield];
+				data->d_string = malloc(strsizes[curfield]);
 				memcpy(data->d_string, raw, strsizes[curfield]);
 				break;
 			case DBI_TYPE_DATETIME:
@@ -429,7 +428,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 			case DBI_TYPE_SET:
 			default:
 				data->d_string = strdup(raw);
-				row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = (unsigned long long) strsizes[curfield];
 				break;
 		}
 		

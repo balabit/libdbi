@@ -43,7 +43,7 @@ extern void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 static _field_binding_t *_find_or_create_binding_node(dbi_result_t *result, const char *fieldname);
 static void _remove_binding_node(dbi_result_t *result, _field_binding_t *deadbinding);
 static int _find_field(dbi_result_t *result, const char *fieldname);
-static int _is_row_fetched(dbi_result_t *result, unsigned int row);
+static int _is_row_fetched(dbi_result_t *result, unsigned long long row);
 static int _setup_binding(dbi_result_t *result, const char *fieldname, void *bindto, void *helperfunc);
 static void _activate_bindings(dbi_result_t *result);
 static int _parse_field_formatstr(const char *format, char ***tokens_dest, char ***fieldnames_dest);
@@ -71,7 +71,7 @@ static void _bind_helper_datetime(_field_binding_t *binding);
 
 /* XXX ROW SEEKING AND FETCHING XXX */
 
-int dbi_result_seek_row(dbi_result Result, unsigned int row) {
+int dbi_result_seek_row(dbi_result Result, unsigned long long row) {
 	dbi_result_t *result = Result;
 	int retval;
 
@@ -128,19 +128,19 @@ int dbi_result_next_row(dbi_result Result) {
 	return dbi_result_seek_row(Result, result->currowidx+1);
 }
 
-unsigned int dbi_result_get_numrows(dbi_result Result) {
+unsigned long long dbi_result_get_numrows(dbi_result Result) {
 	dbi_result_t *result = Result;
 	if (!result) return 0;
 	return result->numrows_matched;
 }
 
-unsigned int dbi_result_get_numrows_affected(dbi_result Result) {
+unsigned long long dbi_result_get_numrows_affected(dbi_result Result) {
 	dbi_result_t *result = Result;
 	if (!result) return 0;
 	return result->numrows_affected;
 }
 
-unsigned int dbi_result_get_field_size(dbi_result Result, const char *fieldname) {
+unsigned long long dbi_result_get_field_size(dbi_result Result, const char *fieldname) {
 	dbi_result_t *result = Result;
 	int idx = 0;
 	
@@ -154,10 +154,9 @@ unsigned int dbi_result_get_field_size(dbi_result Result, const char *fieldname)
 	return dbi_result_get_field_size_idx(Result, idx+1);
 }
 
-unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx) {
+unsigned long long dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
-	int currowidx;
-	int temp;
+	unsigned long long currowidx;
 	idx--;
 	
 	if (!result || !result->rows) return 0;
@@ -171,18 +170,16 @@ unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx) 
 		return 0;
 	}
 
-	temp = result->rows[currowidx]->field_sizes[idx];
-	if (temp == -1) return 0;
-	else return temp;
+	return result->rows[currowidx]->field_sizes[idx];
 }
 
-unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldname) {
-	unsigned int size = dbi_result_get_field_size(Result, fieldname);
+unsigned long long dbi_result_get_field_length(dbi_result Result, const char *fieldname) {
+	unsigned long long size = dbi_result_get_field_size(Result, fieldname);
 	return (size == 0) ? 0 : size-1;
 }
 
-unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx) {
-	unsigned int size = dbi_result_get_field_size_idx(Result, idx);
+unsigned long long dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx) {
+	unsigned long long size = dbi_result_get_field_size_idx(Result, idx);
 	return (size == 0) ? 0 : size-1;
 }
 
@@ -433,7 +430,7 @@ static void _free_string_list(char **booyah, int total) {
 }
 
 static void _free_result_rows(dbi_result_t *result) {
-	int rowidx = 0;
+	unsigned long long rowidx = 0;
 	int fieldidx = 0;
 
 	for (rowidx = 0; rowidx <= result->numrows_matched; rowidx++) {
@@ -1063,7 +1060,7 @@ unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldna
 unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int idx) {
 	unsigned char *ERROR = "ERROR";
 	char *newblob = NULL;
-	unsigned int size;
+	unsigned long long size;
 	dbi_result_t *result = Result;
 	idx--;
 
@@ -1350,7 +1347,7 @@ static int _find_field(dbi_result_t *result, const char *fieldname) {
 	return -1;
 }
 
-static int _is_row_fetched(dbi_result_t *result, unsigned int row) {
+static int _is_row_fetched(dbi_result_t *result, unsigned long long row) {
 	if (!result->rows || (row >= result->numrows_matched)) return -1;
 	return !(result->rows[row] == NULL);
 }

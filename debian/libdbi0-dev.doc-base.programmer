@@ -6,8 +6,8 @@ Abstract: Documentation for the Database Independent Abstraction Layer for C.
 Section: Apps/Programming
 
 Format: HTML
-Index: /usr/share/doc/libdbi-dev/programmers-guide/index.html
-Files: /usr/share/doc/libdbi-dev/programmers-guide/*.html
+Index: /usr/share/doc/libdbi0-dev/programmers-guide/index.html
+Files: /usr/share/doc/libdbi0-dev/programmers-guide/*.html
 
 Format: PDF
-Files: /usr/share/doc/libdbi-dev/programmers-guide.pdf
+Files: /usr/share/doc/libdbi0-dev/programmers-guide.pdf

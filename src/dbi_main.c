@@ -295,6 +295,10 @@ int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
 	if (!driver || !orig || !*orig) return -1;
 
 	newstr = malloc((strlen(*orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
+
+	if (!newstr) {
+		return -1;
+	}
 	
 	newlen = driver->functions->quote_string(driver, *orig, newstr);
 	if (newlen < 0) {

@@ -6,8 +6,8 @@ Abstract: Documentation for the database-dependent interface to the DBI library.
 Section: Apps/Programming
 
 Format: HTML
-Index: /usr/share/doc/libdbi-dev/driver-guide/index.html
-Files: /usr/share/doc/libdbi-dev/driver-guide/*.html
+Index: /usr/share/doc/libdbi0-dev/driver-guide/index.html
+Files: /usr/share/doc/libdbi0-dev/driver-guide/*.html
 
 Format: PDF
-Files: /usr/share/doc/libdbi-dev/driver-guide.pdf
+Files: /usr/share/doc/libdbi0-dev/driver-guide.pdf

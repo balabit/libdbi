@@ -1,3 +1,19 @@
+libdbi (0.6.5-3) unstable; urgency=low
+
+  * Changed Standards-Version.
+  * More libdbi-dev to libdbi0-dev references.
+  * Fixed Build-Depends.
+
+ -- David Parker <david@neongoat.com>  Tue, 30 Jul 2002 11:31:11 -0700
+
+libdbi (0.6.5-2) unstable; urgency=low
+
+  * Changed libdbi-dev to libdbi0-dev
+  * Removed libdbi0's postrm and postinst since ldconfig is auto-added.
+  * Updated Standards-Version.
+
+ -- David Parker <david@neongoat.com>  Mon, 29 Jul 2002 23:21:43 -0700
+
 libdbi (0.6.5-1) unstable; urgency=low
 
   * New upstream release.

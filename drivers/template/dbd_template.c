@@ -1,6 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, David Parker and Mark Tobenkin.
+ * Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
 
 #include "dbd_template.h"
 
-dbi_info_t plugin_info = {
+dbi_info_t driver_info = {
 	/* short name, used for loading drivers by name */
 	"template",
 	/* short desc, no more than two sentences, no newlines */
@@ -62,14 +62,14 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
 time_t _parse_datetime(const char *raw, unsigned long attribs);
 
 
-void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
+void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the plugin module is loaded into memory */
 	*_plugin_info = &plugin_info;
 	*_custom_functions = custom_functions;
 	*_reserved_words = reserved_words;
 }
 
-int dbd_initialize(dbi_plugin_t *plugin) {
+int dbd_initialize(dbi_driver_t *driver) {
 	/* perform any database-specific server initialization.
 	 * this is called right after dbd_register_plugin().
 	 * return -1 on error, 0 on success. if -1 is returned, the plugin will not
@@ -78,7 +78,7 @@ int dbd_initialize(dbi_plugin_t *plugin) {
 	return 0;
 }
 
-int dbd_connect(dbi_driver_t *driver) {
+int dbd_connect(dbi_conn_t *conn) {
 	/* void *conn; */
 	
 	const char *host = dbi_driver_get_option(driver, "host");
@@ -109,7 +109,7 @@ int dbd_connect(dbi_driver_t *driver) {
 	return 0;
 }
 
-int dbd_disconnect(dbi_driver_t *driver) {
+int dbd_disconnect(dbi_conn_t *conn) {
 	/*
 	if (driver->connection) XXX_close_connection(driver->connection);
 	*/
@@ -155,21 +155,26 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1; /* return 0 if failed, or not supported */
 }
 
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
+int dbd_get_socket(dbi_conn_t *conn){
+
+	return -1;
+}
+
+dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 	/*
 	return dbd_query(driver, "SELECT dbname FROM dbs");
 	*/
 	return NULL;
 }
 
-dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern) {
 	/*
 	return dbi_driver_query((dbi_driver)driver, "SELECT tablename FROM tables WHERE db = '%s'", db);
 	*/
 	return NULL;
 }
 
-int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {
 	/* foo's -> 'foo\'s' */
 	
 	/* dest is already allocated as (strlen(orig)*2)+4+1
@@ -193,7 +198,7 @@ int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
 	return len+2;
 }
 
-dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
+dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	/* allocate a new dbi_result_t and fill its applicable members:
 	 * 
 	 * result_handle, numrows_matched, and numrows_changed.
@@ -225,7 +230,11 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	return result;
 }
 
-char *dbd_select_db(dbi_driver_t *driver, const char *db) {
+dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length) {
+	return NULL;
+}
+
+char *dbd_select_db(dbi_conn_t *conn, const char *db) {
 	/* if not supported, return NULL.
 	 * if supported but there's an error, return "". */
 
@@ -239,7 +248,7 @@ char *dbd_select_db(dbi_driver_t *driver, const char *db) {
 	return (char *)db;
 }
 
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
+int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 	
@@ -258,6 +267,16 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	
 	return 3;
 }
+
+unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence) {
+	return 0; 
+}
+
+
+unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
+	return 0;
+}
+
 
 /* CORE TEMPLATE-SPECIFIC FUNCTIONS */
 

@@ -51,14 +51,15 @@ typedef union dbi_data_u {
 
 typedef struct dbi_row_s {
 	dbi_data_t *field_values;
-	int *field_sizes; /* NULL field = 0, string field = len, anything else = -1 */
+	unsigned long long *field_sizes; /* NULL field = 0, string field = len, anything else = -1 */
+									 /* XXX TODO: above is false as of 8/6/02. no -1 */
 } dbi_row_t;
 
 typedef struct dbi_result_s {
 	dbi_conn_t_pointer conn;
 	void *result_handle; /* will be typecast into conn-specific type */
-	unsigned long numrows_matched; /* set immediately after query */
-	unsigned long numrows_affected;
+	unsigned long long numrows_matched; /* set immediately after query */
+	unsigned long long numrows_affected;
 	_field_binding_t_pointer field_bindings;
 	
 	unsigned int numfields; /* can be zero or NULL until first fetchrow */
@@ -68,7 +69,7 @@ typedef struct dbi_result_s {
 
 	enum { NOTHING_RETURNED, ROWS_RETURNED, GETTING_ROWS } result_state; /* nothing_returned: wasn't a SELECT query. returns_rows: select, but no rows fetched yet. getting_rows: select, at least one row has been fetched */
 	dbi_row_t **rows; /* array of filled rows, elements set to NULL if not fetched yet */
-	unsigned long currowidx;
+	unsigned long long currowidx;
 } dbi_result_t;
 
 typedef struct _field_binding_s {
@@ -110,9 +111,9 @@ typedef struct dbi_functions_s {
 	int (*initialize)(dbi_driver_t_pointer);
 	int (*connect)(dbi_conn_t_pointer);
 	int (*disconnect)(dbi_conn_t_pointer);
-	int (*fetch_row)(dbi_result_t *, unsigned int);
+	int (*fetch_row)(dbi_result_t *, unsigned long long);
 	int (*free_query)(dbi_result_t *);
-	int (*goto_row)(dbi_result_t *, unsigned int);
+	int (*goto_row)(dbi_result_t *, unsigned long long);
 	int (*get_socket)(dbi_conn_t_pointer);
 	dbi_result_t *(*list_dbs)(dbi_conn_t_pointer, const char *);
 	dbi_result_t *(*list_tables)(dbi_conn_t_pointer, const char *, const char *);
