@@ -178,7 +178,7 @@ int dbi_result_get_field_idx(dbi_result Result, const char *fieldname) {
 
 const char *dbi_result_get_field_name(dbi_result Result, unsigned int fieldnum) {
 	dbi_result_t *result = Result;
-	if (!result || (fieldnum > result->numfields)) return NULL;
+	if (!result || (fieldnum > result->numfields) || (result->field_names == NULL)) return NULL;
 	return (const char *) result->field_names[fieldnum-1];
 }
 
@@ -264,9 +264,10 @@ int dbi_result_free(dbi_result Result) {
 	}
 	
 	if (result->rows) {
-			}
+		_free_result_rows(result);
+	}
 		
-	if ( result->numfields ) {
+	if (result->numfields) {
 		_free_string_list(result->field_names, result->numfields);
 		free(result->field_types);
 		free(result->field_attribs);
@@ -331,8 +332,9 @@ static int _parse_field_formatstr(const char *format, char ***tokens_dest, char 
 
 static void _free_string_list(char **booyah, int total) {
 	int boomba = 0;
+	if (booyah == NULL) return;
 	while (boomba < total) {
-		free(booyah[boomba]);
+		if (booyah[boomba]) free(booyah[boomba]);
 		boomba++;
 	}
 	free(booyah);
@@ -340,23 +342,24 @@ static void _free_string_list(char **booyah, int total) {
 }
 
 static void _free_result_rows(dbi_result_t *result) {
-	int row_idx;
+	int rowidx = 0;
+	int fieldidx = 0;
 
-	for (row_idx = 0; row_idx <= result->numrows_matched; row_idx++) {
-		if (result->rows[row_idx]) {
-			for(row_idx = 0; row_idx < result->numfields ; row_idx++) {
-				if (((result->field_types[row_idx] == DBI_TYPE_STRING) ||
-						 (result->field_types[row_idx] == DBI_TYPE_ENUM) ||
-						 (result->field_types[row_idx] == DBI_TYPE_SET)) &&
-						(result->rows[row_idx]->field_values[row_idx].d_string)){
-					free(result->rows[row_idx]->field_values[row_idx].d_string);
+	for (rowidx = 0; rowidx <= result->numrows_matched; rowidx++) {
+		if (!result->rows[rowidx]) continue;
+			
+		for (fieldidx = 0; fieldidx < result->numfields; fieldidx++) {
+			if ((result->field_types[fieldidx] == DBI_TYPE_STRING) || (result->field_types[fieldidx] == DBI_TYPE_BINARY) && result->rows[rowidx]->field_values[fieldidx].d_string) {
+					free(result->rows[rowidx]->field_values[fieldidx].d_string);
 				}
-			}	
-			free(result->rows[row_idx]->field_values);
-			free(result->rows[row_idx]->field_sizes);
-			free(result->rows[row_idx]);
+			}
 		}
-	}		
+		
+		free(result->rows[rowidx]->field_values);
+		free(result->rows[rowidx]->field_sizes);
+		free(result->rows[rowidx]);
+	}
+	
 	free(result->rows);
 }
 
@@ -1068,7 +1071,7 @@ static void _remove_binding_node(dbi_result_t *result, _field_binding_t *deadbin
 
 static int _find_field(dbi_result_t *result, const char *fieldname) {
 	int i = 0;
-	if (!result) return -1;
+	if (!result || !result->field_names) return -1;
 	while (i < result->numfields) {
 		if (strcasecmp(result->field_names[i], fieldname) == 0) {
 			return i;

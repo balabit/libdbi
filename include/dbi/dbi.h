@@ -95,7 +95,7 @@ void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument);
 int dbi_conn_connect(dbi_conn Conn);
 int dbi_conn_get_socket(dbi_conn Conn);
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern);
-dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db);
+dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pattern);
 dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...); 
 dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, unsigned long st_length); 
 int dbi_conn_select_db(dbi_conn Conn, const char *db);

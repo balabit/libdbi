@@ -164,15 +164,22 @@ dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 	}
 }
 
-dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db) {
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern) {
 	dbi_result_t *res;
 	char *sql_cmd;
 
-	if (db == NULL) {
+	if (db == NULL || db[0] == '\0') {
 		return dbd_query(conn, "SHOW TABLES");
 	}
+
+	if (pattern == NULL) {
+		asprintf(&sql_cmd, "SHOW TABLES FROM '%s'", db);
+		res = dbd_query(conn, sql_cmd);
+		free(sql_cmd);
+		return res;
+	}
 	else {
-		asprintf(&sql_cmd, "SHOW TABLES FROM %s", db);
+		asprintf(&sql_cmd, "SHOW TABLES FROM '%s' LIKE '%s'", db, pattern);
 		res = dbd_query(conn, sql_cmd);
 		free(sql_cmd);
 		return res;

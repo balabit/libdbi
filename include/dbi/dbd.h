@@ -39,7 +39,7 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum);
 int dbd_free_query(dbi_result_t *result);
 int dbd_goto_row(dbi_result_t *result, unsigned int row);
 dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern);
-dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db);
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern);
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
 dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length);
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
@@ -53,6 +53,7 @@ void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, u
 dbi_row_t *_dbd_row_allocate(unsigned int numfields);
 void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned int idx);
 void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno);
+dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int numrows_matched, const char **stringarray);
 
 #ifdef __cplusplus
 }

@@ -181,8 +181,17 @@ dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 	}
 }
 
-dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db) {
-	return (dbi_result_t *)dbi_conn_query((dbi_conn)conn, "SELECT relname FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern) {
+	if (db == NULL) {
+		return NULL;
+	}
+
+	if (pattern == NULL) {
+		return (dbi_result_t *)dbi_conn_query((dbi_conn)conn, "SELECT relname FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
+	}
+	else {
+		return (dbi_result_t *)dbi_conn_query((dbi_conn)conn, "SELECT relname FROM pg_class WHERE relname !~ '^pg_' AND relname LIKE '%s' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", pattern, db);
+	}
 }
 
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {

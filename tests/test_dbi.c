@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 
 	printf("\nSuccessfully connected! Available tables: \n\t");
 	
-	if ((result = dbi_conn_get_table_list(conn, dbname)) == NULL) {
+	if ((result = dbi_conn_get_table_list(conn, dbname, NULL)) == NULL) {
 		dbi_conn_error(conn, &errmsg);
 		printf("AAH! Can't get table list! Error message: %s\n", errmsg);
 		dbi_conn_close(conn);

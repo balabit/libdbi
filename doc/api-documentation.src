@@ -70,6 +70,17 @@ NAME dbi_driver_specific_function
 
 *
 
+NAME dbi_driver_quote_string
+	PROTO int dbi_driver_quote_string(dbi_driver Driver, char **orig)
+	DESC
+	Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and will point to a newly allocated one (which you still must free on your own).
+	ENDDESC
+	ARG Driver The target driver.
+	ARG orig A pointer to the string to quote and escape.
+	RET The new string's length.
+
+*
+
 NAME dbi_driver_get_name
 	PROTO const char *dbi_driver_get_name(dbi_driver Driver)
 	DESC
@@ -137,17 +148,6 @@ NAME dbi_driver_get_date_compiled
 	ENDDESC
 	ARG Driver The target driver.
 	RET A string containing the date the driver was compiled.
-
-*
-
-NAME dbi_driver_quote_string
-	PROTO int dbi_driver_quote_string(dbi_driver Driver, char **orig)
-	DESC
-	Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and will point to a newly allocated one (which you still must free on your own).
-	ENDDESC
-	ARG Driver The target driver.
-	ARG orig A pointer to the string to quote and escape.
-	RET The new string's length.
 
 *
 
@@ -311,6 +311,16 @@ NAME dbi_conn_connect
 
 *
 
+NAME dbi_conn_get_socket
+	PROTO int dbi_conn_get_socket(dbi_conn Conn)
+	DESC
+	Obtain the file descriptor number for the backend connection socket.
+	ENDDESC
+	ARG Conn The target connection
+	RET -1 on failure, the file descriptor number on success
+
+*
+
 NAME dbi_conn_get_db_list
 	PROTO dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern)
 	DESC
@@ -323,12 +333,13 @@ NAME dbi_conn_get_db_list
 *
 
 NAME dbi_conn_get_table_list
-	PROTO dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db)
+	PROTO dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pattern)
 	DESC
 	Queries the list of available tables in a particular database.
 	ENDDESC
 	ARG Conn The target connection.
 	ARG db The target database name.
+	ARG pattern A string pattern that each name must match.
 	RET A query result object, which will contain table names in the first (zeroth) field (for use with the by-index field functions).
 
 *
@@ -345,6 +356,18 @@ NAME dbi_conn_query
 
 *
 
+NAME dbi_conn_query_null
+	PROTO dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, unsigned long st_length)
+	DESC
+	Execute the specified SQL query statement, which may contain valid NULL characters.
+	ENDDESC
+	ARG Conn The target connection.
+	ARG statement The SQL statement, which may contain binary data.
+	ARG st_len The number of characters in the non-null-terminated statement string.
+	RET A query result object, or NULL if there was an error.
+
+*
+
 NAME dbi_conn_select_db
 	PROTO int dbi_conn_select_db(dbi_conn Conn, const char *db)
 	DESC
@@ -356,8 +379,8 @@ NAME dbi_conn_select_db
 
 *
 
-NAME dbi_result_get_connection
-	PROTO dbi_conn dbi_result_get_connection(dbi_result Result)
+NAME dbi_result_get_conn
+	PROTO dbi_conn dbi_result_get_conn(dbi_result Result)
 	DESC
 	Returns the connection belonging to the specified result object.
 	ENDDESC

@@ -117,3 +117,38 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 	}
 }
 
+dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int numrows_matched, const char **stringarray) {
+	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
+	unsigned int currow = 0;
+	const int numfields = 1;
+	
+	if (!result) return NULL;
+	
+	/* initialize the result */
+	result->conn = conn;
+	result->result_handle = NULL;
+	result->numrows_matched = numrows_matched;
+	result->numrows_affected = 0;
+	result->field_bindings = NULL;
+	result->numfields = numfields;
+	result->field_names = NULL;
+	result->field_types = calloc(numfields, sizeof(unsigned short));
+	result->field_attribs = calloc(numfields, sizeof(unsigned int));
+	result->result_state = (numrows_matched > 0) ? ROWS_RETURNED : NOTHING_RETURNED;
+	result->rows = calloc(numrows_matched+1, sizeof(dbi_row_t *));
+	result->currowidx = 0;
+
+	/* then set numfields */
+	result->field_types[0] = DBI_TYPE_STRING;
+	result->field_attribs[0] = 0;
+	
+	/* then alloc a row, set row's data, and finalize (for each row) */
+	for (currow = 0; currow < numrows_matched; currow++) {
+		dbi_row_t *row = _dbd_row_allocate(numfields);
+		row->field_values[0]->d_string = strdup(stringarray[currow]);
+		row->field_sizes[0] = strlen(stringarray[currow]);
+		_dbd_row_finalize(result, row, 0);
+	}
+	
+	return result;
+}

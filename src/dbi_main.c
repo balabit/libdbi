@@ -540,13 +540,13 @@ dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
 	return (dbi_result)result;
 }
 
-dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db) {
+dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pattern) {
 	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
 	
 	if (!conn) return NULL;
 	
-	result = conn->driver->functions->list_tables(conn, db);
+	result = conn->driver->functions->list_tables(conn, db, pattern);
 	
 	if (result == NULL) {
 		_error_handler(conn);
