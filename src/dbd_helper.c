@@ -79,3 +79,28 @@ void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned int idx) {
 	result->rows[idx+1] = row;
 }
 
+int _dbd_quote_chars(const char *toescape, const char *quotes, const char *orig, char *dest, size_t destsize) {
+	char *curdest = dest;
+	const char *curorig = orig;
+	const char *curescaped;
+	
+	strcpy(dest, quotes); // check, also use destidx < destsize, and null treminate
+	
+	strncpy(dest, orig, destsize);
+
+	while (curorig) {
+		curescaped = toescaped;
+		while (curescaped) {
+			if (*curorig == *curescaped) {
+				*curdest = '\\';
+				curdest++;
+				*curdest = *curorig;
+				continue;
+			}
+			curescaped++;
+		}
+		curorig++;
+		curdest++;
+	}
+
+	return strlen(dest);
