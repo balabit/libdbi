@@ -101,6 +101,7 @@ dbi_row_t *_dbd_row_allocate(unsigned short numfields) {
 	if (!row) return NULL;
 	row->field_values = calloc(numfields, sizeof(dbi_data_t));
 	row->field_sizes = calloc(numfields, sizeof(unsigned long long));
+	row->field_flags = calloc(numfields, sizeof(unsigned char));
 	return row;
 }
 

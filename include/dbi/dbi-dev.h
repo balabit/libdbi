@@ -51,8 +51,8 @@ typedef union dbi_data_u {
 
 typedef struct dbi_row_s {
 	dbi_data_t *field_values;
-	unsigned long long *field_sizes; /* NULL field = 0, string field = len, anything else = -1 */
-									 /* XXX TODO: above is false as of 8/6/02. no -1 */
+	unsigned long long *field_sizes; /* strlen() for strings, 0 otherwise */
+	unsigned char *field_flags; /* field-specific metadata for this particular row */
 } dbi_row_t;
 
 typedef struct dbi_result_s {
@@ -165,6 +165,8 @@ typedef struct dbi_conn_s {
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned long rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 int _disjoin_from_conn(dbi_result_t *result);
+void _set_field_flag(dbi_row_t *row, unsigned short fieldidx, unsigned char flag, unsigned char value);
+int _get_field_flag(dbi_row_t *row, unsigned short fieldidx, unsigned char flag);
 
 #ifdef __cplusplus
 }
