@@ -44,11 +44,11 @@ static _field_binding_t *_find_or_create_binding_node(dbi_result_t *result, cons
 static void _remove_binding_node(dbi_result_t *result, _field_binding_t *deadbinding);
 static int _find_field(dbi_result_t *result, const char *fieldname);
 static int _is_row_fetched(dbi_result_t *result, unsigned int row);
-static void _free_row(dbi_row_t *row);
 static int _setup_binding(dbi_result_t *result, const char *fieldname, void *bindto, void *helperfunc);
 static void _activate_bindings(dbi_result_t *result);
 static int _parse_field_formatstr(const char *format, char ***tokens_dest, char ***fieldnames_dest);
 static void _free_string_list(char **booyah, int total);
+static void _free_result_rows(dbi_result_t *result);
 
 static void _bind_helper_char(_field_binding_t *binding);
 static void _bind_helper_uchar(_field_binding_t *binding);
@@ -263,19 +263,20 @@ int dbi_result_free(dbi_result Result) {
 		_remove_binding_node(result, result->field_bindings);
 	}
 	
-	_free_string_list(result->field_names, result->numfields);
-	free(result->field_types);
-	free(result->field_attribs);
-
 	if (result->rows) {
-		for (idx = 0; idx <= result->numrows_matched; idx++) {
-			_free_row(result->rows[idx]);
-		}
-	}
+			}
 		
+	if ( result->numfields ) {
+		_free_string_list(result->field_names, result->numfields);
+		free(result->field_types);
+		free(result->field_attribs);
+	}
+
 	if (retval == -1) {
 		_error_handler(result->driver);
 	}
+
+	free(result);
 	return retval;
 }
 
@@ -336,6 +337,27 @@ static void _free_string_list(char **booyah, int total) {
 	}
 	free(booyah);
 	return;
+}
+
+static void _free_result_rows(dbi_result_t *result) {
+	int row_idx;
+
+	for (row_idx = 0; row_idx <= result->numrows_matched; row_idx++) {
+		if (result->rows[row_idx]) {
+			for(idx = 0; idx < result->numfields ; idx++) {
+				if (((result->field_types[idx] == DBI_TYPE_STRING) ||
+						 (result->field_types[idx] == DBI_TYPE_ENUM) ||
+						 (result->field_types[idx] == DBI_TYPE_SET)) &&
+						(result->rows[row_idx]->field_values[idx].d_string)){
+					free(result->rows[row_idx]->field_values[idx].d_string);
+				}
+			}	
+			free(result->rows[row_idx]->field_values);
+			free(result->rows[row_idx]->field_sizes);
+			free(result->rows[row_idx]);
+		}
+	}		
+	free(result->rows);
 }
 
 int dbi_result_get_fields(dbi_result Result, const char *format, ...) {
@@ -1061,12 +1083,6 @@ static int _is_row_fetched(dbi_result_t *result, unsigned int row) {
 	return !(result->rows[row] == NULL);
 }
 
-static void _free_row(dbi_row_t *row) {
-	if (!row) return;
-	free(row->field_values);
-	free(row->field_sizes);
-	free(row);
-}
 
 /* PRIVATE: bind helpers */
 
