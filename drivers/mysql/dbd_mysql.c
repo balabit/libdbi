@@ -196,8 +196,7 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 	
 	if (!driver->connection) {
-		*errno = 0;
-		*errstr = strdup("Unable to connect to database");
+		_internal_error_handler(driver, "Unable to connect to database", 0);
 		return 2;
 	}
 	
@@ -206,7 +205,21 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	return 3;
 }
 
-/* CORE POSTGRESQL DATA FETCHING STUFF */
+
+void _internal_error_handler(dbi_driver_t *driver, char *errmsg, int errno)
+{
+	/* set the values*/
+	driver->error_number = errno;
+	driver->error_message = strdup(errmsg);
+
+	if(driver->error_handler != NULL){
+		errfunc = driver->error_handler;
+		errfunc(driver, driver->error_handler_argument);
+	}
+}
+
+
+/* CORE MYSQL DATA FETCHING STUFF */
 
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs) {
 	unsigned int _type = 0;
@@ -393,7 +406,7 @@ time_t _parse_datetime(const char *raw, unsigned long attribs) {
 		cur[4] = '\0';
 		cur[7] = '\0';
 		cur[10] = '\0';
-		unixtime.tm_year = atoi(cur);
+		unixtime.tm_year = atoi(cur)-1900;
 		unixtime.tm_mon = atoi(cur+5);
 		unixtime.tm_mday = atoi(cur+8);
 		if (attribs & DBI_DATETIME_TIME) cur = cur+11;
