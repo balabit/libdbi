@@ -1,5 +1,13 @@
 $Id$
 
+libdbi-drivers unified doc build
+libdbi-drivers auto* craziness (RPATH)
+don kinzer's native win32
+peter macdonald's static driver linkage
+marc herbert's driver makefile cleanup?
+everything in leo's email
+
+
 - add a pkg-config thingy
 - go through the rest of this todo and remove stuff that's done
 
