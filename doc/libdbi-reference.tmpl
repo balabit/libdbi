@@ -11,46 +11,46 @@ published by the Free Software Foundation.
 		%%dbi_shutdown
 		%%dbi_version
 	</Section>
-	<Section id="reference-plugin"><Title>Plugin Infrastructure</Title>
-		%%dbi_plugin_list
-		%%dbi_plugin_open
-		%%dbi_plugin_is_reserved_word
-		%%dbi_plugin_specific_function
-		%%dbi_plugin_quote_string
-		<Section id="reference-plugin-info"><Title>Plugin Information</Title>
-			%%dbi_plugin_get_name
-			%%dbi_plugin_get_filename
-			%%dbi_plugin_get_description
-			%%dbi_plugin_get_maintainer
-			%%dbi_plugin_get_url
-			%%dbi_plugin_get_version
-			%%dbi_plugin_get_date_compiled
+	<Section id="reference-driver"><Title>Driver Infrastructure</Title>
+		%%dbi_driver_list
+		%%dbi_driver_open
+		%%dbi_driver_is_reserved_word
+		%%dbi_driver_specific_function
+		%%dbi_driver_quote_string
+		<Section id="reference-driver-info"><Title>Driver Information</Title>
+			%%dbi_driver_get_name
+			%%dbi_driver_get_filename
+			%%dbi_driver_get_description
+			%%dbi_driver_get_maintainer
+			%%dbi_driver_get_url
+			%%dbi_driver_get_version
+			%%dbi_driver_get_date_compiled
 		</Section>
 	</Section>
-	<Section id="reference-driver"><Title>Driver Infrastructure</Title>
-		%%dbi_driver_new
-		%%dbi_driver_open
-		%%dbi_driver_get_plugin
-		%%dbi_driver_set_option
-		%%dbi_driver_set_option_numeric
-		%%dbi_driver_get_option
-		%%dbi_driver_get_option_numeric
-		%%dbi_driver_get_option_list
-		%%dbi_driver_clear_option
-		%%dbi_driver_clear_options
-		%%dbi_driver_close
-		<Section id="reference-driver-error"><Title>Error Handling</Title>
-			%%dbi_driver_error
-			%%dbi_driver_error_handler
+	<Section id="reference-conn"><Title>Connection Infrastructure</Title>
+		%%dbi_conn_new
+		%%dbi_conn_open
+		%%dbi_conn_get_driver
+		%%dbi_conn_set_option
+		%%dbi_conn_set_option_numeric
+		%%dbi_conn_get_option
+		%%dbi_conn_get_option_numeric
+		%%dbi_conn_get_option_list
+		%%dbi_conn_clear_option
+		%%dbi_conn_clear_options
+		%%dbi_conn_close
+		<Section id="reference-conn-error"><Title>Error Handling</Title>
+			%%dbi_conn_error
+			%%dbi_conn_error_handler
 		</Section>
 	</Section>
 	<Section id="reference-database"><Title>SQL and Database Infrastructure</Title>
-		%%dbi_driver_connect
-		%%dbi_driver_get_db_list
-		%%dbi_driver_get_table_list
-		%%dbi_driver_query
-		%%dbi_driver_select_db
-		%%dbi_result_get_driver
+		%%dbi_conn_connect
+		%%dbi_conn_get_db_list
+		%%dbi_conn_get_table_list
+		%%dbi_conn_query
+		%%dbi_conn_select_db
+		%%dbi_result_get_conn
 		%%dbi_result_free
 		%%dbi_result_seek_row
 		%%dbi_result_first_row

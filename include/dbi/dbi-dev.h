@@ -78,7 +78,7 @@ typedef struct _field_binding_s {
 } _field_binding_t;
 
 /***************************************
- * PLUGIN INFRASTRUCTURE RELATED TYPES *
+ * DRIVER INFRASTRUCTURE RELATED TYPES *
  ***************************************/
 
 typedef struct dbi_info_s {

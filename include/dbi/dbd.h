@@ -30,7 +30,7 @@ extern "C" {
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-/* FUNCTIONS EXPORTED BY EACH PLUGIN */
+/* FUNCTIONS EXPORTED BY EACH DRIVER */
 void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words);
 int dbd_initialize(dbi_driver_t *driver);
 int dbd_connect(dbi_conn_t *conn);
@@ -45,7 +45,7 @@ int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 char *dbd_select_db(dbi_conn_t *conn, const char *db);
 int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
 
-/* _DBD_* PLUGIN AUTHORS HELPER FUNCTIONS */
+/* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected);
 void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields);
 void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs);

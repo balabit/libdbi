@@ -16,7 +16,7 @@ endif
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include @PGSQL_INCLUDE@
 
-libdir = $(plugindir)
+libdir = $(driverdir)
 lib_LTLIBRARIES = $(pgsql_ltlibs)
 libpgsql_la_LDFLAGS = $(pgsql_ldflags) @PGSQL_LFLAGS@ @PGSQL_LIBS@
 libpgsql_la_SOURCES = $(pgsql_sources)

@@ -4,33 +4,33 @@ Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
-INCLUDED PLUGINS:
+INCLUDED DRIVERS:
 -----------------
 
  * mysql
    (maintained by Mark M. Tobenkin)
-   MySQL Database Plugin (using libmysqlclient6)
+   MySQL Database Driver (using libmysqlclient6)
    
  * pgsql
    (maintained by David A. Parker)
-   PostgreSQL Database Plugin (using libpq)
+   PostgreSQL Database Driver (using libpq)
    
  * template
    (maintained by David A. Parker)
-   Example plugin template for plugin authors
+   Example driver template for driver authors
 
 
 OVERALL NOTES:
 --------------
 
-These common options are recognized by all plugins:
+These common options are recognized by all drivers:
  * host
  * port
  * username
  * password
  * dbname
 
-All plugin-specific options are prefixed by the plugin's name, e.g.
+All driver-specific options are prefixed by the driver's name, e.g.
 "mysql_compression" or "pgsql_tty".
 
 

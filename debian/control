@@ -25,15 +25,15 @@ Description: Database independent abstraction layer for C
 Package: libdbd-mysql
 Architecture: any
 Depends: libdbi0 (= ${Source-Version}), libmysqlclient6, zlib1g (>= 1:1.1.3)
-Description: MySQL database server plugin for libdbi
- This plugin provides connectivity to MySQL database servers through the
- libdbi database independent abstraction layer. Switching a program's plugin
+Description: MySQL database server driver for libdbi
+ This driver provides connectivity to MySQL database servers through the
+ libdbi database independent abstraction layer. Switching a program's driver
  does not require recompilation or rewriting source code.
 
 Package: libdbd-pgsql
 Architecture: any
 Depends: libdbi0 (= ${Source-Version}), libpgsql2 (>= 6.4-0), libpgsql2 (<< 7.0)
-Description: PostgreSQL database server plugin for libdbi
- This plugin provides connectivity to PostgreSQL database servers through the
- libdbi database independent abstraction layer. Switching a program's plugin
+Description: PostgreSQL database server driver for libdbi
+ This driver provides connectivity to PostgreSQL database servers through the
+ libdbi database independent abstraction layer. Switching a program's driver
  does not require recompilation or rewriting source code.

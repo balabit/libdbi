@@ -41,8 +41,8 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-#ifndef DBI_PLUGIN_DIR
-#define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this as the default */
+#ifndef DBI_DRIVER_DIR
+#define DBI_DRIVER_DIR "/usr/local/lib/dbd" /* use this as the default */
 #endif
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
@@ -71,7 +71,7 @@ int dbi_initialize(const char *driverdir) {
 	dbi_driver_t *prevdriver = NULL;
 	
 	rootdriver = NULL;
-	effective_driverdir = (driverdir ? (char *)driverdir : DBI_PLUGIN_DIR);
+	effective_driverdir = (driverdir ? (char *)driverdir : DBI_DRIVER_DIR);
 	dir = opendir(effective_driverdir);
 
 	if (dir == NULL) {
@@ -81,7 +81,7 @@ int dbi_initialize(const char *driverdir) {
 		while ((driver_dirent = readdir(dir)) != NULL) {
 			driver = NULL;
 			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_driverdir, driver_dirent->d_name);
-			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(driver_dirent->d_name, '.'), PLUGIN_EXT))) {
+			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(driver_dirent->d_name, '.'), DRIVER_EXT))) {
 				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
 				driver = _get_driver(fullpath);
 				if (driver && (driver->functions->initialize(driver) != -1)) {
@@ -138,7 +138,7 @@ const char *dbi_version() {
 	return "libdbi v" VERSION;
 }
 
-/* XXX PLUGIN FUNCTIONS XXX */
+/* XXX DRIVER FUNCTIONS XXX */
 
 dbi_driver dbi_driver_list(dbi_driver Current) {
 	dbi_driver_t *current = Current;
@@ -189,7 +189,7 @@ void *dbi_driver_specific_function(dbi_driver Driver, const char *name) {
 	return custom ? custom->function_pointer : NULL;
 }
 
-/* PLUGIN: informational functions */
+/* DRIVER: informational functions */
 
 const char *dbi_driver_get_name(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;

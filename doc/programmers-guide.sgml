@@ -65,14 +65,14 @@
 		<Para>
 			In this guide, the terms <Quote>user</Quote> and <Quote>programmer</Quote> are used
 			interchangably, since the target audience is the software developer using libdbi in
-			his program. The libdbi architecture provides serveral <Quote>plugins</Quote>, one
-			for each type of database server. All plugins are loaded into memory upon libdbi
-			initiallization and are made available to the programmer. Once a plugin is
+			his program. The libdbi architecture provides serveral <Quote>drivers</Quote>, one
+			for each type of database server. All drivers are loaded into memory upon libdbi
+			initiallization and are made available to the programmer. Once a driver is
 			<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
-			called a <Quote>driver</Quote>. Multiple drivers may exist for a single plugin, and
+			called a <Quote>connection</Quote>. Multiple connections may exist for a single driver, and
 			all will function independently of each other. A star character (*) represents a
-			wildcard matching any letters. For example, <Quote>dbi_driver_*</Quote> would
-			represent all functions beginning with <Quote>dbi_driver_</Quote>.
+			wildcard matching any letters. For example, <Quote>dbi_conn_*</Quote> would
+			represent all functions beginning with <Quote>dbi_conn_</Quote>.
 		</Para>
 	</Section>
 	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
@@ -101,7 +101,7 @@
 		<Para>
 			Please email us with any bugs, ideas, feature requests, or questions. The libdbi
 			website has the latest version of this documentation and the libdbi software, as
-			well as a central database of third-party plugins.
+			well as a central database of third-party drivers.
 		</Para>
 		<ItemizedList>
 			<ListItem><Para>&www;</Para></ListItem>

@@ -2,12 +2,12 @@
 
 AUTOMAKE_OPTIONS = foreign dist-zip
 
-SUBDIRS = src include doc plugins debian
+SUBDIRS = src include doc drivers debian
 
 #m4datadir = $(datadir)/aclocal
 #m4data_DATA = dbi.m4
 
-EXTRA_DIST = AUTHORS COPYING ChangeLog INSTALL README README.plugins README.win32 TODO libdbi.spec.in config.h.in Makefile.w32
+EXTRA_DIST = AUTHORS COPYING ChangeLog INSTALL README README.drivers README.win32 TODO libdbi.spec.in config.h.in Makefile.w32
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

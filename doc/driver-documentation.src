@@ -1,43 +1,43 @@
 *
 
-NAME dbd_register_plugin
-	PROTO void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words)
+NAME dbd_register_driver
+	PROTO void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words)
 	DESC
-	This is the first function called after the plugin module is loaded into memory. It passes back meta-information back to libdbi through the pointers passed as arguments.	
+	This is the first function called after the driver module is loaded into memory. It passes back meta-information back to libdbi through the pointers passed as arguments.	
 	ENDDESC
-	ARG _plugin_info A pointer used to link to the plugin's information struct.
-	ARG _custom_functions A pointer used to link to the plugin's string array of custom database-specific functions.
-	ARG _reserved_words A pointer used to link to the plugin's string array of reserved words.
+	ARG _driver_info A pointer used to link to the driver's information struct.
+	ARG _custom_functions A pointer used to link to the driver's string array of custom database-specific functions.
+	ARG _reserved_words A pointer used to link to the driver's string array of reserved words.
 	RET 
 
 *
 
 NAME dbd_initialize
-	PROTO int dbd_initialize(dbi_plugin_t *plugin)
+	PROTO int dbd_initialize(dbi_driver_t *driver)
 	DESC
-	Performs any database-specific server initialization. This is called right after dbd_register_plugin().
+	Performs any database-specific server initialization. This is called right after dbd_register_driver().
 	ENDDESC
-	ARG plugin The plugin's pointer.
-	RET -1 on error, 0 on success. If -1 is returned, the plugin will not be added to the list of available plugins.
+	ARG driver The driver's pointer.
+	RET -1 on error, 0 on success. If -1 is returned, the driver will not be added to the list of available drivers.
 
 *
 
 NAME dbd_connect
-	PROTO int dbd_connect(dbi_driver_t *driver)
+	PROTO int dbd_connect(dbi_conn_t *conn)
 	DESC
-	Connects to the database, setting the driver's DB-specific connection handle and current database name. Connection parameters are already filled through the driver's option settings. The standard options that all plugins must recognize (if applicable) are: host, username, password, dbname, and port. Any plugin-specific functions must be prefixed with the name of the plugin and an underscore, such as "mysql_compression".
+	Connects to the database, setting the connection's DB-specific connection handle and current database name. Connection parameters are already filled through the connection's option settings. The standard options that all drivers must recognize (if applicable) are: host, username, password, dbname, and port. Any driver-specific functions must be prefixed with the name of the driver and an underscore, such as "mysql_compression".
 	ENDDESC
-	ARG driver The target driver instance of the plugin.
+	ARG conn The target connection instance of the driver.
 	RET -1 on error, 0 on success.
 
 *
 
 NAME dbd_disconnect
-	PROTO int dbd_disconnect(dbi_driver_t *driver)
+	PROTO int dbd_disconnect(dbi_conn_t *conn)
 	DESC
 	Disconnects from the database server.
 	ENDDESC
-	ARG driver The target driver instance of the plugin.
+	ARG conn The target connection instance of the driver.
 	RET -1 on error, 0 on success.
 
 *
@@ -75,43 +75,43 @@ NAME dbd_goto_row
 *
 
 NAME dbd_list_dbs
-	PROTO dbi_result_t *dbd_list_dbs(dbi_driver_t *driver)
+	PROTO dbi_result_t *dbd_list_dbs(dbi_conn_t *conn)
 	DESC
 	Performs a query that retrieves the list of databases, with the database name as the first column in the result set.
 	ENDDESC
-	ARG driver The target driver.
+	ARG conn The target connection.
 	RET A DBI result object.
 
 *
 
 NAME dbd_list_tables
-	PROTO dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db)
+	PROTO dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db)
 	DESC
 	Performs a query that retrieves the list of tables in the specified database, with the table name as the first column in the result set.
 	ENDDESC
-	ARG driver The target driver.
+	ARG conn The target connection.
 	ARG db The name of the database where tables should be looked for.
 	RET A DBI result object.
 
 *
 
 NAME dbd_query
-	PROTO dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement)
+	PROTO dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement)
 	DESC
 	Performs a query and keeps track of meta-information about the query. Also see the _dbd_result_create helper function.
 	ENDDESC
-	ARG driver The target driver.
+	ARG conn The target connection.
 	ARG statement The query string to execute.
 	RET A DBI result object, or NULL on error.
 
 *
 
 NAME dbd_quote_string
-	PROTO int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest)
+	PROTO int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest)
 	DESC
 	Given a string, wrap quotes around that string and escape any characters that the database server needs escaped.
 	ENDDESC
-	ARG plugin A pointer to the plugin itself, which may be useful in weird cases.
+	ARG driver A pointer to the driver itself, which may be useful in weird cases.
 	ARG orig The string to quote and escape.
 	ARG dest The destination for the new string, which is already allocated as (strlen(orig)*2)+4+1. In the worst case, each character will need to be escaped, with two quote characters at both the beginning and end of the string, plus one for the terminating NULL.
 	RET The length of the new string.
@@ -119,22 +119,22 @@ NAME dbd_quote_string
 *
 
 NAME dbd_select_db
-	PROTO char *dbd_select_db(dbi_driver_t *driver, const char *db)
+	PROTO char *dbd_select_db(dbi_conn_t *conn, const char *db)
 	DESC
 	Selects a new database on the server.
 	ENDDESC
-	ARG driver The target driver.
+	ARG conn The target connection.
 	ARG db The name of the database to switch to.
 	RET The database name on success, "" on error, or NULL if the operation is not supported by the database server.
 
 *
 
 NAME dbd_geterror
-	PROTO int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr)
+	PROTO int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr)
 	DESC
 	Retrieves and stores error information, in numeric and/or string format.
 	ENDDESC
-	ARG driver The target driver.
+	ARG conn The target connection.
 	ARG errno The int variable to hold the error number.
 	ARG errstr The string to hold the error description.
 	RET 0 if there was an error, 1 if errno was filled, 2 if errstr was filled, 3 if both errno and errstr were filled.
@@ -142,12 +142,12 @@ NAME dbd_geterror
 *
 
 NAME _dbd_result_create
-	PROTO dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected)
+	PROTO dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected)
 	DESC
 	Allocates a new dbi_result_t, filling the number of rows matched and affected, storing the database-specific result handle, and allocating room for rows to be stored.
 	ENDDESC
-	ARG driver The target driver.
-	ARG handle The database-specific result handle used internally by the plugin.
+	ARG conn The target connection.
+	ARG handle The database-specific result handle used internally by the driver.
 	ARG numrows_matched The number of rows matched by the query.
 	ARG numrows_affected The number of rows affected by the query.
 	RET A new DBI result object.

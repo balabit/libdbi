@@ -1,19 +1,19 @@
 *
 
 NAME dbi_initialize
-	PROTO int dbi_initialize(const char *plugindir)
+	PROTO int dbi_initialize(const char *driverdir)
 	DESC
-	Locates all available shared modules (plugins) and loads them into memory.
+	Locates all available shared modules (drivers) and loads them into memory.
 	ENDDESC
-	ARG plugindir The directory to search for plugins. If NULL, DBI_PLUGIN_DIR (defined at compile time) will be used instead.
-	RET The number of plugins successfully loaded, or -1 if there was an error.
+	ARG driverdir The directory to search for drivers. If NULL, DBI_DRIVER_DIR (defined at compile time) will be used instead.
+	RET The number of drivers successfully loaded, or -1 if there was an error.
 
 *
 
 NAME dbi_shutdown
 	PROTO void dbi_shutdown()
 	DESC
-	Frees all loaded plugins and terminates the DBI system. You should close each driver you opened before shutting down, but libdbi will clean up after you if you don't.
+	Frees all loaded drivers and terminates the DBI system. You should close each connection you opened before shutting down, but libdbi will clean up after you if you don't.
 	ENDDESC
 	RET 
 
@@ -28,340 +28,340 @@ NAME dbi_version
 
 *
 
-NAME dbi_plugin_list
-	PROTO dbi_plugin dbi_plugin_list(dbi_plugin Current)
+NAME dbi_driver_list
+	PROTO dbi_driver dbi_driver_list(dbi_driver Current)
 	DESC
-	Enumerates all loaded plugins. If Current is NULL, the first available plugin will be returned. If Current is a valid plugin, the next available plugin will be returned.
+	Enumerates all loaded drivers. If Current is NULL, the first available driver will be returned. If Current is a valid driver, the next available driver will be returned.
 	ENDDESC
-	ARG Current The current plugin in the list of plugins.
-	RET The next available plugin, or NULL if there is an error or no more are available.
+	ARG Current The current driver in the list of drivers.
+	RET The next available driver, or NULL if there is an error or no more are available.
 
 *
 
-NAME dbi_plugin_open
-	PROTO dbi_plugin dbi_plugin_open(const char *name)
+NAME dbi_driver_open
+	PROTO dbi_driver dbi_driver_open(const char *name)
 	DESC
-	Locate the plugin with the specified name.
+	Locate the driver with the specified name.
 	ENDDESC
-	ARG name The name of the plugin to open.
-	RET The requested plugin, or NULL if there is an error or it is not found.
+	ARG name The name of the driver to open.
+	RET The requested driver, or NULL if there is an error or it is not found.
 
 *
 
-NAME dbi_plugin_is_reserved_word
-	PROTO int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word)
+NAME dbi_driver_is_reserved_word
+	PROTO int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word)
 	DESC
 	Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.
 	ENDDESC
-	ARG Plugin The target plugin.
+	ARG Driver The target driver.
 	ARG word The word to check against the reserved word list.
 	RET -1 if an error occurs, 0 if the word is not reserved, 1 otherwise.
 
 *
 
-NAME dbi_plugin_specific_function
-	PROTO void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name)
+NAME dbi_driver_specific_function
+	PROTO void *dbi_driver_specific_function(dbi_driver Driver, const char *name)
 	DESC
 	Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but it will restrict your code to one particular database, lessening the benefits of using libdbi.
 	ENDDESC
-	ARG Plugin The target plugin.
+	ARG Driver The target driver.
 	ARG name The name of the custom function.
 	RET If the custom function is found, a pointer to that function. If not, returns NULL.
 
 *
 
-NAME dbi_plugin_get_name
-	PROTO const char *dbi_plugin_get_name(dbi_plugin Plugin)
+NAME dbi_driver_get_name
+	PROTO const char *dbi_driver_get_name(dbi_driver Driver)
 	DESC
-	Requests the name of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests the name of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the plugin's name.
+	ARG Driver The target driver.
+	RET A string containing the driver's name.
 
 *
 
-NAME dbi_plugin_get_filename
-	PROTO const char *dbi_plugin_get_filename(dbi_plugin Plugin)
+NAME dbi_driver_get_filename
+	PROTO const char *dbi_driver_get_filename(dbi_driver Driver)
 	DESC
-	Requests the filename of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests the filename of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the plugin's full path and file name.
+	ARG Driver The target driver.
+	RET A string containing the driver's full path and file name.
 
 *
 
-NAME dbi_plugin_get_description
-	PROTO const char *dbi_plugin_get_description(dbi_plugin Plugin)
+NAME dbi_driver_get_description
+	PROTO const char *dbi_driver_get_description(dbi_driver Driver)
 	DESC
-	Requests a description of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests a description of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the plugin's description. It will be one or two short sentences with no newlines.
+	ARG Driver The target driver.
+	RET A string containing the driver's description. It will be one or two short sentences with no newlines.
 
 *
 
-NAME dbi_plugin_get_maintainer
-	PROTO const char *dbi_plugin_get_maintainer(dbi_plugin Plugin)
+NAME dbi_driver_get_maintainer
+	PROTO const char *dbi_driver_get_maintainer(dbi_driver Driver)
 	DESC
-	Requests the maintainer of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests the maintainer of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the plugin maintainer's full name and email address.
+	ARG Driver The target driver.
+	RET A string containing the driver maintainer's full name and email address.
 
 *
 
-NAME dbi_plugin_get_url
-	PROTO const char *dbi_plugin_get_url(dbi_plugin Plugin)
+NAME dbi_driver_get_url
+	PROTO const char *dbi_driver_get_url(dbi_driver Driver)
 	DESC
-	Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.
+	Requests the maintainer's URL for the specified driver. This is useful for drivers maintained by a third party. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
+	ARG Driver The target driver.
 	RET 
 
 *
 
-NAME dbi_plugin_get_version
-	PROTO const char *dbi_plugin_get_version(dbi_plugin Plugin)
+NAME dbi_driver_get_version
+	PROTO const char *dbi_driver_get_version(dbi_driver Driver)
 	DESC
-	Requests the version of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests the version of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the plugin's version.
+	ARG Driver The target driver.
+	RET A string containing the driver's version.
 
 *
 
-NAME dbi_plugin_get_date_compiled
-	PROTO const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin)
+NAME dbi_driver_get_date_compiled
+	PROTO const char *dbi_driver_get_date_compiled(dbi_driver Driver)
 	DESC
-	Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.
+	Requests the compilation date of the specified driver. The calling program must not attempt to free the returned string.
 	ENDDESC
-	ARG Plugin The target plugin.
-	RET A string containing the date the plugin was compiled.
+	ARG Driver The target driver.
+	RET A string containing the date the driver was compiled.
 
 *
 
-NAME dbi_plugin_quote_string
-	PROTO int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig)
+NAME dbi_driver_quote_string
+	PROTO int dbi_driver_quote_string(dbi_driver Driver, char **orig)
 	DESC
 	Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and will point to a newly allocated one (which you still must free on your own).
 	ENDDESC
-	ARG Plugin The target plugin.
+	ARG Driver The target driver.
 	ARG orig A pointer to the string to quote and escape.
 	RET The new string's length.
 
 *
 
-NAME dbi_driver_new
-	PROTO dbi_driver dbi_driver_new(const char *name)
+NAME dbi_conn_new
+	PROTO dbi_conn dbi_conn_new(const char *name)
 	DESC
-	Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().
+	Creates a connection instance of the driver specified by "name". This is a shortcut for calling dbi_driver_open() and passing the result to dbi_conn_open().
 	ENDDESC
-	ARG name The name of the desired plugin.
-	RET A driver instance of the specified plugin, or NULL if there was an error.
+	ARG name The name of the desired driver.
+	RET A connection instance of the specified driver, or NULL if there was an error.
 
 *
 
-NAME dbi_driver_open
-	PROTO dbi_driver dbi_driver_open(dbi_plugin Plugin)
+NAME dbi_conn_open
+	PROTO dbi_conn dbi_conn_open(dbi_driver Driver)
 	DESC
-	Creates a driver instance of the specified plugin. This driver can be used to perform queries and set options.
-	ENDDESC
-	ARG Plugin The target plugin.
-	RET A driver instance of the specified plugin, or NULL if there was an error.
-
-*
-
-NAME dbi_driver_get_plugin
-	PROTO dbi_plugin dbi_driver_get_plugin(dbi_driver Driver)
-	DESC
-	Returns the plugin type of the specified driver.
+	Creates a connection instance of the specified driver. This connection can be used to perform queries and set options.
 	ENDDESC
 	ARG Driver The target driver.
-	RET The plugin type of the target driver.
+	RET A connection instance of the specified driver, or NULL if there was an error.
 
 *
 
-NAME dbi_driver_set_option
-	PROTO int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value)
+NAME dbi_conn_get_driver
+	PROTO dbi_driver dbi_conn_get_driver(dbi_conn Conn)
 	DESC
-	Sets a specified driver option to a string value.
+	Returns the driver type of the specified connection.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
+	RET The driver type of the target connection.
+
+*
+
+NAME dbi_conn_set_option
+	PROTO int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value)
+	DESC
+	Sets a specified connection option to a string value.
+	ENDDESC
+	ARG Conn The target connection.
 	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
 	ARG value The string value of the target setting.
 	RET -1 on error, 0 on success.
 
 *
 
-NAME dbi_driver_set_option_numeric
-	PROTO int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value)
+NAME dbi_conn_set_option_numeric
+	PROTO int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value)
 	DESC
-	Sets a specified driver option to a numeric value.
+	Sets a specified connection option to a numeric value.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
 	ARG value The numeric value of the target setting.
 	RET -1 on error, 0 on success.
 
 *
 
-NAME dbi_driver_get_option
-	PROTO const char *dbi_driver_get_option(dbi_driver Driver, const char *key)
+NAME dbi_conn_get_option
+	PROTO const char *dbi_conn_get_option(dbi_conn Conn, const char *key)
 	DESC
-	Retrieves the string value of the specified option set for a driver.
+	Retrieves the string value of the specified option set for a connection.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG key The name of the target setting.
 	RET A read-only string with the setting, or NULL if it is not available.
 
 *
 
-NAME dbi_driver_get_option_numeric
-	PROTO int dbi_driver_get_option_numeric(dbi_driver Driver, const char *key)
+NAME dbi_conn_get_option_numeric
+	PROTO int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key)
 	DESC
-	Retrieves the integer value of the specified option set for a driver.
+	Retrieves the integer value of the specified option set for a connection.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG key The name of the target setting.
 	RET The value of the setting, or -1 if it is not available.
 
 *
 
-NAME dbi_driver_get_option_list
-	PROTO const char *dbi_driver_get_option_list(dbi_driver Driver, const char *current)
+NAME dbi_conn_get_option_list
+	PROTO const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current)
 	DESC
-	Enumerates the list of available options for a driver. If current is NULL, the first available option will be returned. If current is a valid option name, the next available option will be returned.
+	Enumerates the list of available options for a connection. If current is NULL, the first available option will be returned. If current is a valid option name, the next available option will be returned.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG current The key name of the target option.
 	RET The key name of the next option, or NULL if there was an error or there are no more options.
 
 *
 
-NAME dbi_driver_clear_option
-	PROTO void dbi_driver_clear_option(dbi_driver Driver, const char *key)
+NAME dbi_conn_clear_option
+	PROTO void dbi_conn_clear_option(dbi_conn Conn, const char *key)
 	DESC
-	Removes the target option setting from a driver.
+	Removes the target option setting from a connection.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG key The name of the target setting.
 	RET 
 
 *
 
-NAME dbi_driver_clear_options
-	PROTO void dbi_driver_clear_options(dbi_driver Driver)
+NAME dbi_conn_clear_options
+	PROTO void dbi_conn_clear_options(dbi_conn Conn)
 	DESC
-	Removes all option settings from a driver.
+	Removes all option settings from a connection.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	RET 
 
 *
 
-NAME dbi_driver_close
-	PROTO void dbi_driver_close(dbi_driver Driver)
+NAME dbi_conn_close
+	PROTO void dbi_conn_close(dbi_conn Conn)
 	DESC
-	Disconnects the specified driver connection from the database and cleans up the driver session.
+	Disconnects the specified connection connection from the database and cleans up the connection session.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	RET 
 
 *
 
-NAME dbi_driver_error
-	PROTO int dbi_driver_error(dbi_driver Driver, char **errmsg_dest)
+NAME dbi_conn_error
+	PROTO int dbi_conn_error(dbi_conn Conn, char **errmsg_dest)
 	DESC
 	Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG errmsg_dest The target string pointer, which will point to the error message. If NULL, no error message will be created, but the error number will still be returned.
 	RET The error number of the most recent database operation if it resulted in an error. If not, this will return -1.
 
 *
 
-NAME dbi_driver_error_handler
-	PROTO void dbi_driver_error_handler(dbi_driver Driver, void *function, void *user_argument)
+NAME dbi_conn_error_handler
+	PROTO void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument)
 	DESC-VERBATIM
 	<Para>
 		Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters:
 	</Para>
 	<ItemizedList>
-		<ListItem><Para>dbi_driver_t *driver: a pointer to the driver that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
+		<ListItem><Para>dbi_conn_t *connection: a pointer to the connection that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
 		<ListItem><Para>void *user_argument: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
 	</ItemizedList>
 	<Para>
 		To remove the error handler callback, specify NULL as the function and user_argument.
 	</Para>
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG function A pointer to the function to call when the error handler should be triggered.
 	ARG user_argument Any data to pass along to the function when it is triggered. Set to NULL if unused.
 	RET 
 
 *
 
-NAME dbi_driver_connect
-	PROTO int dbi_driver_connect(dbi_driver Driver)
+NAME dbi_conn_connect
+	PROTO int dbi_conn_connect(dbi_conn Conn)
 	DESC
-	Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric().  See the documentation for each specific database plugin for the options it recognizes and requires.
+	Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric().  See the documentation for each specific database driver for the options it recognizes and requires.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	RET -1 on failure, zero on success.
 
 *
 
-NAME dbi_driver_get_db_list
-	PROTO dbi_result dbi_driver_get_db_list(dbi_driver Driver)
+NAME dbi_conn_get_db_list
+	PROTO dbi_result dbi_conn_get_db_list(dbi_conn Conn)
 	DESC
 	Queries the list of available databases on the server.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	RET A query result object, which will contain a field named "dbname" from which the standard row/field fetching functions can be used.
 
 *
 
-NAME dbi_driver_get_table_list
-	PROTO dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db)
+NAME dbi_conn_get_table_list
+	PROTO dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db)
 	DESC
 	Queries the list of available tables in a particular database.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG db The target database name.
 	RET A query result object, which will contain a field named "tablename" from which the standard row/field fetching functions can be used.
 
 *
 
-NAME dbi_driver_query
-	PROTO dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...)
+NAME dbi_conn_query
+	PROTO dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...)
 	DESC
 	Execute the specified SQL query statement.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG formatstr The format string for the SQL statement. It uses the same format as printf().
 	ARG (...) Any variables that correspond to the printf-like format string.
 	RET A query result object, or NULL if there was an error.
 
 *
 
-NAME dbi_driver_select_db
-	PROTO int dbi_driver_select_db(dbi_driver Driver, const char *db)
+NAME dbi_conn_select_db
+	PROTO int dbi_conn_select_db(dbi_conn Conn, const char *db)
 	DESC
 	Switches to a different database on the server.
 	ENDDESC
-	ARG Driver The target driver.
+	ARG Conn The target connection.
 	ARG db The target database name.
 	RET -1 on failure, zero on success.
 
 *
 
-NAME dbi_result_get_driver
-	PROTO dbi_driver dbi_result_get_driver(dbi_result Result)
+NAME dbi_result_get_connection
+	PROTO dbi_conn dbi_result_get_connection(dbi_result Result)
 	DESC
-	Returns the driver belonging to the specified result object.
+	Returns the connection belonging to the specified result object.
 	ENDDESC
 	ARG Result The target query result.
-	RET The driver belonging to the target query result.
+	RET The connection belonging to the target query result.
 
 *
 
@@ -439,7 +439,7 @@ NAME dbi_result_get_numrows
 NAME dbi_result_get_numrows_affected
 	PROTO unsigned int dbi_result_get_numrows_affected(dbi_result Result)
 	DESC
-	Returns the number of rows in the specified result set that were actually modified. Note that not all database servers support this, in which case it will always be zero. See the documentation for each specific plugin for details.
+	Returns the number of rows in the specified result set that were actually modified. Note that not all database servers support this, in which case it will always be zero. See the documentation for each specific driver for details.
 	ENDDESC
 	ARG Result The target query result.
 	RET The number of modified rows in the result set.

@@ -4,7 +4,7 @@
 #include <dbi/dbi.h>
 
 int main() {
-    dbi_driver driver;
+    dbi_conn conn;
     dbi_result result;
 
     double threshold = 4.333333;
@@ -12,16 +12,16 @@ int main() {
     const char *fullname;
     
     dbi_initialize(NULL);
-    driver = dbi_driver_new("mysql");
+    conn = dbi_conn_new("mysql");
 
-    dbi_driver_set_option(driver, "host", "localhost");
-    dbi_driver_set_option(driver, "username", "chug");
-    dbi_driver_set_option(driver, "password", "dIP!");
-    dbi_driver_set_option(driver, "dbname", "db_name");
+    dbi_conn_set_option(conn, "host", "localhost");
+    dbi_conn_set_option(conn, "username", "chug");
+    dbi_conn_set_option(conn, "password", "dIP!");
+    dbi_conn_set_option(conn, "dbname", "db_name");
 
-    dbi_driver_connect(driver);
-    result = dbi_driver_query(driver, "SELECT id, name FROM coders"
-                                      "WHERE hours_of_sleep > %0.2f", threshold);
+    dbi_conn_connect(conn);
+    result = dbi_conn_query(conn, "SELECT id, name FROM coders"
+                                  "WHERE hours_of_sleep > %0.2f", threshold);
     
     while (dbi_result_next_row(result)) {
         idnumber = dbi_result_get_long(result, "id");
@@ -30,7 +30,7 @@ int main() {
     }
     
     dbi_result_free(result);
-    dbi_driver_close(driver);
+    dbi_conn_close(conn);
     dbi_shutdown();
 
     return 0;

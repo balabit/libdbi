@@ -13,11 +13,11 @@ published by the Free Software Foundation.
 
 ]>
 
-<Book id="plugin-guide">
+<Book id="driver-guide">
 
 <BookInfo>
 	<Title>Database Independent Abstraction Layer for C</Title>
-	<SubTitle>libdbi Plugin Author's Guide</SubTitle>
+	<SubTitle>libdbi Driver Author's Guide</SubTitle>
 	<Author>
 		<Firstname>David</Firstname>
 		<Othername>A.</Othername>
@@ -52,8 +52,8 @@ published by the Free Software Foundation.
 		simultaneous database connections by using this framework.
 	</Para>
 	<Para>
-		This guide explains the internal DBD interface for libdbi plugins, and
-		provides a reference for all available plugin helper functions.
+		This guide explains the internal DBD interface for libdbi drivers, and
+		provides a reference for all available driver helper functions.
 	</Para>
 	</Abstract>
 </BookInfo>
@@ -73,7 +73,7 @@ published by the Free Software Foundation.
 	<Section id="terminology"><Title>libdbi Concepts and Terminology</Title>
 		<Para>
 			In this guide, the terms <Quote>author</Quote> and <Quote>programmer</Quote> are used
-			interchangably, since the target audience is the software developer writing a plugin for libdbi.
+			interchangably, since the target audience is the software developer writing a driver for libdbi.
 		</Para>
 	</Section>
 	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
@@ -102,7 +102,7 @@ published by the Free Software Foundation.
 		<Para>
 			Please email us with any bugs, ideas, feature requests, or questions. The libdbi
 			website has the latest version of this documentation and the libdbi software, as
-			well as a central database of third-party plugins.
+			well as a central database of third-party drivers.
 		</Para>
 		<ItemizedList>
 			<ListItem><Para>&www;</Para></ListItem>
@@ -112,16 +112,16 @@ published by the Free Software Foundation.
 	</Section>
 </Chapter>
 
-<Chapter id="pluginfuncs"><Title>Plugin Functions</Title>
-	<Section id="pluginfuncs-infrastructure"><Title>Plugin Infrastructure Functions</Title>
-		%%dbd_register_plugin
+<Chapter id="driverfuncs"><Title>Driver Functions</Title>
+	<Section id="driverfuncs-infrastructure"><Title>Driver Infrastructure Functions</Title>
+		%%dbd_register_driver
 		%%dbd_initialize
 		%%dbd_connect
 		%%dbd_disconnect
 		%%dbd_quote_string
 		%%dbd_geterror
 	</Section>
-	<Section id="pluginfuncs-dbquery"><Title>Database Query Functions</Title>
+	<Section id="driverfuncs-dbquery"><Title>Database Query Functions</Title>
 		%%dbd_fetch_row
 		%%dbd_free_query
 		%%dbd_goto_row

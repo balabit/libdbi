@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
-doc_DATA = programmers-guide.pdf programmers-guide/* plugin-guide.pdf plugin-guide/*
+doc_DATA = programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
 
 EXTRA_DIST = $(doc_DATA)
 
@@ -21,24 +21,24 @@ programmers-guide/*:
 	@echo "Converting programmers-guide.sgml to HTML...";
 	sgmltools -b html -s include/doc-html.dsl programmers-guide.sgml
 
-plugin-guide.pdf:
-	@echo "Auto-generating Plugin Author's Guide reference SGML...";
-	./include/markup_to_docbook.pl plugin-guide.tmpl plugin-documentation.src
-	@echo "Converting plugin-guide.sgml to PostScript...";
-	sgmltools -b ps -s include/doc-print.dsl plugin-guide.sgml > /dev/null 2>&1
-	@echo "Converting plugin-guide.ps to PDF...";
-	ps2pdf plugin-guide.ps
+driver-guide.pdf:
+	@echo "Auto-generating Driver Author's Guide reference SGML...";
+	./include/markup_to_docbook.pl driver-guide.tmpl driver-documentation.src
+	@echo "Converting driver-guide.sgml to PostScript...";
+	sgmltools -b ps -s include/doc-print.dsl driver-guide.sgml > /dev/null 2>&1
+	@echo "Converting driver-guide.ps to PDF...";
+	ps2pdf driver-guide.ps
 
-plugin-guide/*:
-	@echo "Converting plugin-guide.sgml to HTML...";
-	sgmltools -b html -s include/doc-html.dsl plugin-guide.sgml
+driver-guide/*:
+	@echo "Converting driver-guide.sgml to HTML...";
+	sgmltools -b html -s include/doc-html.dsl driver-guide.sgml
 
 distclean: clean
 	rm -f programmers-guide.ps
 	if [ -f programmers-guide.tmpl ]; then rm -rf programmers-guide/ programmers-guide.pdf; fi
-	rm -f plugin-guide.ps
-	if [ -f plugin-guide.tmpl ]; then rm -rf plugin-guide/ plugin-guide.pdf; fi
+	rm -f driver-guide.ps
+	if [ -f driver-guide.tmpl ]; then rm -rf driver-guide/ driver-guide.pdf; fi
 
 # this can't be kosher...
 install-exec-am: $(top_srcdir)/mkinstalldirs
-	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(docdir) $(DESTDIR)$(docdir)/programmers-guide $(DESTDIR)$(docdir)/plugin-guide
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(docdir) $(DESTDIR)$(docdir)/programmers-guide $(DESTDIR)$(docdir)/driver-guide

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/dbi_main.c)
 
-AM_INIT_AUTOMAKE(libdbi, 0.6.2)
+AM_INIT_AUTOMAKE(libdbi, 0.6.4)
 AM_CONFIG_HEADER(config.h)
 
 dnl Library versioning
@@ -14,8 +14,8 @@ AC_SUBST(LIB_AGE)
 
 AC_CANONICAL_HOST
 
-plugindir=$libdir/dbd
-AC_SUBST(plugindir)
+driverdir=$libdir/dbd
+AC_SUBST(driverdir)
 
 dnl ====================================
 dnl Check for programs
@@ -98,7 +98,7 @@ esac
 
 AC_CHECK_FUNCS(strtoll)
 AC_REPLACE_FUNCS(atoll)
-AC_DEFINE_UNQUOTED(PLUGIN_EXT, "$shlib_ext", [ ])
+AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ ])
 
 dnl ==============================
 dnl Checks for header files
@@ -114,7 +114,7 @@ AC_OUTPUT([
 	doc/Makefile
 	include/Makefile
 	include/dbi/Makefile
-	plugins/Makefile
-	plugins/mysql/Makefile
-	plugins/postgresql/Makefile
+	drivers/Makefile
+	drivers/mysql/Makefile
+	drivers/postgresql/Makefile
 	])

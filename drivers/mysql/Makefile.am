@@ -16,7 +16,7 @@ endif
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include @MYSQL_INCLUDE@
 
-libdir = $(plugindir)
+libdir = $(driverdir)
 lib_LTLIBRARIES = $(mysql_ltlibs)
 libmysql_la_LDFLAGS = $(mysql_ldflags) @MYSQL_LFLAGS@ @MYSQL_LIBS@
 libmysql_la_SOURCES = $(mysql_sources)

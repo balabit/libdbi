@@ -47,7 +47,7 @@ CC = gcc
 DEBUG = -g -Wall -D__NO_MATH_INLINES -fsigned-char
 MYSQL_LIBS = -lmysqlclient -ldbi -lz -liberty
 PGSQL_LIBS = -lpq -ldbi -lz -liberty
-plugindir = ${exec_prefix}/lib/dbd
+driverdir = ${exec_prefix}/lib/dbd
 
 LIBDBI_DLL_NAME = libdbi.dll
 LIBMYSQL_DLL_NAME = libmysql.dll
@@ -74,16 +74,16 @@ libdbi-dll: $(top_srcdir)/src/dbi_main.o
 	$(DLLWRAP) -o $(LIBDBI_DLL_NAME) --def $(LIBDBI_DLL_EXP_DEF) \
 	--output-lib $(LIBDBI_DLL_EXP_LIB) ../*.o -liberty
 
-libmysql-dll: $(top_srcdir)/plugins/mysql/dbd_mysql.o 
-	cd $(top_srcdir)/plugins/mysql/.libs && \
+libmysql-dll: $(top_srcdir)/drivers/mysql/dbd_mysql.o 
+	cd $(top_srcdir)/drivers/mysql/.libs && \
 	$(DLLTOOL) --export-all --output-def $(LIBMYSQL_DLL_EXP_DEF) ../*.o && \
 	$(DLLTOOL) --dllname $(LIBMYSQL_DLL_NAME) --def $(LIBMYSQL_DLL_EXP_DEF) \
 	--output-lib $(LIBMYSQL_DLL_EXP_LIB) && \
 	$(DLLWRAP) -o $(LIBMYSQL_DLL_NAME) --def $(LIBMYSQL_DLL_EXP_DEF) \
 	--output-lib $(LIBMYSQL_DLL_EXP_LIB) -L ../../../src/.libs ../*.o $(MYSQL_LIBS)
 
-libpgsql-dll: $(top_srcdir)/plugins/postgresql/dbd_pgsql.o
-	cd $(top_srcdir)/plugins/postgresql/.libs && \
+libpgsql-dll: $(top_srcdir)/drivers/postgresql/dbd_pgsql.o
+	cd $(top_srcdir)/drivers/postgresql/.libs && \
 	$(DLLTOOL) --export-all --output-def $(LIBPGSQL_DLL_EXP_DEF) ../*.o && \
 	$(DLLTOOL) --dllname $(LIBPGSQL_DLL_NAME) --def $(LIBPGSQL_DLL_EXP_DEF) \
 	--output-lib $(LIBPGSQL_DLL_EXP_LIB) && \
@@ -93,10 +93,10 @@ libpgsql-dll: $(top_srcdir)/plugins/postgresql/dbd_pgsql.o
 install:
 	cp $(top_srcdir)/src/.libs/$(LIBDBI_DLL_NAME) $(bindir) && \
 	cp $(top_srcdir)/src/.libs/$(LIBDBI_DLL_EXP_LIB) $(libdir) && \
-	cp $(top_srcdir)/plugins/mysql/.libs/$(LIBMYSQL_DLL_NAME) $(plugindir) && \
-	cp $(top_srcdir)/plugins/mysql/.libs/$(LIBMYSQL_DLL_EXP_LIB) $(plugindir) && \
-	cp $(top_srcdir)/plugins/postgresql/.libs/$(LIBPGSQL_DLL_NAME) $(plugindir) && \
-	cp $(top_srcdir)/plugins/postgresql/.libs/$(LIBPGSQL_DLL_EXP_LIB) $(plugindir)
+	cp $(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_NAME) $(driverdir) && \
+	cp $(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_EXP_LIB) $(driverdir) && \
+	cp $(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_NAME) $(driverdir) && \
+	cp $(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_EXP_LIB) $(driverdir)
 
 
 .PHONY: libdbi.dll libmysql.dll libpgsql.dll install

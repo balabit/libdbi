@@ -30,23 +30,23 @@ The libdbi-devel package contains the header files and documentation
 needed to develop applications with libdbi.
 
 %package dbd-mysql
-Summary: MySQL plugin for libdbi
+Summary: MySQL driver for libdbi
 Group: Development/Libraries
 Requires:	%{name} = %{version}-%{release}, mysqlclient9 >= 3.23.22
 
 %description dbd-mysql
-This plugin provides connectivity to MySQL database servers through the
-libdbi database independent abstraction layer. Switching a program's plugin
+This driver provides connectivity to MySQL database servers through the
+libdbi database independent abstraction layer. Switching a program's driver
 does not require recompilation or rewriting source code.
 
 %package dbd-pgsql
-Summary: PostgreSQL plugin for libdbi
+Summary: PostgreSQL driver for libdbi
 Group: Development/Libraries
 Requires:	%{name} = %{version}-%{release}, postgresql >= 7.0.3
 
 %description dbd-pgsql
-This plugin provides connectivity to PostgreSQL database servers through the
-libdbi database independent abstraction layer. Switching a program's plugin
+This driver provides connectivity to PostgreSQL database servers through the
+libdbi database independent abstraction layer. Switching a program's driver
 does not require recompilation or rewriting source code.
 
 %prep
@@ -66,7 +66,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc ChangeLog
 %doc COPYING
 %doc README
-%doc README.plugins
+%doc README.drivers
 /usr/lib/libdbi.so.*
 
 %files devel
@@ -74,8 +74,8 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc TODO
 %doc doc/programmers-guide.pdf
 %doc doc/programmers-guide/
-%doc doc/plugin-guide.pdf
-%doc doc/plugin-guide/
+%doc doc/driver-guide.pdf
+%doc doc/driver-guide/
 /usr/include/dbi/dbi.h
 /usr/include/dbi/dbi-dev.h
 /usr/include/dbi/dbd.h

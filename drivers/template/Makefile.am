@@ -16,7 +16,7 @@ endif
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include @TEMPLATE_INCLUDE@
 
-libdir = $(plugindir)
+libdir = $(driverdir)
 lib_LTLIBRARIES = $(template_ltlibs)
 libtemplate_la_LDFLAGS = $(template_ldflags) @TEMPLATE_LFLAGS@ @TEMPLATE_LIBS@
 libtemplate_la_SOURCES = $(template_sources)
