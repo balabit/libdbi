@@ -104,7 +104,7 @@ int dbd_disconnect(dbi_driver_t *myself)
 
 
 
-int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
+int dbd_fetch_field(dbi_result_t *result, const char *key, void *dest) {
 	/* grab the value in the field, convert it to the
 	 * appropriate C datatype, and stuff it into dest */
 	dbi_row_t *row;
@@ -118,7 +118,7 @@ int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
 	}
 
 	for(i = 0; i < row->numfields; i++){
-		if(!strcmp(key, row->column_names[i]))
+		if(!strcmp(key, row->field_names[i]))
 			break;
 	}
 
@@ -127,8 +127,6 @@ int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
 		return 0;
 	}
 
-	<F7><F5><F6><F4><F3><F2><F3><F2>
-	
 	return 0;
 }
 
