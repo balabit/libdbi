@@ -91,18 +91,26 @@ case $host in
 	*-*-win32*)
 		shlib_ext=.dll ;;
 	*-*-darwin*)
-		shlib_ext=.bundle
+		shlib_ext=.dylib
 		dlsym_prefix=_ ;;
 	*)
 		shlib_ext=.so ;;
 esac
 
+AC_ARG_WITH(shlib-ext,
+	[ --with-shlib-ext	  Specifies the filename extension of loadable modules (usually not necessary).],
+	[ shlib_ext=$withval ])
+AC_ARG_WITH(dlsym-prefix,
+	[ --with-dlsym-prefix	  Specifies a required prefix for symbol names of dynamically loaded modules (usually not necessary).],
+	[ dlsym_prefix=$withval ])
+
+AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ Specifies the filename extension of loadable modules ])
+AC_DEFINE_UNQUOTED(DLSYM_PREFIX, "$dlsym_prefix", [ Specifies a required prefix for symbol names of dynamically loaded modules ])
+
 AC_CHECK_FUNCS(strtoll)
 AC_REPLACE_FUNCS(atoll)
 AC_CHECK_FUNCS(vasprintf)
 AC_REPLACE_FUNCS(asprintf)
-AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ Specifies the filename extension of loadable modules ])
-AC_DEFINE_UNQUOTED(DLSYM_PREFIX, "$dlsym_prefix", [ Specifies a required prefix for symbol names of dynamically loaded modules ])
 
 dnl ==============================
 dnl Checks for header files
