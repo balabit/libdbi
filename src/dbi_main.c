@@ -32,14 +32,17 @@
 
 #include <dbi/dbi.h>
 
-#define LIBDBI_VERSION "0.1"
-#define DBI_PLUGIN_DIR "/usr/lib/dbi" /* use this default unless one is specified by the program */
+#define LIBDBI_VERSION "0.0.8"
 
+#ifndef DBI_PLUGIN_DIR
+#define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this default unless one is specified by the program */
+#endif
 
 /* declarations for internal functions */
 dbi_plugin_t *_get_plugin(const char *filename);
 void _free_custom_functions(dbi_plugin_t *plugin);
 dbi_option_t *_find_or_create_option_node(dbi_driver_t *driver, const char *key);
+void _error_handler(dbi_driver_t *driver);
 
 /* declarations for variadic printf-like functions */
 dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
@@ -53,7 +56,7 @@ dbi_plugin_t *rootplugin;
 
 int dbi_initialize(const char *plugindir) {
 	DIR *dir;
-	struct dirent *plugin_dirent;
+	struct dirent *plugin_dirent = NULL;
 	struct stat statbuf;
 	char fullpath[FILENAME_MAX];
 	char *effective_plugindir;
@@ -63,17 +66,17 @@ int dbi_initialize(const char *plugindir) {
 	dbi_plugin_t *prevplugin = NULL;
 	
 	rootplugin = NULL;
-	effective_plugindir = (plugindir || DBI_PLUGIN_DIR);
+	effective_plugindir = (plugindir ? (char *)plugindir : DBI_PLUGIN_DIR);
 	dir = opendir(effective_plugindir);
 
 	if (dir == NULL) {
 		return -1;
 	}
 	else {
-		while (plugin_dirent = readdir(dir)) {
+		while ((plugin_dirent = readdir(dir)) != NULL) {
 			plugin = NULL;
 			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_plugindir, plugin_dirent->d_name);
-			if (!stat(fullpath, &statbuf) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), ".so"))) {
+			if ((stat(fullpath, &statbuf)==0/*XXX*/) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), ".so"))) {
 				/* file is a stat'able regular file that ends in .so */
 				plugin = _get_plugin(fullpath);
 				if (plugin && (plugin->functions->initialize(plugin) != -1)) {
@@ -87,9 +90,9 @@ int dbi_initialize(const char *plugindir) {
 					num_loaded++;
 				}
 				else {
-					dlclose(plugin->dlhandle);
-					free(plugin->functions);
-					free(plugin);
+					if (plugin && plugin->dlhandle) dlclose(plugin->dlhandle);
+					if (plugin && plugin->functions) free(plugin->functions);
+					if (plugin) free(plugin);
 					plugin = NULL; /* don't include in linked list */
 				}
 			}
@@ -103,7 +106,7 @@ int dbi_initialize(const char *plugindir) {
 dbi_plugin_t *_get_plugin(const char *filename) {
 	dbi_plugin_t *plugin;
 	void *dlhandle;
-	char **custom_functions_list;
+	const char **custom_functions_list;
 	unsigned int idx = 0;
 	dbi_custom_function_t *prevcustom = NULL;
 	dbi_custom_function_t *custom = NULL;
@@ -126,6 +129,7 @@ dbi_plugin_t *_get_plugin(const char *filename) {
 		if ( /* nasty looking if block... is there a better way to do it? */
 			((plugin->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
 			((plugin->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
+			((plugin->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_field = dlsym(dlhandle, "dbd_fetch_field")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_field_raw = dlsym(dlhandle, "dbd_fetch_field_raw")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
@@ -139,7 +143,7 @@ dbi_plugin_t *_get_plugin(const char *filename) {
 			((plugin->functions->num_rows = dlsym(dlhandle, "dbd_num_rows")) == NULL) || dlerror() ||
 			((plugin->functions->num_rows_affected = dlsym(dlhandle, "dbd_num_rows_affected")) == NULL) || dlerror() ||
 			((plugin->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
-			((plugin->functions->effecient_query = dlsym(dlhandle, "dbd_efficient_query")) == NULL) || dlerror() ||
+			((plugin->functions->efficient_query = dlsym(dlhandle, "dbd_efficient_query")) == NULL) || dlerror() ||
 			((plugin->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
 			((plugin->functions->errstr = dlsym(dlhandle, "dbd_errstr")) == NULL) || dlerror() ||
 			((plugin->functions->errno = dlsym(dlhandle, "dbd_errno")) == NULL) || dlerror()
@@ -149,6 +153,7 @@ dbi_plugin_t *_get_plugin(const char *filename) {
 			free(plugin);
 			return NULL;
 		}
+		plugin->info = plugin->functions->get_info();
 		plugin->reserved_words = plugin->functions->get_reserved_words_list();
 		custom_functions_list = plugin->functions->get_custom_functions_list();
 		plugin->custom_functions = NULL; /* in case no custom functions are available */
@@ -178,6 +183,7 @@ dbi_plugin_t *_get_plugin(const char *filename) {
 				prevcustom->next = custom;
 			}
 			prevcustom = custom;
+			idx++;
 		}
 	}		
 	return plugin;
@@ -225,7 +231,7 @@ dbi_driver_t *dbi_load_driver(const char *name) {
 	return driver;
 }
 
-dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin) {
+dbi_driver_t *dbi_start_driver(dbi_plugin_t *plugin) {
 	dbi_driver_t *driver;
 
 	driver = (dbi_driver_t *) malloc(sizeof(dbi_driver_t));
@@ -234,7 +240,6 @@ dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin) {
 	}
 	driver->plugin = plugin;
 	driver->options = NULL;
-	driver->generic_connection = NULL;
 	driver->connection = NULL;
 	driver->current_db = NULL;
 	driver->status = 0;
@@ -252,7 +257,7 @@ dbi_option_t *_find_or_create_option_node(dbi_driver_t *driver, const char *key)
 	int found = 0;
 
 	while (option && !found) {
-		if (strcasecomp(key, option->key) == 0) {
+		if (strcasecmp(key, option->key) == 0) {
 			found = 1;
 		}
 		else {
@@ -267,7 +272,12 @@ dbi_option_t *_find_or_create_option_node(dbi_driver_t *driver, const char *key)
 			return NULL;
 		}
 		option->next = NULL;
-		prevoption->next = option;
+		if (driver->options == NULL) {
+		    driver->options = option;
+		}
+		else {
+		    prevoption->next = option;
+		}
 	}
 
 	return option;
@@ -281,8 +291,8 @@ int dbi_set_option(dbi_driver_t *driver, const char *key, char *value) {
 		return -1;
 	}
 	
-	strcpy(option->key, key);
-	strcpy(option->string_value, value);
+	option->key = strdup(key);
+	option->string_value = strdup(value);
 	option->numeric_value = 0;
 	
 	return 0;
@@ -296,7 +306,7 @@ int dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value) {
 		return -1;
 	}
 	
-	strcpy(option->key, key);
+	option->key = strdup(key);
 	option->string_value = NULL;
 	option->numeric_value = value;
 	
@@ -308,7 +318,7 @@ const char *dbi_get_option(dbi_driver_t *driver, const char *key) {
 
 	option = driver->options;
 	while (option) {
-		if (strcasecomp(key, option->key) == 0) {
+		if (strcasecmp(key, option->key) == 0) {
 			return option->string_value;
 		}
 		option = option->next;
@@ -322,7 +332,7 @@ int dbi_get_option_numeric(dbi_driver_t *driver, const char *key) {
 
 	option = driver->options;
 	while (option) {
-		if (strcasecomp(key, option->key) == 0) {
+		if (strcasecmp(key, option->key) == 0) {
 			return option->numeric_value;
 		}
 		option = option->next;
@@ -351,7 +361,7 @@ void *dbi_custom_function(dbi_plugin_t *plugin, const char *name) {
 	dbi_custom_function_t *custom = plugin->custom_functions;
 
 	while (custom) {
-		if (strcasecomp(name, custom->name) == 0) {
+		if (strcasecmp(name, custom->name) == 0) {
 			return custom->function_pointer;
 		}
 		prevcustom = custom;
@@ -364,7 +374,7 @@ void *dbi_custom_function(dbi_plugin_t *plugin, const char *name) {
 int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word) {
 	unsigned int idx = 0;
 	while (plugin->reserved_words[idx]) {
-		if (strcasecomp(word, plugin->reserved_words[idx]) == 0) {
+		if (strcasecmp(word, plugin->reserved_words[idx]) == 0) {
 			return 1;
 		}
 	}
@@ -375,12 +385,11 @@ void dbi_close_driver(dbi_driver_t *driver) {
 	driver->plugin->functions->disconnect(driver);
 	driver->plugin = NULL;
 	dbi_clear_options(driver);
-	driver->generic_connection = NULL;
 	driver->connection = NULL;
-	free(driver->current_db);
+	if (driver->current_db) free(driver->current_db);
 	driver->status = 0;
 	driver->error_number = 0;
-	free(driver->error_message); /* XXX: bleh? */
+	if (driver->error_message) free(driver->error_message); /* XXX: bleh? */
 	driver->error_handler = NULL;
 	driver->error_handler_argument = NULL;
 	free(driver);
@@ -395,7 +404,7 @@ void dbi_shutdown() {
 		dlclose(cur->dlhandle);
 		free(cur->functions);
 		_free_custom_functions(cur);
-		free(cur->filename); /* XXX: ??? */
+		//free(cur->filename); /* XXX: ??? */
 		free(cur);
 		cur = next;
 	}
@@ -441,65 +450,65 @@ const char *dbi_version() {
  ***********************/
 
 int dbi_connect(dbi_driver_t *driver) {
-	int retval = driver->functions->connect(driver);
+	int retval = driver->plugin->functions->connect(driver);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(driver);
 	}
 	return retval;
 }
 
-int dbi_fetch_field(dbi_result_t *result, const char *key, void *dest) {
-	int retval = driver->functions->fetch_field(result, key, dest);
+int dbi_fetch_field(dbi_result_t *result, const char *key, void **dest) {
+	int retval = result->driver->plugin->functions->fetch_field(result, key, dest);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(result->driver);
 	}
 	return retval;
 }
 
-int dbi_fetch_field_raw(dbi_result_t *result, const char *key, unsigned char *dest) {
-	int retval = driver->functions->fetch_field_raw(result, key, dest);
+int dbi_fetch_field_raw(dbi_result_t *result, const char *key, unsigned char **dest) {
+	int retval = result->driver->plugin->functions->fetch_field_raw(result, key, dest);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(result->driver);
 	}
 	return retval;
 }
 
 int dbi_fetch_row(dbi_result_t *result) {
-	int retval = driver->functions->fetch_row(result);
+	int retval = result->driver->plugin->functions->fetch_row(result);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(result->driver);
 	}
 	return retval;
 }
 
 int dbi_free_query(dbi_result_t *result) {
-	int retval = driver->functions->free_query(result);
+	int retval = result->driver->plugin->functions->free_query(result);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(result->driver);
 	}
 	return retval;
 }
 
 int dbi_goto_row(dbi_result_t *result, unsigned int row) {
-	int retval = driver->functions->goto_row(result, row);
+	int retval = result->driver->plugin->functions->goto_row(result, row);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(result->driver);
 	}
 	return retval;
 }
 
 const char **dbi_list_dbs(dbi_driver_t *driver) {
-	int retval = driver->functions->list_dbs(driver);
+	const char **retval = driver->plugin->functions->list_dbs(driver);
 	if (retval == NULL) {
-		_dbi_error_handler(driver);
+		_error_handler(driver);
 	}
 	return retval;
 }
 
-const char **dbi_list_tables(dbi_driver_t *driver, const char *db);
-	int retval = driver->functions->list_tables(driver, db);
-	if (retval == -1) {
-		_dbi_error_handler(driver);
+const char **dbi_list_tables(dbi_driver_t *driver, const char *db) {
+	const char **retval = driver->plugin->functions->list_tables(driver, db);
+	if (retval == NULL) {
+		_error_handler(driver);
 	}
 	return retval;
 }
@@ -512,45 +521,51 @@ unsigned int dbi_num_rows_affected(dbi_result_t *result) {
 	return result->numrows_affected;
 }
 
+int vasprintf(char **, const char *, va_list); /* to shut up gcc */
+
 dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...) {
 	char *statement;
+	dbi_result_t *retval;
 	va_list ap;
 	
 	va_start(ap, formatstr);
 	vasprintf(&statement, formatstr, ap);
 	va_end(ap);
 	
-	int retval = driver->functions->query(driver, statement);
-	if (retval == -1) {
-		_dbi_error_handler(driver);
+	retval = driver->plugin->functions->query(driver, statement);
+	if (retval == NULL) {
+		_error_handler(driver);
 	}
+	free(statement);
 	return retval;
 }
 
 dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...) {
 	char *statement;
+	dbi_result_t *retval;
 	va_list ap;
 	
 	va_start(ap, formatstr);
 	vasprintf(&statement, formatstr, ap);
 	va_end(ap);
 	
-	int retval = driver->functions->efficient_query(driver, statement);
-	if (retval == -1) {
-		_dbi_error_handler(driver);
+	retval = driver->plugin->functions->efficient_query(driver, statement);
+	if (retval == NULL) {
+		_error_handler(driver);
 	}
+	free(statement);
 	return retval;
 }
 
 int dbi_select_db(dbi_driver_t *driver, const char *db) {
-	int retval = driver->functions->select_db(driver, db);
+	int retval = driver->plugin->functions->select_db(driver, db);
 	if (retval == -1) {
-		_dbi_error_handler(driver);
+		_error_handler(driver);
 	}
 	return retval;
 }
 
-int *dbi_error(dbi_driver_t *driver, char *errmsg_dest) {
+int dbi_error(dbi_driver_t *driver, char *errmsg_dest) {
 	char number_portion[20];
 	char errmsg[512];
 	if (driver->error_number) {
@@ -571,6 +586,24 @@ void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument
 	}
 	else {
 		driver->error_handler_argument = user_argument;
+	}
+}
+
+void _error_handler(dbi_driver_t *driver) {
+	int errno = driver->plugin->functions->errno(driver);
+	const char *errmsg = driver->plugin->functions->errstr(driver);
+	void (*errfunc)(dbi_driver_t *, void *);
+
+	if (errno) {
+		driver->error_number = errno;
+	}
+	if (errmsg) {
+		driver->error_message = (char *) errmsg;
+	}
+	if (driver->error_handler != NULL) {
+		/* trigger the external callback function */
+		errfunc = driver->error_handler;
+		errfunc(driver, driver->error_handler_argument);
 	}
 }
 
