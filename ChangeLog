@@ -1,3 +1,8 @@
+2002-11-18	David A. Parker  <david at neongoat dot com>
+
+	* release 0.6.7 (the "Happy Birthday" release)
+	* fixed brown-paper-bag inability to retrieve integer fields
+
 2002-10-27	David A. Parker  <david at neongoat dot com>
 
 	* release 0.6.6 (the "Preemptive Ghostbusting" release)
