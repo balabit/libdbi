@@ -17,6 +17,16 @@ make -f Makefile.w32
 make -f Makefile.w32 install
 
 
+CYGWIN DETAILS:
+---------------
+
+There are unfortunately no "Cygwin" releases in a sense as there are Debian 2.2
+or FreeBSD 4.5. All components, including the cygwin1.dll, gcc, bash etc. have
+their own independent versions. The most important package for the new-style
+Makefile to work is the binutils package (linker and such), which should be
+"binutils-20011002-1" or newer.
+
+
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
 ----------------------------------------
 
