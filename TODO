@@ -1,5 +1,8 @@
 $Id$
 
+- add a pkg-config thingy
+- go through the rest of this todo and remove stuff that's done
+
 - ability to completely disjoin result sets
 - prepared statements!
 - table introspection

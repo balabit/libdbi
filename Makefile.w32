@@ -29,39 +29,23 @@ host_triplet = i686-pc-cygwin
 AS = @AS@
 CC = gcc
 DEBUG = -g -Wall -D__NO_MATH_INLINES -fsigned-char
-MYSQL_LIBS = -ldbi -lmysqlclient -liberty
-PGSQL_LIBS = -ldbi -lpq -liberty
 driverdir = ${exec_prefix}/lib/dbd
 
 LIBDBI_DLL_NAME = libdbi.dll
-LIBMYSQL_DLL_NAME = libmysql.dll
-LIBPGSQL_DLL_NAME = libpgsql.dll
 
 LIBDBI_DLL_EXP_LIB = libdbi.dll.a
-LIBMYSQL_DLL_EXP_LIB = libmysql.dll.a
-LIBPGSQL_DLL_EXP_LIB = libpgsql.dll.a
 
-all: libdbi-dll libmysql-dll libpgsql-dll
+all: libdbi-dll
 
 libdbi-dll: $(top_srcdir)/src/dbi_main.o
 	$(CC) -shared -Wl,--out-implib=$(top_srcdir)/src/.libs/$(LIBDBI_DLL_EXP_LIB) -o $(top_srcdir)/src/.libs/$(LIBDBI_DLL_NAME) $(top_srcdir)/src/*.o -liberty
 
-libmysql-dll: $(top_srcdir)/drivers/mysql/dbd_mysql.o 
-	$(CC) -shared -Wl,--out-implib=$(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_EXP_LIB) -o $(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_NAME) -L$(top_srcdir)/src/.libs $(top_srcdir)/drivers/mysql/*.o $(MYSQL_LIBS)
-
-libpgsql-dll: $(top_srcdir)/drivers/postgresql/dbd_pgsql.o
-	$(CC) -shared -Wl,--out-implib=$(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_EXP_LIB) -o $(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_NAME) -L$(top_srcdir)/src/.libs $(top_srcdir)/drivers/postgresql/*.o $(PGSQL_LIBS)
-
 install:
 	cp $(top_srcdir)/src/.libs/$(LIBDBI_DLL_NAME) $(bindir) && \
-	cp $(top_srcdir)/src/.libs/$(LIBDBI_DLL_EXP_LIB) $(libdir) && \
-	cp $(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_NAME) $(driverdir) && \
-	cp $(top_srcdir)/drivers/mysql/.libs/$(LIBMYSQL_DLL_EXP_LIB) $(driverdir) && \
-	cp $(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_NAME) $(driverdir) && \
-	cp $(top_srcdir)/drivers/postgresql/.libs/$(LIBPGSQL_DLL_EXP_LIB) $(driverdir)
+	cp $(top_srcdir)/src/.libs/$(LIBDBI_DLL_EXP_LIB) $(libdir)
 
 
-.PHONY: libdbi.dll libmysql.dll libpgsql.dll install
+.PHONY: libdbi.dll install
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

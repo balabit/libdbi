@@ -23,6 +23,7 @@ dnl ====================================
 
 AC_PROG_CC
 AC_LIBTOOL_DLOPEN
+AC_SUBST(LIBADD_DL)
 AM_PROG_LIBTOOL
 
 dnl ====================================
@@ -65,7 +66,6 @@ else
         esac
 fi
 
-
 AC_SUBST(DEBUG)
 AC_SUBST(PROFILE)
 
@@ -82,8 +82,6 @@ dnl ==============================
 dnl Check for libraries
 dnl ==============================
 
-AC_CHECK_MYSQL
-AC_CHECK_PGSQL
 
 dnl ==============================
 dnl Check for functions
@@ -115,8 +113,5 @@ AC_OUTPUT([
 	doc/Makefile
 	include/Makefile
 	include/dbi/Makefile
-	drivers/Makefile
-	drivers/mysql/Makefile
-	drivers/postgresql/Makefile
 	tests/Makefile
 	])
