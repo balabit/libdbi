@@ -301,6 +301,7 @@ time_t _dbd_parse_datetime(const char *raw, unsigned long attribs) {
 	  free(unparsed);
 	}
 
-	return mktime(&unixtime);
+	/* output is UTC, not local time */
+	return timegm(&unixtime);
 }
 
