@@ -22,17 +22,17 @@ extern "C" {
 typedef struct dbi_row_s {
 	void *row_handle; /*  will be typecast into driver-specific type */ */
 	int numfields; /* the number of fields this row contains */
-	const char *column_names[]; /* TODO: possible switch to field_names/types*/
-	unsigned short column_types[]; /*  TODO: determine bitmasks for various types. or maybe use an enum */
-	void *values[];
+	const char *field_names[]; /* TODO: possible switch to field_names/types*/
+	unsigned short field_types[]; /*  TODO: determine bitmasks for various types. or maybe use an enum */
+	void *field_values[];
 	struct dbi_row_s *next; /*  NULL, unless we slurp all available rows at once  */
 } dbi_row_t;
 
 typedef struct dbi_result_s {
 	dbi_driver_t *driver; /*  to link upwards to the parent driver node  */
 	void *result_handle;  /* will be typecast into driver-specific type  */
-	unsigned int numrows_matched;
-	unsigned int numrows_changed; /*  not all servers differentiate rows changed from rows matched, so this may be zero */
+	unsigned long numrows_matched;
+	unsigned long numrows_changed; /*  not all servers differentiate rows changed from rows matched, so this may be zero */
 	dbi_row_t *row;
 } dbi_result_t; 
 
@@ -139,8 +139,8 @@ const char *dbi_version();
 
 int dbi_connect(dbi_driver_t *driver); /*  host and login info already stored in driver's info table  */
 /*  int dbi_disconnect(dbi_driver_t *driver); ---- this will be done automatically by dbi_close_driver()  */
-int dbi_fetch_field(dbi_result_t *result, const char *key, void *&to);
-int dbi_fetch_field_raw(dbi_result_t *result, const char *key, void *&to); /*  doesn't autodetect field types. should this stay here? --dap || Should 'to' perhaps be a char*? --mmt */
+int dbi_fetch_field(dbi_result_t *result, const char *key, void *to);
+int dbi_fetch_field_raw(dbi_result_t *result, const char *key, void *to); /*  doesn't autodetect field types. should this stay here? --dap || Should 'to' perhaps be a char*? --mmt */
 int dbi_fetch_row(dbi_result_t *result);
 int dbi_free_query(dbi_result_t *result);
 int dbi_goto_row(dbi_result_t *result, unsigned int row);
