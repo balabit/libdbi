@@ -123,7 +123,7 @@ int dbi_initialize(const char *driverdir) {
 		while ((driver_dirent = readdir(dir)) != NULL) {
 			driver = NULL;
 			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_driverdir, driver_dirent->d_name);
-			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(driver_dirent->d_name, '.'), DRIVER_EXT))) {
+			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && strrchr(driver_dirent->d_name, '.') && (!strcmp(strrchr(driver_dirent->d_name, '.'), DRIVER_EXT))) {
 				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
 				driver = _get_driver(fullpath);
 				if (driver && (driver->functions->initialize(driver) != -1)) {
