@@ -93,6 +93,7 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 int dbi_initialize(const char *driverdir);
 void dbi_shutdown();
 const char *dbi_version();
+int dbi_set_verbosity(int verbosity);
 
 dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if current is NULL, return first driver. */
 dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
