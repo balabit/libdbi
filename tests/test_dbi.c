@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	printf("Successfully connected! Available tables: \n\t");
+	printf("\nSuccessfully connected! Available tables: \n\t");
 	
 	if ((result = dbi_conn_get_table_list(conn, dbname)) == NULL) {
 		dbi_conn_error(conn, &errmsg);
@@ -118,8 +118,8 @@ int main(int argc, char **argv) {
 	}
 
 	dbi_result_free(result);
-	printf(".\n");
-	printf("All done, disconnecting and shutting down libdbi. Have a nice day.\n");
+	printf("\n\n");
+	printf("SUCCESS! All done, disconnecting and shutting down libdbi. Have a nice day.\n\n");
 
 	dbi_conn_close(conn);
 	dbi_shutdown();
