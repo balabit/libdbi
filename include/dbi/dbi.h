@@ -125,18 +125,18 @@ int dbi_result_next_row(dbi_result Result);
 unsigned long long dbi_result_get_numrows(dbi_result Result);
 unsigned long long dbi_result_get_numrows_affected(dbi_result Result);
 unsigned long long dbi_result_get_field_size(dbi_result Result, const char *fieldname);
-unsigned long long dbi_result_get_field_size_idx(dbi_result Result, unsigned long long idx);
+unsigned long long dbi_result_get_field_size_idx(dbi_result Result, unsigned short idx);
 unsigned long long dbi_result_get_field_length(dbi_result Result, const char *fieldname); /* size-1 */
-unsigned long long dbi_result_get_field_length_idx(dbi_result Result, unsigned long long idx);
-int dbi_result_get_field_idx(dbi_result Result, const char *fieldname);
-const char *dbi_result_get_field_name(dbi_result Result, unsigned int idx);
-unsigned int dbi_result_get_numfields(dbi_result Result);
+unsigned long long dbi_result_get_field_length_idx(dbi_result Result, unsigned short idx);
+unsigned short dbi_result_get_field_idx(dbi_result Result, const char *fieldname);
+const char *dbi_result_get_field_name(dbi_result Result, unsigned short idx);
+unsigned short dbi_result_get_numfields(dbi_result Result);
 unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname);
-unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx);
+unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned short idx);
 unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldname, unsigned long attribmin, unsigned long attribmax);
-unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax);
+unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned short idx, unsigned long attribmin, unsigned long attribmax);
 unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname);
-unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx);
+unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned short idx);
 int dbi_result_disjoin(dbi_result Result);
 
 int dbi_result_get_fields(dbi_result Result, const char *format, ...);
@@ -190,28 +190,28 @@ int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *b
 
 /* and now for the same exact thing in index form: */
 
-signed char dbi_result_get_char_idx(dbi_result Result, unsigned long long idx);
-unsigned char dbi_result_get_uchar_idx(dbi_result Result, unsigned long long idx);
-short dbi_result_get_short_idx(dbi_result Result, unsigned long long idx);
-unsigned short dbi_result_get_ushort_idx(dbi_result Result, unsigned long long idx);
-long dbi_result_get_long_idx(dbi_result Result, unsigned long long idx);
-unsigned long dbi_result_get_ulong_idx(dbi_result Result, unsigned long long idx);
-long long dbi_result_get_longlong_idx(dbi_result Result, unsigned long long idx);
-unsigned long long dbi_result_get_ulonglong_idx(dbi_result Result, unsigned long long idx);
+signed char dbi_result_get_char_idx(dbi_result Result, unsigned short idx);
+unsigned char dbi_result_get_uchar_idx(dbi_result Result, unsigned short idx);
+short dbi_result_get_short_idx(dbi_result Result, unsigned short idx);
+unsigned short dbi_result_get_ushort_idx(dbi_result Result, unsigned short idx);
+long dbi_result_get_long_idx(dbi_result Result, unsigned short idx);
+unsigned long dbi_result_get_ulong_idx(dbi_result Result, unsigned short idx);
+long long dbi_result_get_longlong_idx(dbi_result Result, unsigned short idx);
+unsigned long long dbi_result_get_ulonglong_idx(dbi_result Result, unsigned short idx);
 
-float dbi_result_get_float_idx(dbi_result Result, unsigned long long idx);
-double dbi_result_get_double_idx(dbi_result Result, unsigned long long idx);
+float dbi_result_get_float_idx(dbi_result Result, unsigned short idx);
+double dbi_result_get_double_idx(dbi_result Result, unsigned short idx);
 
-const char *dbi_result_get_string_idx(dbi_result Result, unsigned long long idx);
-const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned long long idx);
+const char *dbi_result_get_string_idx(dbi_result Result, unsigned short idx);
+const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned short idx);
 
-char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned long long idx);
-unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned long long idx);
+char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned short idx);
+unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned short idx);
 
-const char *dbi_result_get_enum_idx(dbi_result Result, unsigned long long idx);
-const char *dbi_result_get_set_idx(dbi_result Result, unsigned long long idx);
+const char *dbi_result_get_enum_idx(dbi_result Result, unsigned short idx);
+const char *dbi_result_get_set_idx(dbi_result Result, unsigned short idx);
 
-time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned long long idx);
+time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned short idx);
 
 /*
 int dbi_result_bind_char_idx(dbi_result Result, unsigned int idx, char *bindto);

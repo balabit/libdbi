@@ -62,10 +62,10 @@ typedef struct dbi_result_s {
 	unsigned long long numrows_affected;
 	_field_binding_t_pointer field_bindings;
 	
-	unsigned int numfields; /* can be zero or NULL until first fetchrow */
+	unsigned short numfields; /* can be zero or NULL until first fetchrow */
 	char **field_names;
 	unsigned short *field_types;
-	unsigned int *field_attribs;
+	unsigned long *field_attribs;
 
 	enum { NOTHING_RETURNED, ROWS_RETURNED, GETTING_ROWS } result_state; /* nothing_returned: wasn't a SELECT query. returns_rows: select, but no rows fetched yet. getting_rows: select, at least one row has been fetched */
 	dbi_row_t **rows; /* array of filled rows, elements set to NULL if not fetched yet */
