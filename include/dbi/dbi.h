@@ -42,7 +42,7 @@ typedef void * dbi_result;
 #define DBI_TYPE_BINARY 4
 #define DBI_TYPE_ENUM 5
 #define DBI_TYPE_SET 6
-#define DBI_TYPE_DATETIME 7 /* XXX add */
+#define DBI_TYPE_DATETIME 7
 
 /* values for the bitmask in field_type_attributes[] */
 #define DBI_INTEGER_UNSIGNED 1
@@ -55,6 +55,8 @@ typedef void * dbi_result;
 #define DBI_DECIMAL_SIZE4 2
 #define DBI_DECIMAL_SIZE8 4
 #define DBI_STRING_FIXEDSIZE 1 /* XXX unused as of now */
+#define DBI_DATETIME_DATE 1
+#define DBI_DATETIME_TIME 2
 
 int dbi_initialize(const char *plugindir);
 void dbi_shutdown();
@@ -73,7 +75,7 @@ const char *dbi_plugin_get_url(dbi_plugin Plugin);
 const char *dbi_plugin_get_version(dbi_plugin Plugin);
 const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin);
 
-int dbi_plugin_escape_string(dbi_plugin Plugin, char **orig); /* XXX add */
+int dbi_plugin_escape_string(dbi_plugin Plugin, char **orig);
 
 dbi_driver dbi_driver_new(const char *name); /* shortcut for dbi_driver_open(dbi_plugin_open("foo")) */
 dbi_driver dbi_driver_open(dbi_plugin Plugin); /* returns an actual instance of the driver */
@@ -106,18 +108,18 @@ int dbi_result_next_row(dbi_result Result);
 unsigned int dbi_result_get_numrows(dbi_result Result);
 unsigned int dbi_result_get_numrows_affected(dbi_result Result);
 unsigned int dbi_result_get_field_size(dbi_result Result, const char *fieldname);
-unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx); /* XXX add */
+unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx);
 unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldname); /* size-1 */
-unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx); /* XXX add */
-int dbi_result_get_field_idx(dbi_result Result, const char *fieldname); /* XXX add */
-const char *dbi_result_get_field_name(dbi_result Result, unsigned int idx); /* XXX add */
-unsigned int dbi_result_get_numfields(dbi_result Result); /* XXX add */
-unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname); /* XXX add */
-unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx); /* XXX add */
-unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldname, unsigned long attribmin, unsigned long attribmax); /* XXX add */
-unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax); /* XXX add */
-unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname); /* XXX add */
-unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx); /* XXX add */
+unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx);
+int dbi_result_get_field_idx(dbi_result Result, const char *fieldname);
+const char *dbi_result_get_field_name(dbi_result Result, unsigned int idx);
+unsigned int dbi_result_get_numfields(dbi_result Result);
+unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname);
+unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx);
+unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldname, unsigned long attribmin, unsigned long attribmax);
+unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax);
+unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname);
+unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx);
 
 int dbi_result_get_fields(dbi_result Result, const char *format, ...);
 int dbi_result_bind_fields(dbi_result Result, const char *format, ...);
@@ -143,7 +145,7 @@ unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldna
 const char *dbi_result_get_enum(dbi_result Result, const char *fieldname);
 const char *dbi_result_get_set(dbi_result Result, const char *fieldname);
 
-time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname); /* XXX add */
+time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname);
 
 int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto);
 int dbi_result_bind_uchar(dbi_result Result, const char *fieldname, unsigned char *bindto);
@@ -166,7 +168,7 @@ int dbi_result_bind_binary_copy(dbi_result Result, const char *fieldname, unsign
 int dbi_result_bind_enum(dbi_result Result, const char *fieldname, const char **bindto);
 int dbi_result_bind_set(dbi_result Result, const char *fieldname, const char **bindto);
 
-int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto); /* XXX add */
+int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto);
 
 /* and now for the same exact thing in index form: */
 

@@ -42,7 +42,7 @@ static const dbi_info_t plugin_info = {
 	"PostgreSQL database support (using libpq)",
 	"David A. Parker <david@neongoat.com>",
 	"http://libdbi.sourceforge.net",
-	"dbd_pgsql v0.01",
+	"dbd_pgsql v0.02",
 	__DATE__
 };
 
@@ -135,7 +135,7 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 	}
 
 	/* get row here */
-	row = _dbd_row_allocate(result->numfields, result->has_string_fields);
+	row = _dbd_row_allocate(result->numfields);
 	_get_row_data(result, row, rownum);
 	_dbd_row_finalize(result, row, rownum);
 	
@@ -159,6 +159,36 @@ dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
 	return (dbi_result_t *)dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
+}
+
+int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+	/* foo's -> 'foo\'s' */
+	const char *escaped = "'\"\\"; // XXX TODO check if this is right
+	char *curdest = dest;
+	const char *curorig = orig;
+	const char *curescaped;
+	
+	strcpy(dest, "'");
+	strcat(dest, orig);
+
+	while (curorig) {
+		curescaped = escaped;
+		while (curescaped) {
+			if (*curorig == *curescaped) {
+				memmove(curdest+1, curorig, strlen(curorig)+1);
+				*curdest = '\\';
+				curdest++;
+				continue;
+			}
+			curescaped++;
+		}
+		curorig++;
+		curdest++;
+	}
+
+	strcat(dest, "'");
+	
+	return strlen(dest);
 }
 
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
@@ -191,8 +221,11 @@ char *dbd_select_db(dbi_driver_t *driver, const char *db) {
 int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
+	
 	*errno = 0;
-	*errstr = strdup(PQerrorMessage((PGconn *)driver->connection));
+	if (!driver->connection) *errstr = strdup("Unable to connect to database");
+	else *errstr = strdup(PQerrorMessage((PGconn *)driver->connection));
+	
 	return 2;
 }
 
@@ -284,6 +317,13 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 		raw = PQgetvalue((PGresult *)result->result_handle, rowidx, curfield);
 		strsize = PQfmod((PGresult *)result->result_handle, curfield);
 		data = &row->field_values[curfield];
+
+		if (PQgetisnull((PGresult *)result->result_handle, rowidx, curfield) == 1) {
+			row->field_sizes[curfield] = -1;
+			curfield++;
+			continue;
+		}			
+		
 		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
 				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
@@ -314,18 +354,20 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				break;
 			case DBI_TYPE_STRING:
 				data->d_string = strdup(raw);
-				if (row->field_sizes) row->field_sizes[curfield] = strsize;
+				row->field_sizes[curfield] = strsize;
 				break;
 			case DBI_TYPE_BINARY:
-				if (row->field_sizes) row->field_sizes[curfield] = strsize;
+				row->field_sizes[curfield] = strsize;
 				memcpy(data->d_string, raw, strsize);
 				break;
 				
 			case DBI_TYPE_ENUM:
 			case DBI_TYPE_SET:
+			case DBI_TYPE_DATETIME:
 			default:
 				break;
 		}
+		
 		curfield++;
 	}
 }

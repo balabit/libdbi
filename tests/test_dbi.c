@@ -12,7 +12,7 @@ int main() {
 
 	char *errmsg;
 	int curplugidx = 0;
-	int numplugins = dbi_initialize(NULL);
+	int numplugins = dbi_initialize("/usr/local/lib/dbd");
 	
 	printf("\nLibrary version: %s\n", dbi_version());
 	

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
@@ -42,7 +43,7 @@ static const dbi_info_t plugin_info = {
 	"MySQL database support (using libmysqlclient6)",
 	"Mark M. Tobenkin <mark@brentwoodradio.com>",
 	"http://libdbi.sourceforge.net",
-	"dbd_mysql v0.01",
+	"dbd_mysql v0.02",
 	__DATE__
 };
 
@@ -52,6 +53,7 @@ static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
+time_t _parse_datetime(const char *raw, unsigned long attribs);
 
 void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the plugin module is loaded into memory */
@@ -87,7 +89,7 @@ int dbd_connect(dbi_driver_t *driver) {
 
 	conn = mysql_init(NULL);
 	if (!conn || !mysql_real_connect(conn, host, username, password, dbname, port, unix_socket, _compression)) {
-		/*_error_handler(driver); Need to add support for internal errors, and cleaning up after self :) */
+		_error_handler(driver);
 		mysql_close(conn);
 		return -1;
 	}
@@ -117,7 +119,7 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 	}
 
 	/* get row here */
-	row = _dbd_row_allocate(result->numfields, result->has_string_fields);
+	row = _dbd_row_allocate(result->numfields);
 	_get_row_data(result, row, rownum);
 	_dbd_row_finalize(result, row, rownum);
 	
@@ -141,6 +143,17 @@ dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
 	return dbd_query(driver, "SHOW TABLES");
+}
+
+int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+	/* foo's -> 'foo\'s' */
+	unsigned int len;
+	
+	strcpy(dest, "'");
+	len = mysql_escape_string(dest, orig, strlen(orig));	
+	strcat(dest, "'");
+	
+	return len+2;
 }
 
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
@@ -181,6 +194,13 @@ char *dbd_select_db(dbi_driver_t *driver, const char *db) {
 int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
+	
+	if (!driver->connection) {
+		*errno = 0;
+		*errstr = strdup("Unable to connect to database");
+		return 2;
+	}
+	
 	*errno = mysql_errno((MYSQL *)driver->connection);
 	*errstr = strdup(mysql_error((MYSQL *)driver->connection));
 	return 3;
@@ -226,10 +246,19 @@ void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type
 			break;
 			
 		case FIELD_TYPE_DATE: /* TODO parse n stuph to native DBI unixtime type. for now, string */
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_DATE;
+			break;
 		case FIELD_TYPE_TIME:
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_TIME;
+			break;
 		case FIELD_TYPE_DATETIME:
-		case FIELD_TYPE_NEWDATE:
 		case FIELD_TYPE_TIMESTAMP:
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_DATE;
+			_attribs |= DBI_DATETIME_TIME;
+			break;
 			
 		case FIELD_TYPE_DECIMAL: /* decimal is actually a string, has arbitrary precision, no floating point rounding */
 		case FIELD_TYPE_ENUM:
@@ -288,6 +317,12 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 		raw = _row[curfield];
 		data = &row->field_values[curfield];
 
+		if (strsizes[curfield] == 0) {
+			row->field_sizes[curfield] = -1;
+			curfield++;
+			continue;
+		}
+		
 		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
 				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
@@ -318,21 +353,57 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				break;
 			case DBI_TYPE_STRING:
 				data->d_string = strdup(raw);
-				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = strsizes[curfield];
 				break;
 			case DBI_TYPE_BINARY:
-				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = strsizes[curfield];
 				memcpy(data->d_string, raw, strsizes[curfield]);
+				break;
+			case DBI_TYPE_DATETIME:
+				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DATETIME_DATE, DBI_DATETIME_TIME);
+				data->d_datetime = _parse_datetime(raw, sizeattrib);
 				break;
 				
 			case DBI_TYPE_ENUM:
 			case DBI_TYPE_SET:
 			default:
 				data->d_string = strdup(raw);
-				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
+				row->field_sizes[curfield] = strsizes[curfield];
 				break;
 		}
+		
 		curfield++;
 	}
+}
+
+time_t _parse_datetime(const char *raw, unsigned long attribs) {
+	struct tm unixtime;
+	char *unparsed = strdup(raw);
+	char *cur = unparsed;
+
+	unixtime.tm_sec = unixtime.tm_min = unixtime.tm_hour = 0;
+	unixtime.tm_mday = unixtime.tm_mon = unixtime.tm_year = 0;
+	unixtime.tm_isdst = -1;
+	
+	if (attribs & DBI_DATETIME_DATE) {
+		cur[4] = '\0';
+		cur[7] = '\0';
+		cur[10] = '\0';
+		unixtime.tm_year = atoi(cur);
+		unixtime.tm_mon = atoi(cur+5);
+		unixtime.tm_mday = atoi(cur+8);
+		if (attribs & DBI_DATETIME_TIME) cur = cur+11;
+	}
+	
+	if (attribs & DBI_DATETIME_TIME) {
+		cur[2] = '\0';
+		cur[5] = '\0';
+		unixtime.tm_hour = atoi(cur);
+		unixtime.tm_min = atoi(cur+3);
+		unixtime.tm_sec = atoi(cur+6);
+	}
+
+	free(unparsed);
+	return mktime(&unixtime);
 }
 

@@ -230,16 +230,16 @@ const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin) {
 	return plugin->info->date_compiled;
 }
 
-int dbi_plugin_escape_string(dbi_plugin Plugin, char **orig) {
+int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig) {
 	dbi_plugin_t *plugin = Plugin;
 	char *temp;
 	char *newstr;
 	int newlen;
 	
 	if (!plugin || !orig || !*orig) return -1;
-	newstr = malloc((strlen(*orig)*2)+1); /* worst case, we have to escape every character */
+	newstr = malloc((strlen(*orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 	
-	newlen = plugin->functions->escape_string(plugin, (const char *)*orig, newstr);
+	newlen = plugin->functions->quote_string(plugin, *orig, newstr);
 	if (newlen < 0) {
 		free(newstr);
 		return -1;
@@ -540,13 +540,13 @@ int dbi_driver_select_db(dbi_driver Driver, const char *db) {
 	}
 	if (retval[0] == '\0') {
 		/* if "" was returned, driver doesn't support switching databases */
-		return 0;
+		return -1;
 	}
 	else {
 		driver->current_db = strdup(retval);
 	}
 	
-	return 1;
+	return 0;
 }
 
 /* XXX INTERNAL PRIVATE IMPLEMENTATION FUNCTIONS XXX */
@@ -579,13 +579,13 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			((plugin->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
 			((plugin->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
 			((plugin->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
-			((plugin->functions->escape_string = dlsym(dlhandle, "dbd_escape_string")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
 			((plugin->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
 			((plugin->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
 			((plugin->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
 			((plugin->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
 			((plugin->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
+			((plugin->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
 			((plugin->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
 			((plugin->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
 			)

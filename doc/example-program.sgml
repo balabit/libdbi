@@ -12,13 +12,12 @@ int main() {
     const char *fullname;
     
     dbi_initialize(NULL);
-    driver = dbi_driver_open("mysql");
+    driver = dbi_driver_new("mysql");
 
     dbi_driver_set_option(driver, "host", "localhost");
     dbi_driver_set_option(driver, "username", "chug");
     dbi_driver_set_option(driver, "password", "dIP!");
-    dbi_driver_set_option(driver, "database", "db_name");
-    dbi_driver_set_option_numeric(driver, "efficient-queries", 1);
+    dbi_driver_set_option(driver, "dbname", "db_name");
 
     dbi_driver_connect(driver);
     result = dbi_driver_query(driver, "SELECT id, name FROM coders"
@@ -38,6 +37,9 @@ int main() {
 }
 ]]>
 </ProgramListing>
+<Para>
+	Compile with: gcc -ldl -ldbi -o foo foo.c
+</Para>
 <Para>
 	Of course, a complete program should be checking for errors. This example
 	omits error-checking for the sake of clarity. There are also other ways to

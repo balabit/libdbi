@@ -132,14 +132,24 @@ unsigned int dbi_result_get_numrows_affected(dbi_result Result) {
 unsigned int dbi_result_get_field_size(dbi_result Result, const char *fieldname) {
 	dbi_result_t *result = Result;
 	int idx = 0;
+	
+	if (!result) return 0;
+	idx = _find_field(result, fieldname);
+	if (idx < 0) return 0;
+
+	return dbi_result_get_field_size_idx(Result, idx+1);
+}
+
+unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx) {
+	dbi_result_t *result = Result;
 	int currowidx;
 	int temp;
+	idx--;
 	
 	if (!result || !result->rows) return 0;
 	currowidx = result->currowidx;
 	if (!result->rows[currowidx] || !result->rows[currowidx]->field_sizes) return 0;
-	idx = _find_field(result, fieldname);
-	if (idx < 0) return 0;
+	if (idx >= result->numfields) return 0;
 
 	temp = result->rows[currowidx]->field_sizes[idx];
 	if (temp == -1) return 0;
@@ -151,14 +161,15 @@ unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldnam
 	return (size == 0) ? 0 : size-1;
 }
 
+unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx) {
+	unsigned int size = dbi_result_get_field_size_idx(Result, idx);
+	return (size == 0) ? 0 : size-1;
+}
+
 int dbi_result_get_field_idx(dbi_result Result, const char *fieldname) {
 	dbi_result_t *result = Result;
-	int currowidx;
-	int temp;
-	
 	if (!result) return -1;
-
-	return _find_field(result, fieldname);
+	return _find_field(result, fieldname)+1;
 }
 
 const char *dbi_result_get_field_name(dbi_result Result, unsigned int fieldnum) {
@@ -169,18 +180,27 @@ const char *dbi_result_get_field_name(dbi_result Result, unsigned int fieldnum) 
 
 unsigned int dbi_result_get_numfields(dbi_result Result) {
 	dbi_result_t *result = Result;
-	if (!result) return NULL;
+	if (!result) return 0;
 	return result->numfields;
 }
 
 unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname) {
 	dbi_result_t *result = Result;
 	int idx = 0;
-	int temp;
 	
-	if (!result || !result->field_types) return 0;
+	if (!result) return 0;
 	idx = _find_field(result, fieldname);
 	if (idx < 0) return 0;
+
+	return dbi_result_get_field_type_idx(Result, idx+1);
+}
+
+unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx) {
+	dbi_result_t *result = Result;
+	idx--;
+	
+	if (!result || !result->field_types) return 0;
+	if (idx >= result->numfields) return 0;
 
 	return result->field_types[idx];
 }
@@ -189,20 +209,40 @@ unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldna
 	dbi_result_t *result = Result;
 	int idx = 0;
 	
-	if (!result || !result->field_attribs) return 0;
+	if (!result) return 0;
 	idx = _find_field(result, fieldname);
 	if (idx < 0) return 0;
 
+	return dbi_result_get_field_attrib_idx(Result, idx+1, attribmin, attribmax);
+}
+
+unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax) {
+	dbi_result_t *result = Result;
+	idx--;
+	
+	if (!result || !result->field_attribs) return 0;
+	if (idx >= result->numfields) return 0;
+
 	return _isolate_attrib(result->field_attribs[idx], attribmin, attribmax);
 }
-	
+
 unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname) {
 	dbi_result_t *result = Result;
 	int idx = 0;
 	
-	if (!result || !result->field_attribs) return 0;
+	if (!result) return 0;
 	idx = _find_field(result, fieldname);
 	if (idx < 0) return 0;
+
+	return dbi_result_get_field_attribs_idx(Result, idx+1);
+}
+
+unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx) {
+	dbi_result_t *result = Result;
+	idx--;
+	
+	if (!result || !result->field_attribs) return 0;
+	if (idx >= result->numfields) return 0;
 
 	return result->field_attribs[idx];
 }
@@ -502,17 +542,19 @@ signed char dbi_result_get_char(dbi_result Result, const char *fieldname) {
 	signed char ERROR = 0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_char_idx(Result, idx);
+	return dbi_result_get_char_idx(Result, idx+1);
 }
 
 signed char dbi_result_get_char_idx(dbi_result Result, unsigned int idx) {
 	signed char ERROR = 0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -531,17 +573,19 @@ short dbi_result_get_short(dbi_result Result, const char *fieldname) {
 	short ERROR = 0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_short_idx(Result, idx);
+	return dbi_result_get_short_idx(Result, idx+1);
 }
 
 short dbi_result_get_short_idx(dbi_result Result, unsigned int idx) {
 	short ERROR = 0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -560,17 +604,19 @@ long dbi_result_get_long(dbi_result Result, const char *fieldname) {
 	long ERROR = 0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_long_idx(Result, idx);
+	return dbi_result_get_long_idx(Result, idx+1);
 }
 
 long dbi_result_get_long_idx(dbi_result Result, unsigned int idx) {
 	long ERROR = 0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -589,17 +635,19 @@ long long dbi_result_get_longlong(dbi_result Result, const char *fieldname) {
 	long long ERROR = 0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_longlong_idx(Result, idx);
+	return dbi_result_get_longlong_idx(Result, idx+1);
 }
 
 long long dbi_result_get_longlong_idx(dbi_result Result, unsigned int idx) {
 	long long ERROR = 0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -650,17 +698,19 @@ float dbi_result_get_float(dbi_result Result, const char *fieldname) {
 	float ERROR = 0.0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_float_idx(Result, idx);
+	return dbi_result_get_float_idx(Result, idx+1);
 }
 
 float dbi_result_get_float_idx(dbi_result Result, unsigned int idx) {
 	float ERROR = 0.0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0.0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
 
 	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
@@ -676,17 +726,19 @@ double dbi_result_get_double(dbi_result Result, const char *fieldname) {
 	double ERROR = 0.0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_double_idx(Result, idx);
+	return dbi_result_get_double_idx(Result, idx+1);
 }
 	
 double dbi_result_get_double_idx(dbi_result Result, unsigned int idx) {
 	double ERROR = 0.0;
 	dbi_result_t *result = Result;
-	unsigned long sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+	unsigned long sizeattrib;
+	idx--;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0.0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
 
 	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
@@ -702,16 +754,17 @@ const char *dbi_result_get_string(dbi_result Result, const char *fieldname) {
 	const char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_string_idx(Result, idx);
+	return dbi_result_get_string_idx(Result, idx+1);
 }
 	
 const char *dbi_result_get_string_idx(dbi_result Result, unsigned int idx) {
 	const char *ERROR = "ERROR";
 	dbi_result_t *result = Result;
+	idx--;
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_STRING) return ERROR;
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 	
 	return (const char *)(result->rows[result->currowidx]->field_values[idx].d_string);
 }
@@ -720,16 +773,17 @@ const unsigned char *dbi_result_get_binary(dbi_result Result, const char *fieldn
 	const unsigned char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_binary_idx(Result, idx);
+	return dbi_result_get_binary_idx(Result, idx+1);
 }
 	
 const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned int idx) {
 	const unsigned char *ERROR = "ERROR";
 	dbi_result_t *result = Result;
+	idx--;
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_BINARY) return ERROR;
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 
 	return (const unsigned char *)(result->rows[result->currowidx]->field_values[idx].d_string);
 }
@@ -738,17 +792,18 @@ char *dbi_result_get_string_copy(dbi_result Result, const char *fieldname) {
 	char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return strdup(ERROR);
-	return dbi_result_get_string_copy_idx(Result, idx);
+	return dbi_result_get_string_copy_idx(Result, idx+1);
 }
 	
 char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int idx) {
 	char *ERROR = "ERROR";
 	char *newstring = NULL;
 	dbi_result_t *result = Result;
+	idx--;
 	
 	if (idx >= result->numfields) return strdup(ERROR);
 	if (result->field_types[idx] != DBI_TYPE_STRING) return strdup(ERROR);
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 
 	newstring = strdup(result->rows[result->currowidx]->field_values[idx].d_string);
 	return newstring ? newstring : strdup(ERROR);
@@ -758,7 +813,7 @@ unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldna
 	unsigned char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return strdup(ERROR);
-	return dbi_result_get_binary_copy_idx(Result, idx);
+	return dbi_result_get_binary_copy_idx(Result, idx+1);
 }
 	
 unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int idx) {
@@ -766,12 +821,13 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int id
 	char *newblob = NULL;
 	unsigned int size;
 	dbi_result_t *result = Result;
+	idx--;
 
 	if (idx >= result->numfields) return strdup(ERROR);
 	if (result->field_types[idx] != DBI_TYPE_BINARY) return strdup(ERROR);
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 
-	size = dbi_result_get_field_size(Result, fieldname);
+	size = dbi_result_get_field_size_idx(Result, idx);
 	newblob = malloc(size);
 	if (!newblob) return strdup(ERROR);
 	memcpy(newblob, result->rows[result->currowidx]->field_values[idx].d_string, size);
@@ -782,16 +838,17 @@ const char *dbi_result_get_enum(dbi_result Result, const char *fieldname) {
 	const char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_enum_idx(Result, idx);
+	return dbi_result_get_enum_idx(Result, idx+1);
 }
 	
 const char *dbi_result_get_enum_idx(dbi_result Result, unsigned int idx) {
 	const char *ERROR = "ERROR";
 	dbi_result_t *result = Result;
+	idx--;
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_ENUM) return ERROR;
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 
 	return (const char *)(result->rows[result->currowidx]->field_values[idx].d_string);
 }
@@ -800,16 +857,17 @@ const char *dbi_result_get_set(dbi_result Result, const char *fieldname) {
 	const char *ERROR = "ERROR";
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_set_idx(Result, idx);
+	return dbi_result_get_set_idx(Result, idx+1);
 }
 	
 const char *dbi_result_get_set_idx(dbi_result Result, unsigned int idx) {
 	const char *ERROR = "ERROR";
 	dbi_result_t *result = Result;
+	idx--;
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_SET) return ERROR;
-	if (result->field_sizes[idx] == 0) return NULL;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
 
 	return (const char *)(result->rows[result->currowidx]->field_values[idx].d_string);
 }
@@ -818,16 +876,17 @@ time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname) {
 	time_t ERROR = 0;
 	int idx = _find_field((dbi_result_t *)Result, fieldname);
 	if (idx < 0) return ERROR;
-	return dbi_result_get_datetime_idx(Result, idx);
+	return dbi_result_get_datetime_idx(Result, idx+1);
 }
 	
 time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned int idx) {
 	time_t ERROR = 0;
 	dbi_result_t *result = Result;
+	idx--;
 
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_DATETIME) return ERROR;
-	if (result->field_sizes[idx] == 0) return 0;
+	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 	
 	return (time_t)(result->rows[result->currowidx]->field_values[idx].d_datetime);
 }
