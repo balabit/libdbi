@@ -99,7 +99,7 @@ int dbd_connect(dbi_conn_t *conn) {
 		return -1;
 	}
 	else {
-		conn->connection = (void *)conn;
+		conn->connection = (void *)mycon;
 		if (dbname) conn->current_db = strdup(dbname);
 	}
 	
