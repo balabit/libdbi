@@ -263,6 +263,17 @@ unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
 	return 0;
 }
 
+int dbd_ping(dbi_conn_t *conn) {
+	MYSQL *mysql = (MYSQL *)conn->connection;
+
+	if (mysql_ping(mysql) == 0) {
+		// server is alive and kicking
+		return 1;
+	}
+
+	return 0;
+}
+
 /* CORE MYSQL DATA FETCHING STUFF */
 
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs) {

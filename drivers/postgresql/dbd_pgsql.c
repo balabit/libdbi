@@ -290,6 +290,24 @@ unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
 	return seq_next;
 }
 
+int dbd_ping(dbi_conn_t *conn) {
+	PGconn *pgsql = (PGconn *)conn->connection;
+
+	PQexec(pgsql, "SELECT 1");
+
+	if (PQstatus(pgsql) == CONNECTION_OK) {
+		return 1;
+	}
+
+	PQreset(pgsql); // attempt a reconnection
+	
+	if (PQstatus(pgsql) == CONNECTION_OK) {
+		return 1;
+	}
+
+	return 0;
+}
+
 /* CORE POSTGRESQL DATA FETCHING STUFF */
 
 void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs) {
