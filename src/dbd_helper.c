@@ -89,7 +89,7 @@ int _dbd_quote_chars(const char *toescape, const char *quotes, const char *orig,
 	strncpy(dest, orig, destsize);
 
 	while (curorig) {
-		curescaped = toescaped;
+		curescaped = toescape;
 		while (curescaped) {
 			if (*curorig == *curescaped) {
 				*curdest = '\\';
@@ -104,3 +104,4 @@ int _dbd_quote_chars(const char *toescape, const char *quotes, const char *orig,
 	}
 
 	return strlen(dest);
+}
