@@ -308,7 +308,6 @@ unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int i
 
 int dbi_result_free(dbi_result Result) {
 	dbi_result_t *result = Result;
-	int idx = 0;
 	int retval;
 	if (!result) return -1;
 	
@@ -404,7 +403,7 @@ static void _free_result_rows(dbi_result_t *result) {
 		if (!result->rows[rowidx]) continue;
 			
 		for (fieldidx = 0; fieldidx < result->numfields; fieldidx++) {
-			if ((result->field_types[fieldidx] == DBI_TYPE_STRING) || (result->field_types[fieldidx] == DBI_TYPE_BINARY) && result->rows[rowidx]->field_values[fieldidx].d_string) {
+			if (((result->field_types[fieldidx] == DBI_TYPE_STRING) || (result->field_types[fieldidx] == DBI_TYPE_BINARY)) && result->rows[rowidx]->field_values[fieldidx].d_string) {
 				free(result->rows[rowidx]->field_values[fieldidx].d_string);
 			}
 		}

@@ -92,6 +92,12 @@ typedef struct dbi_info_s {
 	const char *date_compiled;
 } dbi_info_t;
 
+typedef struct _capability_s {
+	char *name;
+	int value;
+	struct _capability_s *next;
+} _capability_t;
+
 typedef struct dbi_option_s {
 	char *key;
 	char *string_value;
@@ -130,12 +136,14 @@ typedef struct dbi_driver_s {
 	dbi_functions_t *functions;
 	dbi_custom_function_t *custom_functions;
 	const char **reserved_words;
+	_capability_t *caps;
 	struct dbi_driver_s *next;
 } dbi_driver_t;
 	
 typedef struct dbi_conn_s {
 	dbi_driver_t *driver; /* generic unchanging attributes shared by all instances of this conn */
 	dbi_option_t *options;
+	_capability_t *caps;
 	void *connection; /* will be typecast into conn-specific type */
 	char *current_db;
 	dbi_error_flag error_flag;

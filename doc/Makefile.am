@@ -34,9 +34,9 @@ driver-guide/*:
 	sgmltools -b html -s include/doc-html.dsl driver-guide.sgml
 
 distclean: clean
-	rm -f programmers-guide.ps
-	if [ -f programmers-guide.tmpl ]; then rm -rf programmers-guide/ programmers-guide.pdf; fi
-	rm -f driver-guide.ps
+	rm -f programmers-guide.ps libdbi-reference.sgml
+	if [ -f libdbi-reference.tmpl ]; then rm -rf programmers-guide/ programmers-guide.pdf; fi
+	rm -f driver-guide.ps driver-guide.sgml
 	if [ -f driver-guide.tmpl ]; then rm -rf driver-guide/ driver-guide.pdf; fi
 
 # this can't be kosher...

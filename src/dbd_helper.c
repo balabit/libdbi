@@ -35,6 +35,9 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
+static _capability_t *_find_or_create_driver_cap(dbi_driver_t *driver, const char *capname);
+static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *capname);
+
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
@@ -154,3 +157,68 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int
 	return result;
 }
 
+void _dbd_register_driver_cap(dbi_driver_t *driver, const char *capname, int value) {
+	_capability_t *cap = _find_or_create_driver_cap(driver, capname);
+	if (!cap) return;
+	cap->value = value;
+	return;
+}
+
+void _dbd_register_conn_cap(dbi_conn_t *conn, const char *capname, int value) {
+	_capability_t *cap = _find_or_create_conn_cap(conn, capname);
+	if (!cap) return;
+	cap->value = value;
+	return;
+}
+
+static _capability_t *_find_or_create_driver_cap(dbi_driver_t *driver, const char *capname) {
+	_capability_t *prevcap = NULL;
+	_capability_t *cap = driver->caps;
+
+	while (cap && strcmp(capname, cap->name)) {
+		prevcap = cap;
+		cap = cap->next;
+	}
+
+	if (cap == NULL) {
+		/* allocate a new node */
+		cap = (_capability_t *) malloc(sizeof(_capability_t));
+		if (!cap) return NULL;
+		cap->name = strdup(capname);
+		cap->next = NULL;
+		if (driver->caps == NULL) {
+		    driver->caps = cap;
+		}
+		else {
+		    prevcap->next = cap;
+		}
+	}
+
+	return cap;
+}
+
+static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *capname) {
+	_capability_t *prevcap = NULL;
+	_capability_t *cap = conn->caps;
+
+	while (cap && strcmp(capname, cap->name)) {
+		prevcap = cap;
+		cap = cap->next;
+	}
+
+	if (cap == NULL) {
+		/* allocate a new node */
+		cap = (_capability_t *) malloc(sizeof(_capability_t));
+		if (!cap) return NULL;
+		cap->next = NULL;
+		cap->name = strdup(capname);
+		if (conn->caps == NULL) {
+		    conn->caps = cap;
+		}
+		else {
+		    prevcap->next = cap;
+		}
+	}
+
+	return cap;
+}

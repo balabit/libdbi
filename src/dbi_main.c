@@ -50,6 +50,7 @@ static dbi_driver_t *_get_driver(const char *filename);
 static void _free_custom_functions(dbi_driver_t *driver);
 static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key);
 static int _update_internal_conn_list(dbi_conn_t *conn, int operation);
+static void _free_caps(_capability_t *caproot);
 
 dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 
@@ -126,6 +127,7 @@ void dbi_shutdown() {
 		dlclose(curdriver->dlhandle);
 		free(curdriver->functions);
 		_free_custom_functions(curdriver);
+		_free_caps(curdriver->caps);
 		free(curdriver->filename);
 		free(curdriver);
 		curdriver = nextdriver;
@@ -187,6 +189,36 @@ void *dbi_driver_specific_function(dbi_driver Driver, const char *name) {
 	}
 
 	return custom ? custom->function_pointer : NULL;
+}
+
+int dbi_driver_cap_get(dbi_driver Driver, const char *capname) {
+	dbi_driver_t *driver = Driver;
+	_capability_t *cap;
+
+	if (!driver) return 0;
+
+	cap = driver->caps;
+
+	while (cap && strcmp(capname, cap->name)) {
+		cap = cap->next;
+	}
+
+	return cap ? cap->value : 0;
+}
+
+int dbi_conn_cap_get(dbi_conn Conn, const char *capname) {
+	dbi_conn_t *conn = Conn;
+	_capability_t *cap;
+
+	if (!conn) return 0;
+
+	cap = conn->caps;
+	
+	while (cap && strcmp(capname, cap->name)) {
+		cap = cap->next;
+	}
+
+	return cap ? cap->value : dbi_driver_cap_get((dbi_driver)conn->driver, capname);
 }
 
 /* DRIVER: informational functions */
@@ -296,6 +328,7 @@ dbi_conn dbi_conn_open(dbi_driver Driver) {
 	}
 	conn->driver = driver;
 	conn->options = NULL;
+	conn->caps = NULL;
 	conn->connection = NULL;
 	conn->current_db = NULL;
 	conn->error_flag = DBI_ERROR_NONE;
@@ -318,6 +351,7 @@ void dbi_conn_close(dbi_conn Conn) {
 	conn->driver->functions->disconnect(conn);
 	conn->driver = NULL;
 	dbi_conn_clear_options(Conn);
+	_free_caps(conn->caps);
 	conn->connection = NULL;
 	
 	if (conn->current_db) free(conn->current_db);
@@ -386,8 +420,8 @@ int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
 		_error_handler(conn, DBI_ERROR_NOMEM);
 		return -1;
 	}
-	
-	option->key = strdup(key);
+
+	if (option->string_value) free(option->string_value);
 	option->string_value = strdup(value);
 	option->numeric_value = 0;
 	
@@ -408,7 +442,7 @@ int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value) {
 		return -1;
 	}
 	
-	option->key = strdup(key);
+	if (option->string_value) free(option->string_value);
 	option->string_value = NULL;
 	option->numeric_value = value;
 	
@@ -669,6 +703,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 		driver->dlhandle = dlhandle;
 		driver->filename = strdup(filename);
 		driver->next = NULL;
+		driver->caps = NULL;
 		driver->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
 
 		if ( /* nasty looking if block... is there a better way to do it? */
@@ -746,6 +781,17 @@ static void _free_custom_functions(dbi_driver_t *driver) {
 	driver->custom_functions = NULL;
 }
 
+static void _free_caps(_capability_t *caproot) {
+	_capability_t *cap = caproot;
+	while (cap) {
+		_capability_t *nextcap = cap->next;
+		if (cap->name) free(cap->name);
+		free(cap);
+		cap = nextcap;
+	}
+	return;
+}
+
 static int _update_internal_conn_list(dbi_conn_t *conn, const int operation) {
 	/* maintain internal linked list of conns so that we can unload them all
 	 * when dbi is shutdown
@@ -800,6 +846,8 @@ static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key)
 		option = (dbi_option_t *) malloc(sizeof(dbi_option_t));
 		if (!option) return NULL;
 		option->next = NULL;
+		option->key = strdup(key);
+		option->string_value = NULL;
 		if (conn->options == NULL) {
 		    conn->options = option;
 		}
