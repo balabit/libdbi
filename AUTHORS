@@ -2,16 +2,20 @@
 The following people have been involved in libdbi development:
 
 Main developers:
-* David Parker		<david at neongoat.com>
-* Mark Tobenkin		<mark at brentwoodradio.com>
+* David Parker <david at neongoat.com>
+* Mark Tobenkin <mark at brentwoodradio.com>
 
 Plugin developers:
-* MySQL			Mark Tobenkin <mark at brentwoodradio.com>
-* PostgreSQL	David Parker <david at neongoat.com>
+* MySQL - Mark Tobenkin <mark at brentwoodradio.com>
+* PostgreSQL - David Parker <david at neongoat.com>
 
-These people have also contributed patches or ideas, or have done testing:
+These people have also contributed to the project:
+
 * Ryan Eatmon <reatmon at jabber.org>
-* Lars Erlandsen <lars.erlandsen at arcordia.com>
+  - bugfixes
+  
+* Markus Hoenicka <hoenicka_markus at compuserve.com>
+  - win32 port
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
