@@ -453,7 +453,9 @@ dbi_driver dbi_conn_get_driver(dbi_conn Conn) {
 int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest) {
 	dbi_conn_t *conn = Conn;
 	char number_portion[20];
-	char *errmsg;
+	static char *errmsg = NULL; // XXX quick hack, revisit this when API is redesigned
+
+	if (errmsg) free(errmsg);
 	
 	if (conn->error_number) {
 		snprintf(number_portion, 20, "%d: ", conn->error_number);
