@@ -45,6 +45,10 @@
 #define DBI_DRIVER_DIR "/usr/local/lib/dbd" /* use this as the default */
 #endif
 
+#ifndef DLSYM_PREFIX
+#define DLSYM_PREFIX ""
+#endif
+
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
 static dbi_driver_t *_get_driver(const char *filename);
 static void _free_custom_functions(dbi_driver_t *driver);
@@ -833,24 +837,24 @@ static dbi_driver_t *_get_driver(const char *filename) {
 		driver->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
 
 		if ( /* nasty looking if block... is there a better way to do it? */
-			((driver->functions->register_driver = dlsym(dlhandle, "dbd_register_driver")) == NULL) || dlerror() ||
-			((driver->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
-			((driver->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
-			((driver->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
-			((driver->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
-			((driver->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
-			((driver->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
-			((driver->functions->get_socket = dlsym(dlhandle, "dbd_get_socket")) == NULL) || dlerror() ||
-			((driver->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
-			((driver->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
-			((driver->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
-			((driver->functions->query_null = dlsym(dlhandle, "dbd_query_null")) == NULL) || dlerror() ||
-			((driver->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
-			((driver->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
-			((driver->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror() ||
-			((driver->functions->get_seq_last = dlsym(dlhandle, "dbd_get_seq_last")) == NULL) || dlerror() ||
-			((driver->functions->get_seq_next = dlsym(dlhandle, "dbd_get_seq_next")) == NULL) || dlerror() ||
-			((driver->functions->ping = dlsym(dlhandle, "dbd_ping")) == NULL) || dlerror()
+			((driver->functions->register_driver = dlsym(dlhandle, DLSYM_PREFIX "dbd_register_driver")) == NULL) || dlerror() ||
+			((driver->functions->initialize = dlsym(dlhandle, DLSYM_PREFIX "dbd_initialize")) == NULL) || dlerror() ||
+			((driver->functions->connect = dlsym(dlhandle, DLSYM_PREFIX "dbd_connect")) == NULL) || dlerror() ||
+			((driver->functions->disconnect = dlsym(dlhandle, DLSYM_PREFIX "dbd_disconnect")) == NULL) || dlerror() ||
+			((driver->functions->fetch_row = dlsym(dlhandle, DLSYM_PREFIX "dbd_fetch_row")) == NULL) || dlerror() ||
+			((driver->functions->free_query = dlsym(dlhandle, DLSYM_PREFIX "dbd_free_query")) == NULL) || dlerror() ||
+			((driver->functions->goto_row = dlsym(dlhandle, DLSYM_PREFIX "dbd_goto_row")) == NULL) || dlerror() ||
+			((driver->functions->get_socket = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_socket")) == NULL) || dlerror() ||
+			((driver->functions->list_dbs = dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) || dlerror() ||
+			((driver->functions->list_tables = dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) || dlerror() ||
+			((driver->functions->query = dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) || dlerror() ||
+			((driver->functions->query_null = dlsym(dlhandle, DLSYM_PREFIX "dbd_query_null")) == NULL) || dlerror() ||
+			((driver->functions->quote_string = dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_string")) == NULL) || dlerror() ||
+			((driver->functions->select_db = dlsym(dlhandle, DLSYM_PREFIX "dbd_select_db")) == NULL) || dlerror() ||
+			((driver->functions->geterror = dlsym(dlhandle, DLSYM_PREFIX "dbd_geterror")) == NULL) || dlerror() ||
+			((driver->functions->get_seq_last = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_last")) == NULL) || dlerror() ||
+			((driver->functions->get_seq_next = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_next")) == NULL) || dlerror() ||
+			((driver->functions->ping = dlsym(dlhandle, DLSYM_PREFIX "dbd_ping")) == NULL) || dlerror()
 			)
 		{
 			free(driver->functions);
@@ -871,7 +875,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			}
 			custom->next = NULL;
 			custom->name = custom_functions_list[idx];
-			snprintf(function_name, 256, "dbd_%s", custom->name);
+			snprintf(function_name, 256, DLSYM_PREFIX "dbd_%s", custom->name);
 			custom->function_pointer = dlsym(dlhandle, function_name);
 			if (!custom->function_pointer || dlerror()) {
 				_free_custom_functions(driver);
