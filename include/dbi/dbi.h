@@ -36,6 +36,8 @@ typedef void * dbi_driver;
 typedef void * dbi_conn;
 typedef void * dbi_result;
 
+typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM } dbi_error_flag;
+
 /* function callback definitions */
 typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 
@@ -94,6 +96,7 @@ void dbi_conn_close(dbi_conn Conn);
 
 int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest);
 void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function, void *user_argument);
+dbi_error_flag dbi_conn_error_flag(dbi_conn Conn);
 
 int dbi_conn_connect(dbi_conn Conn);
 int dbi_conn_get_socket(dbi_conn Conn);

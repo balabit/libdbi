@@ -1,6 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, David Parker and Mark Tobenkin.
+ * Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * dbd_mysql.c: MySQL database support (using libpq)
- * Copyright (C) 2001, Mark Tobenkin <mark@brentwoodradio.com>
+ * Copyright (C) 2001-2002, Mark Tobenkin <mark@brentwoodradio.com>
  * http://libdbi.sourceforge.net
  * 
  * $Id$
@@ -93,7 +93,6 @@ int dbd_connect(dbi_conn_t *conn) {
 
 	mycon = mysql_init(NULL);
 	if (!mycon || !mysql_real_connect(mycon , host, username, password, dbname, port, unix_socket, _compression)) {
-		_dbd_internal_error_handler(conn, "Unable to connect to database server", 0);
 		mysql_close(mycon);
 		return -1;
 	}
@@ -207,7 +206,7 @@ dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	MYSQL_RES *res;
 	
 	if (mysql_query((MYSQL *)conn->connection, statement)) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 		return NULL;
 	}
 	
@@ -224,7 +223,7 @@ dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, u
 	MYSQL_RES *res;
 	
 	if (mysql_real_query((MYSQL *)conn->connection, statement, st_length)) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 		return NULL;
 	}
 	
@@ -238,7 +237,7 @@ dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, u
 
 char *dbd_select_db(dbi_conn_t *conn, const char *db) {
 	if (mysql_select_db((MYSQL *)conn->connection, db)) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 		return "";
 	}
 
@@ -251,11 +250,6 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 
 	if (strcmp("",mysql_error((MYSQL *)conn->connection)) == 0) {
 		return -1;
-	}
-	
-	if (!conn->connection) {
-		_dbd_internal_error_handler(conn, "No connection found", 0);
-		return 2;
 	}
 	
 	*errno = mysql_errno((MYSQL *)conn->connection);

@@ -1,6 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, David Parker and Mark Tobenkin.
+ * Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -298,6 +298,7 @@ dbi_conn dbi_conn_open(dbi_driver Driver) {
 	conn->options = NULL;
 	conn->connection = NULL;
 	conn->current_db = NULL;
+	conn->error_flag = DBI_ERROR_NONE;
 	conn->error_number = 0;
 	conn->error_message = NULL;
 	conn->error_handler = NULL;
@@ -365,6 +366,11 @@ void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function,
 	}
 }
 
+dbi_error_flag dbi_conn_error_flag(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
+	return conn->error_flag;
+}
+
 /* DRIVER: option manipulation */
 
 int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
@@ -377,6 +383,7 @@ int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
 	
 	option = _find_or_create_option_node(conn, key);
 	if (!option) {
+		_error_handler(conn, DBI_ERROR_NOMEM);
 		return -1;
 	}
 	
@@ -397,6 +404,7 @@ int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value) {
 	
 	option = _find_or_create_option_node(conn, key);
 	if (!option) {
+		_error_handler(conn, DBI_ERROR_NOMEM);
 		return -1;
 	}
 	
@@ -420,7 +428,13 @@ const char *dbi_conn_get_option(dbi_conn Conn, const char *key) {
 		option = option->next;
 	}
 
-	return option ? option->string_value : NULL;
+	if (option) {
+		return option->string_value;
+	}
+	else {
+		_error_handler(conn, DBI_ERROR_BADNAME);
+		return NULL;
+	}
 }
 
 int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
@@ -434,7 +448,13 @@ int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
 		option = option->next;
 	}
 
-	return option ? option->numeric_value : -1;
+	if (option) {
+		return option->numeric_value;
+	}
+	else {
+		_error_handler(conn, DBI_ERROR_BADNAME);
+		return -1;
+	}
 }
 
 const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current) {
@@ -508,9 +528,15 @@ int dbi_conn_connect(dbi_conn Conn) {
 	if (!conn) return -1;
 	
 	retval = conn->driver->functions->connect(conn);
-	//if (retval == -1) {			XXX cant call error handler when connection is already failed and terminated
-	//	_error_handler(conn);
-	//}
+	if (retval == -2) {
+		/* a DBD-level error has already been set, just call the callback if present */
+		_error_handler(conn, DBI_ERROR_DBD);
+	}
+	else if (retval == -1) {
+		/* couldn't create a connection and no DBD-level error information is available */
+		_error_handler(conn, DBI_ERROR_NOCONN);
+	}
+
 	return retval;
 }
 
@@ -518,7 +544,7 @@ int dbi_conn_get_socket(dbi_conn Conn){
 	dbi_conn_t *conn = Conn;
 	int retval;
 
-	if(!conn) return -1;
+	if (!conn) return -1;
 
 	retval = conn->driver->functions->get_socket(conn);
 
@@ -534,7 +560,7 @@ dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
 	result = conn->driver->functions->list_dbs(conn, pattern);
 	
 	if (result == NULL) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 	}
 
 	return (dbi_result)result;
@@ -549,7 +575,7 @@ dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pa
 	result = conn->driver->functions->list_tables(conn, db, pattern);
 	
 	if (result == NULL) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 	}
 	
 	return (dbi_result)result;
@@ -570,7 +596,7 @@ dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) {
 	result = conn->driver->functions->query(conn, statement);
 
 	if (result == NULL) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 	}
 	free(statement);
 	
@@ -586,7 +612,7 @@ dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, un
 	result = conn->driver->functions->query_null(conn, statement, st_length);
 
 	if (result == NULL) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
 	}
 	
 	return (dbi_result)result;
@@ -598,17 +624,19 @@ int dbi_conn_select_db(dbi_conn Conn, const char *db) {
 	
 	if (!conn) return -1;
 	
-	free(conn->current_db);
+	if (conn->current_db) free(conn->current_db);
 	conn->current_db = NULL;
 	
 	retval = conn->driver->functions->select_db(conn, db);
 	
 	if (retval == NULL) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD);
+		return -1;
 	}
 	
 	if (retval[0] == '\0') {
 		/* if "" was returned, conn doesn't support switching databases */
+		_error_handler(conn, DBI_ERROR_UNSUPPORTED);
 		return -1;
 	}
 	else {
@@ -783,20 +811,38 @@ static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key)
 	return option;
 }
 
-void _error_handler(dbi_conn_t *conn) {
+void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	int errno = 0;
 	char *errmsg = NULL;
 	int errstatus;
+	static const char *errflag_messages[] = {
+		/* DBI_ERROR_USER */		NULL,
+		/* DBI_ERROR_NONE */		NULL,
+		/* DBI_ERROR_DBD */			NULL,
+		/* DBI_ERROR_BADOBJECT */	"An invalid or NULL object was passed to libdbi",
+		/* DBI_ERROR_BADTYPE */		"The requested variable type does not match what libdbi thinks it should be",
+		/* DBI_ERROR_BADIDX */		"An invalid or out-of-range index was passed to libdbi",
+		/* DBI_ERROR_BADNAME */		"An invalid name was passed to libdbi",
+		/* DBI_ERROR_UNSUPPORTED */	"This particular libdbi driver or connection does not support this feature",
+		/* DBI_ERROR_NOCONN */		"libdbi could not establish a connection",
+		/* DBI_ERROR_NOMEM */		"libdbi ran out of memory" };
 	
-	errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
+	if (errflag == DBI_ERROR_DBD) {
+		errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
 
-	if (errstatus == -1) {
-		/* not _really_ an error */
-		return;
+		if (errstatus == -1) {
+			/* not _really_ an error. XXX debug this, does it ever actually happen? */
+			return;
+		}
 	}
 
 	if (conn->error_message) free(conn->error_message);
 
+	if (errflag_messages[errflag+1] != NULL) {
+		errmsg = strdup(errflag_messages[errflag+1]);
+	}
+	
+	conn->error_flag = errflag;
 	conn->error_number = errno;
 	conn->error_message = errmsg;
 	

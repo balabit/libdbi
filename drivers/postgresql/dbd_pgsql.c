@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * dbd_pgsql.c: PostgreSQL database support (using libpq)
- * Copyright (C) 2001, David A. Parker <david@neongoat.com>.
+ * Copyright (C) 2001-2002, David A. Parker <david@neongoat.com>.
  * http://libdbi.sourceforge.net
  * 
  * $Id$
@@ -110,9 +110,9 @@ int dbd_connect(dbi_conn_t *conn) {
 	if (!pgconn) return -1;
 
 	if (PQstatus(pgconn) == CONNECTION_BAD) {
-		_error_handler(conn);
+		_error_handler(conn, DBI_ERROR_DBD); /* grab any more specific error information from postgresql first */
 		PQfinish(pgconn);
-		return -1;
+		return -2;
 	}
 	else {
 		conn->connection = (void *)pgconn;
@@ -260,8 +260,7 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 	
 	*errno = 0;
-	if (!conn->connection) *errstr = strdup("Unable to connect to database");
-	else *errstr = strdup(PQerrorMessage((PGconn *)conn->connection));
+	*errstr = strdup(PQerrorMessage((PGconn *)conn->connection));
 	
 	return 2;
 }

@@ -138,6 +138,7 @@ typedef struct dbi_conn_s {
 	dbi_option_t *options;
 	void *connection; /* will be typecast into conn-specific type */
 	char *current_db;
+	dbi_error_flag error_flag;
 	int error_number; /*XXX*/
 	char *error_message; /*XXX*/
 	dbi_conn_error_handler_func error_handler;
@@ -146,7 +147,7 @@ typedef struct dbi_conn_s {
 } dbi_conn_t;
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
-void _error_handler(dbi_conn_t *conn);
+void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 
 #ifdef __cplusplus
 }
