@@ -97,6 +97,7 @@ int dbd_initialize( dbi_plugin_t *plugin );
 dbi_result_t *dbd_list_dbs( dbi_driver_t *driver );
 dbi_result_t *dbd_list_tables( dbi_driver_t *driver );
 	
+/* Not sure if these two do what they're supposed to */
 unsigned int dbd_num_rows( dbi_result_t *result );
 unsigned int dbd_num_rows_affected( dbi_result_t *result );
 
@@ -269,6 +270,32 @@ int dbd_connect( dbi_driver_t *driver )
 
 		return -1;
 	}
+}
+
+/*****************************************************************************/
+/* _ROW_NEW                                                                  */
+/*****************************************************************************/
+/*
+ * Precondition: myrow != NULL
+ * Postcondition: none.
+ * Returns: fully allocated dbi_row_t.
+ */
+
+dbi_row_t *_row_new( MYSQL_ROW *myrow, int nfields )
+{
+	dbi_row_t *row;
+	
+	row = (dbi_row_t*) malloc(sizeof(dbi_row_t));
+	row->row_handle = (void*) myrow;
+	row->next = NULL;
+	row->numfields = nfields;
+
+	row->field_names = (char **) malloc(sizeof(char*) * (row->numfields )); 
+	row->field_types = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields ));
+	row->field_type_attributes = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields ));
+	row->field_values = (void**) malloc(sizeof(void*) * (row->numfields ));
+	
+	return row;
 }
 
 /*****************************************************************************/
@@ -465,18 +492,12 @@ int dbd_fetch_row( dbi_result_t *result )
 		return 0;
 	}
 
-	/* Create Row */
-	row = (dbi_row_t*) malloc(sizeof(dbi_row_t));
-	row->row_handle = (void*) myrow;
-	row->next = NULL;
-	row->numfields = mysql_num_fields(myres);
+	row = _row_new(myrow, mysql_num_fields(myres));
 
-	row->field_names = (char **) malloc(sizeof(char*) * (row->numfields + 1)); 
-	row->field_types = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
-	row->field_type_attributes = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
-	row->field_values = (void**) malloc(sizeof(void*) * (row->numfields + 1));
-	
+	mysql_field_seek(myres, 0);
+
 	for(i = 0; i < row->numfields; i++){
+
 		myfield = mysql_fetch_field(myres);
 
 		row->field_names[i] = _strcpy_safe(NULL, myfield->name);
@@ -487,7 +508,8 @@ int dbd_fetch_row( dbi_result_t *result )
 		if(!string) return -1;
 
 		string[len[i]] = '\0';
-		memcpy((void*)string, *(myrow)[i], len[i]);
+		if(len[i] != 0)
+			memcpy((void*)string, *(myrow)[i], len[i]);
 
 		fprintf(stderr, "Debugging Statement (sorry): String Value [%s]\n",
 				string);
@@ -517,17 +539,13 @@ int dbd_fetch_row( dbi_result_t *result )
 			}
 			
 		} else if(row->field_types[i] == DBI_TYPE_STRING){
-			
-			if(*(index(string, (int)'\0')) != string[len[i]]){/* beware of OBOEs */
+			if(*(index(string, (int)'\0')) != string[len[i]]){
 				
 				row->field_types[i] = DBI_TYPE_BINARY;
 				row->field_values[i] = malloc(sizeof(char*));
 				
 				*((void**)row->field_values[i]) = malloc(sizeof(char) * len[i]);
 				
-				/* Ok, this is really icky, I know. The void* field_values[i] has the address
-				 *    of the char*, but since memcpy needs a void *, we have to cast it to
-				 *    void**, so that the char* will be correctly dereferenced */
 				memcpy( *( (void**) row->field_values[i] ), (void*)string, len[i]);
 				row->field_type_attributes[i] = len[i];
 			} else {
@@ -536,16 +554,9 @@ int dbd_fetch_row( dbi_result_t *result )
 				strcpy(*((char**)row->field_values[i]), string);
 			}
 		}
-		mysql_field_seek(myres, 0);
 		free(string);
 
 	}
-	/* am i supposed to free the rows??*/
-
-	row->field_names[i] = NULL;
-	row->field_types[i] = 0;
-	row->field_type_attributes[i] = 0;
-	row->field_values[i] = NULL;
 
 	result->row = row;
 
