@@ -13,9 +13,10 @@ int main ()
 	long slong=-1;			long *p_slong=&slong;
 	double precision=-1;		double *p_precision=&precision;
 	char *string;			char **p_string=&string;
+	char query[1024] = "";
 
 
-	int numplugins = dbi_initialize(NULL);
+	int numplugins = dbi_initialize("/home/mmt/Projects/libdbi/locallib/lib/dbd");
 
 	if(numplugins < 1){
 		if(numplugins == -1) fprintf(stderr, "Couldn't open plugin directory.\nTest failed.\n");
@@ -34,7 +35,7 @@ int main ()
 	}
 
 	dbi_set_option(driver, "host", "localhost");
-	dbi_set_option(driver, "username", "test");
+	dbi_set_option(driver, "username", "");
 	dbi_set_option(driver, "password", "");
 	dbi_set_option(driver, "database", "test");
 
@@ -46,9 +47,13 @@ int main ()
 		return 1;
 	} /* else */ 
 
-	fprintf(stderr, "Connected!\nQuerying Server...");
+	fprintf(stderr, "Connected!\nQuery > ");
 
-	result = dbi_query(driver, "SELECT * FROM dbi");
+	fgets(query, 1023, stdin);
+
+	fprintf(stderr, "Sending Query <%s>...", query);
+
+	result = dbi_query(driver, query);
 
 	if(result == NULL){
 		fprintf(stderr, "Query failed!\nTest failed.\n");
@@ -61,12 +66,12 @@ int main ()
 
 	/* Each Row */
 	while(dbi_fetch_row(result)) {
-		if( dbi_fetch_field(result, "string", (void**) &p_string) == -1 ){
+		if( dbi_fetch_field(result, "_year", (void**) &p_sshort) == -1 ){
 			fprintf(stderr, "Field fetching failed.\n");
 			break;
 		}
 
-		fprintf(stderr, "Field 'number' Value [%s]\n", string);
+		fprintf(stderr, "Field 'number' Value [%d]\n", sshort);
 
 		precision = -1;
 	}
