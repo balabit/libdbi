@@ -65,6 +65,7 @@ void free_row( dbi_row_t *row)
 	free(row->field_values);
 	free(row->field_names);
 	free(row->field_types);
+	free(row->field_type_attributes);
 
 	free(row);
 }
@@ -112,8 +113,7 @@ int dbd_connect( dbi_driver_t *driver )
 	con = mysql_init(NULL);
 
 	if(con == NULL){ /* Failure, Memory Problems */
-		driver->error_string = strcpy_safe(driver->error_string, "Not Enough Memory");
-
+		//driver->error_string = strcpy_safe(driver->error_string, "Not Enough Memory");
 		return -1;
 	}
 
@@ -125,9 +125,9 @@ int dbd_connect( dbi_driver_t *driver )
 
 		return 0;
 	} else {
-		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+		//driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
 
-		driver->error_number = mysql_errno(con);
+		//driver->error_number = mysql_errno(con);
 
 		mysql_close(con);
 
@@ -156,7 +156,7 @@ int dbd_disconnect( dbi_driver_t *driver )
 		return 0;
 	} else {
 
-		driver->error_string = strcpy_safe(driver->error_string, error);
+		//driver->error_string = strcpy_safe(driver->error_string, error);
 		
 		return -1;
 	}
@@ -176,13 +176,18 @@ char **dbd_list_dbs( dbi_driver_t *driver )
 	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
 	MYSQL_RES *res = NULL;
 	MYSQL_ROW *myrow = NULL;
+	MYSQL_FIELD *field = NULL;
 
 	res = mysql_list_dbs(con, "%");
 
 	if(res == NULL){
-		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
-		driver->error_number = mysql_errno(con);
+		//driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+		//driver->error_number = mysql_errno(con);
 		return -1;
+	}
+
+	while(myrow = mysql_fetch_row(res)){
+		
 	}
 }
 
@@ -201,9 +206,8 @@ int dbd_select_db( dbi_driver_t *driver, char *database)
 	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
 
 	if(mysql_select_db(con, database)){ /* In Case Of Error */
-		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
-
-		driver->error_number = mysql_errno(con);
+		//driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+		//driver->error_number = mysql_errno(con);
 
 		return -1;
 	}
@@ -232,10 +236,8 @@ dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
 
 	/* Query, On Failure Return NULL */
 	if(mysql_query(con, statement)){
-
-		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
-	
-		driver->error_number = mysql_errno(con);
+		//driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+		//driver->error_number = mysql_errno(con);
 	
 		return NULL;
 	}
@@ -294,9 +296,8 @@ int dbd_fetch_row( dbi_result_t *result )
 	if(*myrow == NULL){
 
 		if( errno = mysql_errno(con) ){ /* In Case Of Error */
-			driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
-
-			driver->error_number = errno;
+			//driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+			//driver->error_number = errno;
 
 			return -1;
 		}
@@ -340,24 +341,42 @@ int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
 	}
 
 	if(i == row->numfields){
-		driver->error_string = strcpy_safe(driver->error_string, "Field Does Not Exist");
+		//driver->error_string = strcpy_safe(driver->error_string, "Field Does Not Exist");
 
 		return -1;
 	}
 
-	/*********************************************************************\
-	* TODO: Interpret field_types[i] to cast field_values[i] to correct   *
-	*         type, then stor in dest                                     *
-	\*********************************************************************/
+	/* Find Field's Type, Allocate Memory And Copy  */
+	if(field_types[i] == DBI_TYPE_INTEGER){
+		
+		if(field_type_attributes[i] & DBI_INTEGER_SIZE3)
+			*dest = malloc(sizeof(char));
+		
+		else if(field_type_attributes[i] & DBI_INTEGER_SIZE4)
+			*dest = malloc(sizeof(short));
+		
+		else(field_type_attributes[i] & DBI_INTEGER_SIZE8)
+			*dest = malloc(sizeof(long));
 
-	switch(row->field_types[i]){
-		case DBI_INTEGER_UNSIGNED:
-			*dest = (void *)malloc(sizeof(unsigned int));
-			**dest = (unsigned int) *(driver->field_values[i]);
-		break;
-
-		case 
+		**dest = field_values[i];
+	} else if(field_types[i] == DBI_TYPE_DECIMAL) {
+		
+		if(field_type_attributes[i] & DBI_DECIMAL_SIZE4)
+			*dest = malloc(sizeof(float));
+		
+		else(field_type_attributes[i] & DBI_DECIMAL_SIZE8)
+			*dest = malloc(sizeof(double));
+		
+		**dest = field_values[i];
+	} else if(field_types[i] == DBI_TYPE_STRING){
+		*dest = malloc(sizeof(char*));
+		**dest = malloc (sizeof(char) * (1 + strlen((char*)field_values[i])) );
+		**dest = strcpy_safe(NULL, (char*)field_values[i]);
 	}
+
+	if(*dest == NULL) return -1;
+
+	return 0;
 }
 
 /*****************************************************************************/
