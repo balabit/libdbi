@@ -162,6 +162,7 @@ typedef struct dbi_conn_s {
 } dbi_conn_t;
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned long rangemax);
+time_t _parse_datetime(const char *raw, unsigned long attribs);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 int _disjoin_from_conn(dbi_result_t *result);
 
