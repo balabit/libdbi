@@ -86,6 +86,7 @@ int dbi_result_seek_row(dbi_result Result, unsigned long long row) {
 	retval = result->conn->driver->functions->goto_row(result, row-1);
 	if (retval == -1) {
 		_error_handler(result->conn, DBI_ERROR_DBD);
+		return -1;
 	}
 	retval = result->conn->driver->functions->fetch_row(result, row-1);
 	if (retval == 0) {
