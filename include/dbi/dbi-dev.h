@@ -115,6 +115,7 @@ typedef struct dbi_functions_s {
 	int (*free_query)(dbi_result_t *);
 	int (*goto_row)(dbi_result_t *, unsigned long long);
 	int (*get_socket)(dbi_conn_t_pointer);
+	const char *(*get_encoding)(dbi_conn_t_pointer);
 	dbi_result_t *(*list_dbs)(dbi_conn_t_pointer, const char *);
 	dbi_result_t *(*list_tables)(dbi_conn_t_pointer, const char *, const char *);
 	dbi_result_t *(*query)(dbi_conn_t_pointer, const char *);
