@@ -71,9 +71,7 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 #define DBI_TYPE_DECIMAL 2
 #define DBI_TYPE_STRING 3
 #define DBI_TYPE_BINARY 4
-#define DBI_TYPE_ENUM 5
-#define DBI_TYPE_SET 6
-#define DBI_TYPE_DATETIME 7
+#define DBI_TYPE_DATETIME 5
 
 /* values for the bitmask in field_type_attributes[] */
 #define DBI_INTEGER_UNSIGNED	(1 << 0)
@@ -190,9 +188,6 @@ const unsigned char *dbi_result_get_binary(dbi_result Result, const char *fieldn
 char *dbi_result_get_string_copy(dbi_result Result, const char *fieldname);
 unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldname);
 
-const char *dbi_result_get_enum(dbi_result Result, const char *fieldname);
-const char *dbi_result_get_set(dbi_result Result, const char *fieldname);
-
 time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname);
 
 int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto);
@@ -212,9 +207,6 @@ int dbi_result_bind_binary(dbi_result Result, const char *fieldname, const unsig
 
 int dbi_result_bind_string_copy(dbi_result Result, const char *fieldname, char **bindto);
 int dbi_result_bind_binary_copy(dbi_result Result, const char *fieldname, unsigned char **bindto);
-
-int dbi_result_bind_enum(dbi_result Result, const char *fieldname, const char **bindto);
-int dbi_result_bind_set(dbi_result Result, const char *fieldname, const char **bindto);
 
 int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto);
 
@@ -238,9 +230,6 @@ const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned short
 char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned short idx);
 unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned short idx);
 
-const char *dbi_result_get_enum_idx(dbi_result Result, unsigned short idx);
-const char *dbi_result_get_set_idx(dbi_result Result, unsigned short idx);
-
 time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned short idx);
 
 /*
@@ -261,9 +250,6 @@ int dbi_result_bind_binary_idx(dbi_result Result, unsigned int idx, const unsign
 
 int dbi_result_bind_string_copy_idx(dbi_result Result, unsigned int idx, char **bindto);
 int dbi_result_bind_binary_copy_idx(dbi_result Result, unsigned int idx, unsigned char **bindto);
-
-int dbi_result_bind_enum_idx(dbi_result Result, unsigned int idx, const char **bindto);
-int dbi_result_bind_set_idx(dbi_result Result, unsigned int idx, const char **bindto);
 
 int dbi_result_bind_datetime_idx(dbi_result Result, unsigned int idx, time_t *bindto);
 */

@@ -443,8 +443,6 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowi
 				memcpy(data->d_string, raw, strsize);
 				break;
 				
-			case DBI_TYPE_ENUM:
-			case DBI_TYPE_SET:
 			case DBI_TYPE_DATETIME:
 			default:
 				break;

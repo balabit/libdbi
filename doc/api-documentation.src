@@ -633,8 +633,6 @@ NAME dbi_result_get_fields
 		<ListItem><Para><Literal>%S</Literal>: A local copy of a string (must be freed by program)</Para></ListItem>
 		<ListItem><Para><Literal>%b</Literal>: A read-only pointer to binary data</Para></ListItem>
 		<ListItem><Para><Literal>%B</Literal>: A local copy of binary data (must be freed by program)</Para></ListItem>
-		<ListItem><Para><Literal>%t</Literal>: A read-only string representing a SET</Para></ListItem>
-		<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
 		<ListItem><Para><Literal>%m</Literal>: A time_t value representing a DATE and/or TIME</Para></ListItem>
 	</ItemizedList>
 	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &amp;id_number, &amp;name)</Literal></Para>
@@ -805,28 +803,6 @@ NAME dbi_result_get_binary_copy
 	PROTO unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldname)
 	DESC
 	Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.
-	ENDDESC
-	ARG Result The target query result.
-	ARG fieldname The name of the field to fetch.
-	RET The data stored in the specified field.
-
-*
-
-NAME dbi_result_get_enum
-	PROTO const char *dbi_result_get_enum(dbi_result Result, const char *fieldname)
-	DESC
-	Fetch the data stored in the speficied field, which contains an ENUM (which will be represented as a read-only string).
-	ENDDESC
-	ARG Result The target query result.
-	ARG fieldname The name of the field to fetch.
-	RET The data stored in the specified field.
-
-*
-
-NAME dbi_result_get_set
-	PROTO const char *dbi_result_get_set(dbi_result Result, const char *fieldname)
-	DESC
-	Fetch the data stored in the speficied field, which contains a SET (which will be represented as a read-only string).
 	ENDDESC
 	ARG Result The target query result.
 	ARG fieldname The name of the field to fetch.
@@ -1013,31 +989,6 @@ NAME dbi_result_bind_binary_copy
 
 *
 
-NAME dbi_result_bind_enum
-	PROTO int dbi_result_bind_enum(dbi_result Result, const char *fieldname, const char **bindto)
-	DESC
-	Bind the specified variable to the specified field, which holds an ENUM (which is represented as a read-only string).
-	ENDDESC
-	ARG Result The target query result.
-	ARG fieldname The name of the field to bind to.
-	ARG bindto A pointer to the variable that will be updated with the specified field's value.
-	RET 0 upon success, -1 if there was an error
-
-*
-
-NAME dbi_result_bind_set
-	PROTO int dbi_result_bind_set(dbi_result Result, const char *fieldname, const char **bindto)
-	DESC
-	Bind the specified variable to the specified field, which holds a SET (which is represented as a read-only string).
-	ENDDESC
-	ARG Result The target query result.
-	ARG fieldname The name of the field to bind to.
-	ARG bindto A pointer to the variable that will be updated with the specified field's value.
-	RET 0 upon success, -1 if there was an error
-
-
-*
-
 NAME dbi_result_bind_datetime
 	PROTO int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto)
 	DESC
@@ -1197,28 +1148,6 @@ NAME dbi_result_get_binary_copy_idx
 	PROTO unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int idx)
 	DESC
 	Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.
-	ENDDESC
-	ARG Result The target query result.
-	ARG idx The index of the target field (starting at 1).
-	RET The data stored in the specified field.
-
-*
-
-NAME dbi_result_get_enum_idx
-	PROTO const char *dbi_result_get_enum_idx(dbi_result Result, unsigned int idx)
-	DESC
-	Fetch the data stored in the speficied field, which contains an ENUM (which will be represented as a read-only string).
-	ENDDESC
-	ARG Result The target query result.
-	ARG idx The index of the target field (starting at 1).
-	RET The data stored in the specified field.
-
-*
-
-NAME dbi_result_get_set_idx
-	PROTO const char *dbi_result_get_set_idx(dbi_result Result, unsigned int idx)
-	DESC
-	Fetch the data stored in the speficied field, which contains a SET (which will be represented as a read-only string).
 	ENDDESC
 	ARG Result The target query result.
 	ARG idx The index of the target field (starting at 1).

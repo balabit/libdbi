@@ -65,8 +65,6 @@ static void _bind_helper_string(_field_binding_t *binding);
 static void _bind_helper_binary(_field_binding_t *binding);
 static void _bind_helper_string_copy(_field_binding_t *binding);
 static void _bind_helper_binary_copy(_field_binding_t *binding);
-static void _bind_helper_set(_field_binding_t *binding);
-static void _bind_helper_enum(_field_binding_t *binding);
 static void _bind_helper_datetime(_field_binding_t *binding);
 
 /* XXX ROW SEEKING AND FETCHING XXX */
@@ -538,12 +536,6 @@ int dbi_result_get_fields(dbi_result Result, const char *format, ...) {
 			case 'B': /* binary copy */
 				*va_arg(ap, unsigned char **) = dbi_result_get_binary_copy(Result, fieldnames[curidx]); 
 				break;
-			case 't': /* seT */
-				*va_arg(ap, const char **) = dbi_result_get_set(Result, fieldnames[curidx]); 
-				break;
-			case 'e': /* enum */
-				*va_arg(ap, const char **) = dbi_result_get_enum(Result, fieldnames[curidx]); 
-				break;
 			case 'm': /* datetiMe (what... you have any better ideas?? */
 				*va_arg(ap, time_t *) = dbi_result_get_datetime(Result, fieldnames[curidx]);
 				break;
@@ -638,12 +630,6 @@ int dbi_result_bind_fields(dbi_result Result, const char *format, ...) {
 				break;
 			case 'B': /* binary copy */
 				dbi_result_bind_binary_copy(Result, fieldnames[curidx], va_arg(ap, unsigned char **));
-				break;
-			case 't': /* seT */
-				dbi_result_bind_set(Result, fieldnames[curidx], va_arg(ap, const char **));
-				break;
-			case 'e': /* enum */
-				dbi_result_bind_enum(Result, fieldnames[curidx], va_arg(ap, const char **));
 				break;
 			case 'm': /* datetiMe (what... you have any better ideas?? */
 				dbi_result_bind_datetime(Result, fieldnames[curidx], va_arg(ap, time_t *));
@@ -1090,68 +1076,6 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned short 
 	return newblob;
 }
 
-const char *dbi_result_get_enum(dbi_result Result, const char *fieldname) {
-	const char *ERROR = "ERROR";
-	short idx = _find_field((dbi_result_t *)Result, fieldname);
-	if (idx < 0) {
-		dbi_conn_t *conn = ((dbi_result_t *)Result)->conn;
-		_error_handler(conn, DBI_ERROR_BADNAME);
-		return ERROR;
-	}
-	return dbi_result_get_enum_idx(Result, idx+1);
-}
-	
-const char *dbi_result_get_enum_idx(dbi_result Result, unsigned short idx) {
-	const char *ERROR = "ERROR";
-	dbi_result_t *result = Result;
-	idx--;
-	
-	result->conn->error_flag = DBI_ERROR_NONE;
-	
-	if (idx >= result->numfields) {
-		_error_handler(result->conn, DBI_ERROR_BADIDX);
-		return ERROR;
-	}
-	if (result->field_types[idx] != DBI_TYPE_ENUM) {
-		_error_handler(result->conn, DBI_ERROR_BADTYPE);
-		return ERROR;
-	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
-
-	return (const char *)(result->rows[result->currowidx]->field_values[idx].d_string);
-}
-
-const char *dbi_result_get_set(dbi_result Result, const char *fieldname) {
-	const char *ERROR = "ERROR";
-	short idx = _find_field((dbi_result_t *)Result, fieldname);
-	if (idx < 0) {
-		dbi_conn_t *conn = ((dbi_result_t *)Result)->conn;
-		_error_handler(conn, DBI_ERROR_BADNAME);
-		return ERROR;
-	}
-	return dbi_result_get_set_idx(Result, idx+1);
-}
-	
-const char *dbi_result_get_set_idx(dbi_result Result, unsigned short idx) {
-	const char *ERROR = "ERROR";
-	dbi_result_t *result = Result;
-	idx--;
-	
-	result->conn->error_flag = DBI_ERROR_NONE;
-	
-	if (idx >= result->numfields) {
-		_error_handler(result->conn, DBI_ERROR_BADIDX);
-		return ERROR;
-	}
-	if (result->field_types[idx] != DBI_TYPE_SET) {
-		_error_handler(result->conn, DBI_ERROR_BADTYPE);
-		return ERROR;
-	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
-
-	return (const char *)(result->rows[result->currowidx]->field_values[idx].d_string);
-}
-
 time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname) {
 	time_t ERROR = 0;
 	short idx = _find_field((dbi_result_t *)Result, fieldname);
@@ -1274,14 +1198,6 @@ int dbi_result_bind_string_copy(dbi_result Result, const char *fieldname, char *
 
 int dbi_result_bind_binary_copy(dbi_result Result, const char *fieldname, unsigned char **bindto) {
 	return _setup_binding((dbi_result_t *)Result, fieldname, bindto, _bind_helper_binary_copy);
-}
-
-int dbi_result_bind_enum(dbi_result Result, const char *fieldname, const char **bindto) {
-	return _setup_binding((dbi_result_t *)Result, fieldname, (char **)bindto, _bind_helper_enum);
-}
-
-int dbi_result_bind_set(dbi_result Result, const char *fieldname, const char **bindto) {
-	return _setup_binding((dbi_result_t *)Result, fieldname, (char **)bindto, _bind_helper_set);
 }
 
 int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto) {
@@ -1412,14 +1328,6 @@ static void _bind_helper_string_copy(_field_binding_t *binding) {
 
 static void _bind_helper_binary_copy(_field_binding_t *binding) {
 	*(unsigned char **)binding->bindto = dbi_result_get_binary_copy((dbi_result)binding->result, binding->fieldname);
-}
-
-static void _bind_helper_set(_field_binding_t *binding) {
-	*(const char **)binding->bindto = dbi_result_get_set((dbi_result)binding->result, binding->fieldname);
-}
-
-static void _bind_helper_enum(_field_binding_t *binding) {
-	*(const char **)binding->bindto = dbi_result_get_enum((dbi_result)binding->result, binding->fieldname);
 }
 
 static void _bind_helper_datetime(_field_binding_t *binding) {
