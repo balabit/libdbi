@@ -21,4 +21,4 @@ lib_LTLIBRARIES = $(pgsql_ltlibs)
 libpgsql_la_LDFLAGS = $(pgsql_ldflags) @PGSQL_LFLAGS@ @PGSQL_LIBS@
 libpgsql_la_SOURCES = $(pgsql_sources)
 
-EXTRA_DIST = dbd_pgsql.c
+EXTRA_DIST = dbd_pgsql.c pgsql-stuff.h

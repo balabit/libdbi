@@ -21,4 +21,4 @@ lib_LTLIBRARIES = $(mysql_ltlibs)
 libmysql_la_LDFLAGS = $(mysql_ldflags) @MYSQL_LFLAGS@ @MYSQL_LIBS@
 libmysql_la_SOURCES = $(mysql_sources)
 
-EXTRA_DIST = dbd_mysql.c
+EXTRA_DIST = dbd_mysql.c mysql-stuff.h
