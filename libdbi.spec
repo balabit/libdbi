@@ -1,5 +1,5 @@
 %define name	libdbi
-%define version	0.5
+%define version	0.6
 %define release 1
 
 Summary:	Database Independent Abstraction Layer for C
@@ -63,9 +63,10 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %files
 %defattr(-,root,root)
 %doc AUTHORS
+%doc ChangeLog
 %doc COPYING
 %doc README
-%doc PLUGINS
+%doc README.plugins
 /usr/lib/libdbi.so.*
 
 %files devel

@@ -174,8 +174,8 @@ int dbi_result_get_field_idx(dbi_result Result, const char *fieldname) {
 
 const char *dbi_result_get_field_name(dbi_result Result, unsigned int fieldnum) {
 	dbi_result_t *result = Result;
-	if (!result || (fieldnum > result->numfields)) return NULL;
-	return (const char *) result->field_names[fieldnum];
+	if (!result || (fieldnum >= result->numfields)) return NULL;
+	return (const char *) result->field_names[fieldnum-1];
 }
 
 unsigned int dbi_result_get_numfields(dbi_result Result) {
@@ -550,11 +550,11 @@ signed char dbi_result_get_char_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
-	
-	if (idx >= result->numfields) return ERROR;	
+
+	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -581,11 +581,11 @@ short dbi_result_get_short_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -612,11 +612,11 @@ long dbi_result_get_long_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -643,11 +643,11 @@ long long dbi_result_get_longlong_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
@@ -706,11 +706,11 @@ float dbi_result_get_float_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
@@ -734,11 +734,11 @@ double dbi_result_get_double_idx(dbi_result Result, unsigned int idx) {
 	dbi_result_t *result = Result;
 	unsigned long sizeattrib;
 	idx--;
-	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
 	if (idx >= result->numfields) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
 	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
+	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 
 	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
@@ -1060,7 +1060,7 @@ static int _is_row_fetched(dbi_result_t *result, unsigned int row) {
 static void _free_row(dbi_row_t *row) {
 	if (!row) return;
 	free(row->field_values);
-	if (row->field_sizes) free(row->field_sizes);
+	free(row->field_sizes);
 	free(row);
 }
 

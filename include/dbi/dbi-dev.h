@@ -142,6 +142,7 @@ typedef struct dbi_driver_s {
 } dbi_driver_t;
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
+void _error_handler(dbi_driver_t *driver);
 
 #ifdef __cplusplus
 }

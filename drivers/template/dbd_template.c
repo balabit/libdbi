@@ -24,27 +24,16 @@
  * $Id$
  */
 
-
-/* XXX XXX XXX
- *
- * BEWARE PLUGIN AUTHORS! THIS CODE IS OUT OF DATE! USE THE POSTGRESQL OR MYSQL
- * CODE AS AN EXAMPLE INSTEAD!
- *
- * XXX XXX XXX */
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
+#include <dbi/dbd.h>
 
-
-/*******************************
- * plugin-specific information *
- *******************************/
+#include "dbd_template.h"
 
 dbi_info_t plugin_info = {
 	/* short name, used for loading drivers by name */
@@ -63,134 +52,145 @@ dbi_info_t plugin_info = {
 
 static const char *custom_functions_list[] = { "template_frob", "template_bork", NULL };
 /* actual functions must be called dbd_template_frob and dbd_template_bork, but
- * this is how they are referred as when using dbi_custom_function() */
+ * this is how they are referred to when using dbi_custom_function() */
 
-static const char *reserved_words_list[] = { "SELECT", "INSERT", "UPDATE", "UNSIGNED", "NULL", "NOT", "IS", "TINYINT", "VARCHAR", "etc...", NULL };
+static const char *reserved_words_list[] = TEMPLATE_RESERVED_WORDS; /* this is defined in dbd_template.h */
+
+void _translate_template_type(const int fieldtype, unsigned short *type, unsigned int *attribs);
+void _get_field_info(dbi_result_t *result);
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
+time_t _parse_datetime(const char *raw, unsigned long attribs);
 
 
-
-/********************************
- * database-dependent functions *
- ********************************/
-
-static int fetched_rows = 0; /* this is a hack to simulate fetched data, erase this line in your own plugin code */
+void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
+	/* this is the first function called after the plugin module is loaded into memory */
+	*_plugin_info = &plugin_info;
+	*_custom_functions = custom_functions;
+	*_reserved_words = reserved_words;
+}
 
 int dbd_initialize(dbi_plugin_t *plugin) {
 	/* perform any database-specific server initialization.
-	 * dlhandle, filename, next, functions, reserved_words, and custom_functions
-	 * already filled in by the dbi core. return -1 on error, 0 on success.
-	 * if -1 is returned, the plugin will not be added to the list of available plugins. */
+	 * this is called right after dbd_register_plugin().
+	 * return -1 on error, 0 on success. if -1 is returned, the plugin will not
+	 * be added to the list of available plugins. */
 	
 	return 0;
 }
 
 int dbd_connect(dbi_driver_t *driver) {
+	/* void *conn; */
+	
 	const char *host = dbi_driver_get_option(driver, "host");
 	const char *username = dbi_driver_get_option(driver, "username");
 	const char *password = dbi_driver_get_option(driver, "password");
+	const char *dbname = dbi_driver_get_option(driver, "dbname");
 	int port = dbi_driver_get_option_numeric(driver, "port");
+	
+	/* plugin specific options */
+	const char *option1 = dbi_driver_get_option(driver, "template_option1");
+	int option2 = dbi_driver_get_option_numeric(driver, "template_option2");
 
-	/* driver->connection = connect() */
+	if (port == -1) port = 0; /* port not specified, use default */
 
+	/*
+	conn = XXX_open_connection(host, username, password, dbname, port, option1, option2);
+	if (!conn) {
+		_error_handler(driver);
+		XXX_close_connection(conn);
+		return -1;
+	}
+	else {
+		driver->connection = (void *) conn;
+		if (dbname) driver->current_db = strdup(dbname);
+	}
+	*/
+	
 	return 0;
 }
 
 int dbd_disconnect(dbi_driver_t *driver) {
-	/* do whatever's necessary... */
+	/*
+	if (driver->connection) XXX_close_connection(driver->connection);
+	*/
+	
 	return 0;
 }
 
+int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
+	dbi_row_t *row = NULL;
 
-int dbd_fetch_row(dbi_result_t *result) {
-	/* this is just dummy code to simulate data */
-
-	static unsigned int numfields = 3;
-	static char *field_names[3] = { "id", "name", "weight" };
-	static unsigned short field_types[3] = { DBI_TYPE_INTEGER, DBI_TYPE_STRING, DBI_TYPE_DECIMAL };
-	static unsigned int field_attribs[3] = { DBI_INTEGER_SIZE4, 0, DBI_DECIMAL_SIZE8 };
-	static dbi_data_t field_data[4][3];
-	static unsigned int field_sizes[4][3] = {
-		{ 0, 9, 0 },
-		{ 0, 15, 0 },
-		{ 0, 11, 0 },
-		{ 0, 10, 0 },
-	};
-	static dbi_row_t rows[4];
+	if (result->result_state == NOTHING_RETURNED) return -1;
 	
-	field_data[0][0].d_long = 1;
-	field_data[0][1].d_string = "Rob Malda";
-	field_data[0][2].d_double = 123.456789;
-	
-	field_data[1][0].d_long = 2;
-	field_data[1][1].d_string = "Tux Penguin";
-	field_data[1][2].d_double = 1.33333333;
-
-	field_data[2][0].d_long = 3;
-	field_data[2][1].d_string = "Santa Claus";
-	field_data[2][2].d_double = 999999.1;
-
-	field_data[3][0].d_long = 4;
-	field_data[3][1].d_string = "Bill Gates";
-	field_data[3][2].d_double = -666.666;
-
-	rows[0].field_values = field_data[0];
-	rows[0].field_sizes = field_sizes[0];
-	rows[1].field_values = field_data[1];
-	rows[1].field_sizes = field_sizes[1];
-	rows[2].field_values = field_data[2];
-	rows[2].field_sizes = field_sizes[2];
-	rows[3].field_values = field_data[3];
-	rows[3].field_sizes = field_sizes[3];
-	
-	if (fetched_rows >= 4) {
-		return 0; /* don't simulate rows forever... */
+	if (result->result_state == ROWS_RETURNED) {
+		/* this is the first time we've been here */
+		
+		/*
+		_dbd_result_set_numfields(result, XXX_get_num_fields(result->result_handle));
+		*/
+		_get_field_info(result);
+		result->result_state = GETTING_ROWS;
 	}
 
-	if (fetched_rows == 0) {
-		result->numfields = numfields;
-		/* usually the next 3 members will have to be allocated dynamically */
-		result->field_names = field_names;
-		result->field_types = field_types;
-		result->field_attribs = field_attribs;
-	}
+	/* get row here */
+	row = _dbd_row_allocate(result->numfields);
+	_get_row_data(result, row, rownum);
+	_dbd_row_finalize(result, row, rownum);
 	
-	result->currowidx++;
-	result->rows[result->currowidx] = &rows[result->currowidx-1];
-	fetched_rows++;
-	
-	return 1; /* return -1 on error, 0 on no more rows, 1 on successful fetchrow */
+	return 1; /* 0 on error, 1 on successful fetchrow */
 }
 
 int dbd_free_query(dbi_result_t *result) {
-	/* do whatever's necessary... */
-	fetched_rows = 0;
+	/*
+	if (result->result_handle) XXX_free_result(result->result_handle);
+	*/
+	
 	return 0;
 }
 
-const char **dbd_get_custom_functions_list() {
-	return custom_functions_list;
-}
-
-const dbi_info_t *dbd_get_info() {
-	return &plugin_info;
-}
-
-const char **dbd_get_reserved_words_list() {
-	return reserved_words_list;
-}
-
-int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
-	return 0;
+int dbd_goto_row(dbi_result_t *result, unsigned int row) {
+	/*
+	XXX_seek_row(result->result_handle, row);
+	*/
+	return 1; /* return 0 if failed, or not supported */
 }
 
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	/* return dbd_query(driver, "SELECT DB_Name AS dbname FROM system.dblist"); */
+	/*
+	return dbd_query(driver, "SELECT dbname FROM dbs");
+	*/
 	return NULL;
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
-	/* return dbi_driver_query((dbi_driver)driver, "SELECT Table_Name AS tablename FROM system.tablelist WHERE DB = %s", db); */
+	/*
+	return dbi_driver_query((dbi_driver)driver, "SELECT tablename FROM tables WHERE db = '%s'", db);
+	*/
 	return NULL;
+}
+
+int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+	/* foo's -> 'foo\'s' */
+	
+	/* dest is already allocated as (strlen(orig)*2)+4+1
+	 * worst case, each char of orig will be escaped, with two quote characters
+	 * added to both the beginning and end of ths string, plus one for the NULL */
+	
+	unsigned int len;
+	
+	strcpy(dest, "'");
+	/*
+	len = XXX_escape_string(dest, orig, strlen(orig));
+	(if your database provides an escape function)
+	
+	OR (if it doesn't):
+	
+	const char *escaped = "\'\"\\"; XXX XXX XXX XXX XXX
+	len = _dbd_escape_chars(dest, orig, escaped);
+	*/
+	strcat(dest, "'");
+	
+	return len+2;
 }
 
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
@@ -199,35 +199,276 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	 * result_handle, numrows_matched, and numrows_changed.
 	 * everything else will be filled in by DBI */
 	
-	int efficient = dbi_driver_get_option_numeric(driver, "efficient-queries");
 	dbi_result_t *result;
-	result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
-	if (!result) {
+	/* void *res; */
+	
+	/*
+	if (XXX_query(driver->connection, statement)) {
+		_error_handler(driver);
 		return NULL;
 	}
+	*/
 	
-	result->result_handle = NULL;
-	result->numrows_matched = 4;
-	result->numrows_affected = 0;
+	/*
+	res = XXX_store_result(driver->connection);
+	*/
 	
+	if (!res) {
+		_error_handler(driver);
+		return NULL;
+	}
+
+	/*
+	result = _dbd_result_create(driver, (void *)res, XXX_num_rows(res), XXX_affected_rows(res));
+	*/
+
 	return result;
 }
 
-int dbd_select_db(dbi_driver_t *driver, const char *db) {
-	/* keep track of current db in myself->current_db */
-	if (driver->current_db) free(driver->current_db);
-	driver->current_db = strdup(db);
-	return 0;
+char *dbd_select_db(dbi_driver_t *driver, const char *db) {
+	/* if not supported, return NULL.
+	 * if supported but there's an error, return "". */
+
+	/*
+	if (XXX_select_db(driver->connection, db)) {
+		_error_handler(driver);
+		return ""; 
+	}
+	*/
+
+	return (char *)db;
 }
 
-const char *dbd_errstr(dbi_driver_t *driver) {
-	/* do whatever's neccesary */
-	return NULL;
+int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
+	/* put error number into errno, error string into errstr
+	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
+	
+	if (!driver->connection) {
+		*errno = 0;
+		*errstr = strdup("Unable to connect to database");
+		return 2;
+	}
+	
+	/*
+
+	*errno = XXX_errno(driver->connection);
+	*errstr = strdup(XXX_error(driver->connection));
+
+	*/
+	
+	return 3;
 }
 
-int dbd_errno(dbi_driver_t *driver) {
-	/* do whatever's necessary */
-	return 0;
+/* CORE TEMPLATE-SPECIFIC FUNCTIONS */
+
+void _translate_template_type(const int fieldtype, unsigned short *type, unsigned int *attribs) {
+	unsigned int _type = 0;
+	unsigned int _attribs = 0;
+
+	/*
+	switch (fieldtype) {
+		case FIELD_TYPE_TINY:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE1;
+			break;
+		case FIELD_TYPE_YEAR:
+			_attribs |= DBI_INTEGER_UNSIGNED;
+		case FIELD_TYPE_SHORT:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE2;
+			break;
+		case FIELD_TYPE_INT24:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE3;
+			break;
+		case FIELD_TYPE_LONG:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE4;
+			break;
+		case FIELD_TYPE_LONGLONG:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE8;
+			break;
+			
+		case FIELD_TYPE_FLOAT:
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE4;
+			break;
+		case FIELD_TYPE_DOUBLE:
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE8;
+			break;
+			
+		case FIELD_TYPE_DATE:
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_DATE;
+			break;
+		case FIELD_TYPE_TIME:
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_TIME;
+			break;
+		case FIELD_TYPE_DATETIME:
+		case FIELD_TYPE_TIMESTAMP:
+			_type = DBI_TYPE_DATETIME;
+			_attribs |= DBI_DATETIME_DATE;
+			_attribs |= DBI_DATETIME_TIME;
+			break;
+			
+		case FIELD_TYPE_DECIMAL:
+		case FIELD_TYPE_ENUM:
+		case FIELD_TYPE_SET:
+		case FIELD_TYPE_VAR_STRING:
+		case FIELD_TYPE_STRING:
+			_type = DBI_TYPE_STRING;
+			break;
+			
+		case FIELD_TYPE_TINY_BLOB:
+		case FIELD_TYPE_MEDIUM_BLOB:
+		case FIELD_TYPE_LONG_BLOB:
+		case FIELD_TYPE_BLOB:
+			_type = DBI_TYPE_BINARY;
+			break;
+			
+		default:
+			_type = DBI_TYPE_STRING;
+			break;
+	}
+	*/
+	
+	*type = _type;
+	*attribs = _attribs;
+}
+
+void _get_field_info(dbi_result_t *result) {
+	unsigned int idx = 0;
+	/* void *field; */
+	unsigned short fieldtype;
+	unsigned int fieldattribs;
+
+	/*
+	field = XXX_fetch_fields(result->result_handle);
+	*/
+	
+	while (idx < result->numfields) {
+		_translate_template_type(field[idx].type, &fieldtype, &fieldattribs);
+		if ((fieldtype == DBI_TYPE_INTEGER) && (field->flags & UNSIGNED_FLAG)) fieldattribs |= DBI_INTEGER_UNSIGNED;
+		_dbd_result_add_field(result, idx, field[idx].name, fieldtype, fieldattribs);
+		idx++;
+	}
+}
+
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
+	/* void *_res = result->result_handle; */
+	/* void *_row; */
+	
+	int curfield = 0;
+	char *raw = NULL;
+	unsigned long *strsizes = NULL;
+	unsigned long sizeattrib;
+	dbi_data_t *data;
+
+	/*
+	_row = XXX_fetch_row(_res);
+	strsizes = XXX_fetch_lengths(_res);
+	*/
+
+	while (curfield < result->numfields) {
+		raw = _row[curfield];
+		data = &row->field_values[curfield];
+
+		if (strsizes[curfield] == 0) {
+			/* value is NULL, keep track of that and go to next field */
+			row->field_sizes[curfield] = 0;
+			curfield++;
+			continue;
+		}
+		else {
+			row->field_sizes[curfield] = -1;
+			/* this will be set to the string size later on if the field is indeed a string */
+		}
+		
+		switch (result->field_types[curfield]) {
+			case DBI_TYPE_INTEGER:
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+				switch (sizeattrib) {
+					case DBI_INTEGER_SIZE1:
+						data->d_char = (char) atol(raw); break;
+					case DBI_INTEGER_SIZE2:
+						data->d_short = (short) atol(raw); break;
+					case DBI_INTEGER_SIZE3:
+					case DBI_INTEGER_SIZE4:
+						data->d_long = (long) atol(raw); break;
+					case DBI_INTEGER_SIZE8:
+						data->d_longlong = (long long) atoll(raw); break;
+					default:
+						break;
+				}
+				break;
+			case DBI_TYPE_DECIMAL:
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+				switch (sizeattrib) {
+					case DBI_DECIMAL_SIZE4:
+						data->d_float = (float) strtod(raw, NULL); break;
+					case DBI_DECIMAL_SIZE8:
+						data->d_double = (double) strtod(raw, NULL); break;
+					default:
+						break;
+				}
+				break;
+			case DBI_TYPE_STRING:
+				data->d_string = strdup(raw);
+				row->field_sizes[curfield] = strsizes[curfield];
+				break;
+			case DBI_TYPE_BINARY:
+				row->field_sizes[curfield] = strsizes[curfield];
+				memcpy(data->d_string, raw, strsizes[curfield]);
+				break;
+			case DBI_TYPE_DATETIME:
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DATETIME_DATE, DBI_DATETIME_TIME);
+				data->d_datetime = _parse_datetime(raw, sizeattrib);
+				break;
+				
+			case DBI_TYPE_ENUM:
+			case DBI_TYPE_SET:
+			default:
+				data->d_string = strdup(raw);
+				row->field_sizes[curfield] = strsizes[curfield];
+				break;
+		}
+		
+		curfield++;
+	}
+}
+
+time_t _parse_datetime(const char *raw, unsigned long attribs) {
+	struct tm unixtime;
+	char *unparsed = strdup(raw);
+	char *cur = unparsed;
+
+	unixtime.tm_sec = unixtime.tm_min = unixtime.tm_hour = 0;
+	unixtime.tm_mday = unixtime.tm_mon = unixtime.tm_year = 0;
+	unixtime.tm_isdst = -1;
+	
+	if (attribs & DBI_DATETIME_DATE) {
+		cur[4] = '\0';
+		cur[7] = '\0';
+		cur[10] = '\0';
+		unixtime.tm_year = atoi(cur);
+		unixtime.tm_mon = atoi(cur+5);
+		unixtime.tm_mday = atoi(cur+8);
+		if (attribs & DBI_DATETIME_TIME) cur = cur+11;
+	}
+	
+	if (attribs & DBI_DATETIME_TIME) {
+		cur[2] = '\0';
+		cur[5] = '\0';
+		unixtime.tm_hour = atoi(cur);
+		unixtime.tm_min = atoi(cur+3);
+		unixtime.tm_sec = atoi(cur+6);
+	}
+
+	free(unparsed);
+	return mktime(&unixtime);
 }
 
 /**************************************

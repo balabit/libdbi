@@ -1,9 +1,8 @@
 $Id$
 
-- create DBI unixtime intrinsic type, parse database date/time fields
-- add function to fetch row by index instead of name
+- add binding by index, mass-field functions by index
+- more sanity checking in get and get_idx functions
 - revamp error handling
-- add more accessor/convenience functinos (think gui)
 - tweak print DSSSL to shade ProgramListing content
 - plugins:
 	* msql

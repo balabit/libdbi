@@ -1,0 +1,17 @@
+2001-08-15  David Parker  <david at neongoat dot com>
+
+	* release 0.6
+	* added "by index" field functions
+	* fixed malloc/free bugs, causing weird segfaults
+	* fixed example code in docs
+	* added field info accessor functions
+	* added datetime support (as time_t)
+	* added DBD quote function
+	* more explicit NULL handling
+	* deb packaging tweaks
+	* bugfixes in plugins
+
+2001-08-04  David Parker  <david at neongoat dot com>
+
+	* initial release (0.5)
+	

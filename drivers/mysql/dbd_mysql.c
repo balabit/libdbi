@@ -318,14 +318,18 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 		data = &row->field_values[curfield];
 
 		if (strsizes[curfield] == 0) {
-			row->field_sizes[curfield] = -1;
+			row->field_sizes[curfield] = 0;
 			curfield++;
 			continue;
+		}
+		else {
+			row->field_sizes[curfield] = -1;
+			/* this will be set to the string size later on if the field is indeed a string */
 		}
 		
 		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
-				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 				switch (sizeattrib) {
 					case DBI_INTEGER_SIZE1:
 						data->d_char = (char) atol(raw); break;
@@ -341,7 +345,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				}
 				break;
 			case DBI_TYPE_DECIMAL:
-				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 				switch (sizeattrib) {
 					case DBI_DECIMAL_SIZE4:
 						data->d_float = (float) strtod(raw, NULL); break;
@@ -360,7 +364,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				memcpy(data->d_string, raw, strsizes[curfield]);
 				break;
 			case DBI_TYPE_DATETIME:
-				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DATETIME_DATE, DBI_DATETIME_TIME);
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DATETIME_DATE, DBI_DATETIME_TIME);
 				data->d_datetime = _parse_datetime(raw, sizeattrib);
 				break;
 				

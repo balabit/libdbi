@@ -140,6 +140,17 @@ NAME dbi_plugin_get_date_compiled
 
 *
 
+NAME dbi_plugin_quote_string
+	PROTO int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig)
+	DESC
+	Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and will point to a newly allocated one (which you still must free on your own).
+	ENDDESC
+	ARG Plugin The target plugin.
+	ARG orig A pointer to the string to quote and escape.
+	RET The new string's length.
+
+*
+
 NAME dbi_driver_new
 	PROTO dbi_driver dbi_driver_new(const char *name)
 	DESC
@@ -178,7 +189,7 @@ NAME dbi_driver_set_option
 	ARG Driver The target driver.
 	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
 	ARG value The string value of the target setting.
-	RET XXX TODO
+	RET -1 on error, 0 on success.
 
 *
 
@@ -190,7 +201,7 @@ NAME dbi_driver_set_option_numeric
 	ARG Driver The target driver.
 	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
 	ARG value The numeric value of the target setting.
-	RET XXX TODO
+	RET -1 on error, 0 on success.
 
 *
 
@@ -259,12 +270,12 @@ NAME dbi_driver_close
 *
 
 NAME dbi_driver_error
-	PROTO int dbi_driver_error(dbi_driver Driver, char *errmsg_dest)
+	PROTO int dbi_driver_error(dbi_driver Driver, char **errmsg_dest)
 	DESC
 	Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.
 	ENDDESC
 	ARG Driver The target driver.
-	ARG errmsg_dest The target string variable to copy the error message into. If NULL, no error message will be created, but the error number will still be returned.
+	ARG errmsg_dest The target string pointer, which will point to the error message. If NULL, no error message will be created, but the error number will still be returned.
 	RET The error number of the most recent database operation if it resulted in an error. If not, this will return -1.
 
 *
@@ -446,6 +457,17 @@ NAME dbi_result_get_field_size
 
 *
 
+NAME dbi_result_get_field_size_idx
+	PROTO unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The size in bytes of the target field data.
+
+*
+
 NAME dbi_result_get_field_length
 	PROTO unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldname)
 	DESC
@@ -454,6 +476,119 @@ NAME dbi_result_get_field_length
 	ARG Result The target query result.
 	ARG fieldname The name of the target field.
 	RET The length in bytes of the target field data.
+
+*
+
+NAME dbi_result_get_field_length_idx
+	PROTO unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.	
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The length in bytes of the target field data.
+
+*
+
+NAME dbi_result_get_field_idx
+	PROTO int dbi_result_get_field_idx(dbi_result Result, const char *fieldname)
+	DESC
+	Given a field's name, return that field's numeric index.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the target field.
+	RET The index (starting at 1) of the target field.
+
+*
+
+NAME dbi_result_get_field_name
+	PROTO const char *dbi_result_get_field_name(dbi_result Result, unsigned int idx)
+	DESC
+	Given a field's numeric index, return that field's name.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The target field's name.
+
+*
+
+NAME dbi_result_get_numfields
+	PROTO unsigned int dbi_result_get_numfields(dbi_result Result)
+	DESC
+	Returns the number of fields in the query result.
+	ENDDESC
+	ARG Result The target query result.
+	RET The number of fields in the query result.
+
+*
+
+NAME dbi_result_get_field_type
+	PROTO unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname)
+	DESC
+	Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The target field's name.
+	RET The target field's data type.
+
+*
+
+NAME dbi_result_get_field_type_idx
+	PROTO unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The target field's data type.
+
+*
+
+NAME dbi_result_get_field_attrib
+	PROTO unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldname, unsigned long attribmin, unsigned long attribmax)
+	DESC
+	Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The target field's name.
+	ARG attribmin The first attribute value in the range of attributes to extract.
+	ARG attribmax The last attribute value in the range of attributes to extract. This may be the same as attribmin if you are only trying to extract a single attribute value.
+	RET The target field's requested attribute range.
+
+*
+
+NAME dbi_result_get_field_attrib_idx
+	PROTO unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax)
+	DESC
+	Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	ARG attribmin The first attribute value in the range of attributes to extract.
+	ARG attribmax The last attribute value in the range of attributes to extract. This may be the same as attribmin if you are only trying to extract a single attribute value.
+	RET The target field's requested attribute range.
+
+*
+
+NAME dbi_result_get_field_attribs
+	PROTO unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname)
+	DESC
+	Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The target field's name.
+	RET The target field's attributes.
+
+*
+
+NAME dbi_result_get_field_attribs_idx
+	PROTO unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The target field's attributes.
 
 *
 
@@ -476,6 +611,7 @@ NAME dbi_result_get_fields
 		<ListItem><Para><Literal>%B</Literal>: A local copy of binary data (must be freed by program)</Para></ListItem>
 		<ListItem><Para><Literal>%t</Literal>: A read-only string representing a SET</Para></ListItem>
 		<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
+		<ListItem><Para><Literal>%m</Literal>: A time_t value representing a DATE and/or TIME</Para></ListItem>
 	</ItemizedList>
 	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &id_number, &name)</Literal></Para>
 	ENDDESC
@@ -674,6 +810,17 @@ NAME dbi_result_get_set
 
 *
 
+NAME dbi_result_get_datetime
+	PROTO time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the specified field, which contains a DATE and/or TIME value.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
 NAME dbi_result_bind_char
 	PROTO int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto)
 	DESC
@@ -863,5 +1010,205 @@ NAME dbi_result_bind_set
 	ARG fieldname The name of the field to bind to.
 	ARG bindto A pointer to the variable that will be updated with the specified field's value.
 	RET 0 upon success, -1 if there was an error
+
+
+*
+
+NAME dbi_result_bind_datetime
+	PROTO int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a DATE and/or TIME value.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_get_char_idx
+	PROTO signed char dbi_result_get_char_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_uchar_idx
+	PROTO unsigned char dbi_result_get_uchar_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_short_idx
+	PROTO short dbi_result_get_short_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ushort_idx
+	PROTO unsigned short dbi_result_get_ushort_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_long_idx
+	PROTO long dbi_result_get_long_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ulong_idx
+	PROTO unsigned long dbi_result_get_ulong_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_longlong_idx
+	PROTO long long dbi_result_get_longlong_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ulonglong_idx
+	PROTO unsigned long long dbi_result_get_ulonglong_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_float_idx
+	PROTO float dbi_result_get_float_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a floating-point number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_double_idx
+	PROTO double dbi_result_get_double_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a double-precision fractional number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_string_idx
+	PROTO const char *dbi_result_get_string_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_binary_idx
+	PROTO const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_string_copy_idx
+	PROTO char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int idx)
+	DESC
+	ENDDESC
+	Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_binary_copy_idx
+	PROTO unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_enum_idx
+	PROTO const char *dbi_result_get_enum_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains an ENUM (which will be represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_set_idx
+	PROTO const char *dbi_result_get_set_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the speficied field, which contains a SET (which will be represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_datetime_idx
+	PROTO time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned int idx)
+	DESC
+	Fetch the data stored in the specified field, which contains a DATE and/or TIME value.
+	ENDDESC
+	ARG Result The target query result.
+	ARG idx The index of the target field (starting at 1).
+	RET The data stored in the specified field.
 
 

@@ -47,9 +47,7 @@
 static dbi_plugin_t *_get_plugin(const char *filename);
 static void _free_custom_functions(dbi_plugin_t *plugin);
 static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key);
-void _error_handler(dbi_driver_t *driver); /* make static again but still work from dbi_result.c */
 static int _update_internal_driver_list(dbi_driver_t *driver, int operation);
-unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
 
 dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 

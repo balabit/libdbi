@@ -7,7 +7,7 @@ SUBDIRS = src include doc plugins debian
 #m4datadir = $(datadir)/aclocal
 #m4data_DATA = dbi.m4
 
-EXTRA_DIST = AUTHORS COPYING INSTALL README README.plugins TODO libdbi.spec
+EXTRA_DIST = AUTHORS COPYING ChangeLog INSTALL README README.plugins TODO libdbi.spec
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

@@ -319,14 +319,18 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 		data = &row->field_values[curfield];
 
 		if (PQgetisnull((PGresult *)result->result_handle, rowidx, curfield) == 1) {
-			row->field_sizes[curfield] = -1;
+			row->field_sizes[curfield] = 0;
 			curfield++;
 			continue;
-		}			
+		}
+		else {
+			row->field_sizes[curfield] = -1;
+			/* will be set to strlen later on for strings */
+		}
 		
 		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
-				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 				switch (sizeattrib) {
 					case DBI_INTEGER_SIZE1:
 						data->d_char = (char) atol(raw); break;
@@ -342,7 +346,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				}
 				break;
 			case DBI_TYPE_DECIMAL:
-				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 				switch (sizeattrib) {
 					case DBI_DECIMAL_SIZE4:
 						data->d_float = (float) strtod(raw, NULL); break;
