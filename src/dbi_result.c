@@ -350,8 +350,7 @@ static void _free_result_rows(dbi_result_t *result) {
 			
 		for (fieldidx = 0; fieldidx < result->numfields; fieldidx++) {
 			if ((result->field_types[fieldidx] == DBI_TYPE_STRING) || (result->field_types[fieldidx] == DBI_TYPE_BINARY) && result->rows[rowidx]->field_values[fieldidx].d_string) {
-					free(result->rows[rowidx]->field_values[fieldidx].d_string);
-				}
+				free(result->rows[rowidx]->field_values[fieldidx].d_string);
 			}
 		}
 		

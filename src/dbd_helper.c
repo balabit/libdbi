@@ -145,10 +145,11 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int
 	/* then alloc a row, set row's data, and finalize (for each row) */
 	for (currow = 0; currow < numrows_matched; currow++) {
 		dbi_row_t *row = _dbd_row_allocate(numfields);
-		row->field_values[0]->d_string = strdup(stringarray[currow]);
+		row->field_values[0].d_string = strdup(stringarray[currow]);
 		row->field_sizes[0] = strlen(stringarray[currow]);
 		_dbd_row_finalize(result, row, 0);
 	}
 	
 	return result;
 }
+
