@@ -1161,8 +1161,8 @@ NAME dbi_result_get_binary_idx
 NAME dbi_result_get_string_copy_idx
 	PROTO char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int idx)
 	DESC
-	ENDDESC
 	Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.
+	ENDDESC
 	ARG Result The target query result.
 	ARG idx The index of the target field (starting at 1).
 	RET The data stored in the specified field.
