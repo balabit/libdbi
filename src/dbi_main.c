@@ -358,7 +358,7 @@ int dbi_driver_quote_string(dbi_driver Driver, const char *orig, char **newquote
 	return newlen;
 }
 
-int dbi_driver_quote_string_in_place(dbi_driver Driver, char **orig) {
+int dbi_driver_quote_string_inplace(dbi_driver Driver, char **orig) {
 	char *temp = NULL;
 	char *newstr = NULL;
 	int newlen;
