@@ -24,6 +24,16 @@
  * $Id$
  */
 
+
+/* XXX XXX XXX
+ *
+ * BEWARE PLUGIN AUTHORS! THIS CODE IS OUT OF DATE! USE THE POSTGRESQL OR MYSQL
+ * CODE AS AN EXAMPLE INSTEAD!
+ *
+ * XXX XXX XXX */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
