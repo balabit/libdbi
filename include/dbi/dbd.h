@@ -37,7 +37,7 @@ int dbd_connect(dbi_driver_t *driver);
 int dbd_disconnect(dbi_driver_t *driver);
 int dbd_fetch_row(dbi_result_t *result, unsigned int rownum);
 int dbd_free_query(dbi_result_t *result);
-int dbd_goto_row(dbi_driver_t *driver, unsigned int row);
+int dbd_goto_row(dbi_result_t *result, unsigned int row);
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver);
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db);
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement);
@@ -51,6 +51,7 @@ void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields);
 void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs);
 dbi_row_t *_dbd_row_allocate(unsigned int numfields, unsigned int has_string_fields);
 void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned int idx);
+unsigned long _dbd_isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
 
 #ifdef __cplusplus
 }

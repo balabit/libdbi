@@ -63,6 +63,9 @@ static void _bind_helper_binary_copy(_field_binding_t *binding);
 static void _bind_helper_set(_field_binding_t *binding);
 static void _bind_helper_enum(_field_binding_t *binding);
 
+/* this is defined as a DBD helper function but used here */
+unsigned long _dbd_isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
+
 /* XXX ROW SEEKING AND FETCHING XXX */
 
 int dbi_result_seek_row(dbi_result Result, unsigned int row) {
@@ -428,11 +431,12 @@ signed char dbi_result_get_char(dbi_result Result, const char *fieldname) {
 	signed char ERROR = 0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
+	if (idx < 0) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
 			return result->rows[result->currowidx]->field_values[idx].d_char;
 			break;
@@ -449,11 +453,12 @@ short dbi_result_get_short(dbi_result Result, const char *fieldname) {
 	short ERROR = 0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
+	if (idx < 0) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
 		case DBI_INTEGER_SIZE2:
 			return result->rows[result->currowidx]->field_values[idx].d_short;
@@ -470,11 +475,12 @@ long dbi_result_get_long(dbi_result Result, const char *fieldname) {
 	long ERROR = 0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
+	if (idx < 0) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
 		case DBI_INTEGER_SIZE2:
 		case DBI_INTEGER_SIZE3:
@@ -491,11 +497,12 @@ long long dbi_result_get_longlong(dbi_result Result, const char *fieldname) {
 	long long ERROR = 0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 	
+	if (idx < 0) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_INTEGER) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_INTEGER_SIZE1:
 		case DBI_INTEGER_SIZE2:
 		case DBI_INTEGER_SIZE3:
@@ -528,11 +535,12 @@ float dbi_result_get_float(dbi_result Result, const char *fieldname) {
 	float ERROR = 0.0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
+	if (idx < 0) return ERROR;	
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
 			return result->rows[result->currowidx]->field_values[idx].d_float;
 			break;
@@ -546,11 +554,12 @@ double dbi_result_get_double(dbi_result Result, const char *fieldname) {
 	double ERROR = 0.0;
 	dbi_result_t *result = Result;
 	int idx = _find_field(result, fieldname);
-	if (idx < 0) return ERROR;
+	unsigned long sizeattrib = _dbd_isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 	
+	if (idx < 0) return ERROR;
 	if (result->field_types[idx] != DBI_TYPE_DECIMAL) return ERROR;
 
-	switch (result->field_attribs[idx]) {
+	switch (sizeattrib) {
 		case DBI_DECIMAL_SIZE4:
 		case DBI_DECIMAL_SIZE8:
 			return result->rows[result->currowidx]->field_values[idx].d_double;

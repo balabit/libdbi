@@ -6,9 +6,9 @@ int main() {
 	dbi_driver driver;
 	dbi_result result;
 
-	int sqlTAGID;
-	char *sqlFILENAME;
-	short sqlMEDIATYPEID;
+	int sqlID;
+	char *sqlNAME;
+	double sqlBALANCE;
 
 	char *errmsg;
 	int curplugidx = 0;
@@ -23,10 +23,10 @@ int main() {
 		return 1;
 	}
 	
-		driver = dbi_driver_new("mysql");
-		plugin = dbi_driver_get_plugin(driver);
+	while ((plugin = dbi_plugin_list(plugin))) {
+		driver = dbi_driver_open(plugin);
 		if (driver == NULL) {
-			printf("Can't load driver 'mysql'...\n");
+			printf("Can't load driver 'template'...\n");
 			dbi_shutdown();
 			return 1;
 		}
@@ -53,40 +53,15 @@ int main() {
 		
 		//dbi_driver_set_option(driver, "host", "localhost");
 		//dbi_driver_set_option_numeric(driver, "port", 12345);
-		dbi_driver_set_option(driver, "username", "wasabi");
-		dbi_driver_set_option(driver, "password", "wasabi!");
-		dbi_driver_set_option(driver, "dbname", "wasabi");
+		dbi_driver_set_option(driver, "username", "test");
+		dbi_driver_set_option(driver, "password", "");
+		dbi_driver_set_option(driver, "dbname", "template1");
 		//dbi_driver_set_option_numeric(driver, "efficient-queries", 0);
 
-		printf("Options set, about to connect...\n");
-
-		if (dbi_driver_connect(driver) == -1) {
-			dbi_driver_error(driver, &errmsg);
-			printf("FAILED! Error message: %s\n", errmsg);
-			free(errmsg);
-		}
-		printf("Connected, about to query... ");
-
-		result = dbi_driver_query(driver, "SELECT tagid, filename, mediatypeid FROM songs");
-		if (result) {
-			printf("OK\n");
-			dbi_result_bind_fields(result, "tagid.%l filename.%s mediatypeid.%h", &sqlTAGID, &sqlFILENAME, &sqlMEDIATYPEID);
-			printf("\nTag ID\tMedia ID\tFilename\n");
-			while (dbi_result_next_row(result)) {
-				printf("%d. %i\t%s\n", sqlTAGID, sqlMEDIATYPEID, sqlFILENAME);
-			}
-			printf("Done fetching rows.\n");
-			dbi_result_free(result);
-		}
-		else {
-			dbi_driver_error(driver, &errmsg);
-			printf("FAILED! Error message: %s", errmsg);
-			free(errmsg);
-		}
-		
 		dbi_driver_close(driver);
 		curplugidx++;
 		printf("\n");
+	}
 		
 	printf("Shutting down DBI...\n");
 	dbi_shutdown();

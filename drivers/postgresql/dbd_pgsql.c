@@ -147,7 +147,7 @@ int dbd_free_query(dbi_result_t *result) {
 	return 0;
 }
 
-int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
+int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	/* libpq doesn't have to do anything, the row index is specified when
 	 * fetching fields */
 	return 1;
@@ -277,15 +277,17 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 	int curfield = 0;
 	char *raw = NULL;
 	int strsize = 0;
+	unsigned long sizeattrib;
 	dbi_data_t *data;
 
-	while (curfield < result->numrows_matched) {
+	while (curfield < result->numfields) {
 		raw = PQgetvalue((PGresult *)result->result_handle, rowidx, curfield);
 		strsize = PQfmod((PGresult *)result->result_handle, curfield);
 		data = &row->field_values[curfield];
 		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
-				switch (result->field_attribs[curfield]) {
+				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+				switch (sizeattrib) {
 					case DBI_INTEGER_SIZE1:
 						data->d_char = (char) atol(raw); break;
 					case DBI_INTEGER_SIZE2:
@@ -300,7 +302,8 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				}
 				break;
 			case DBI_TYPE_DECIMAL:
-				switch (result->field_attribs[curfield]) {
+				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+				switch (sizeattrib) {
 					case DBI_DECIMAL_SIZE4:
 						data->d_float = (float) strtod(raw, NULL); break;
 					case DBI_DECIMAL_SIZE8:

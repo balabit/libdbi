@@ -24,6 +24,8 @@
  * $Id$
  */
 
+#define _GNU_SOURCE /* we need asprintf */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,10 +35,11 @@
 #include <dbi/dbd.h>
 
 #include <mysql/mysql.h>
+#include "mysql-stuff.h"
 
 static const dbi_info_t plugin_info = {
 	"mysql",
-	"MySQL database support (using libmysql-dev)",
+	"MySQL database support (using libmysqlclient6)",
 	"Mark M. Tobenkin <mark@brentwoodradio.com>",
 	"http://libdbi.sourceforge.net",
 	"dbd_mysql v0.01",
@@ -44,9 +47,9 @@ static const dbi_info_t plugin_info = {
 };
 
 static const char *custom_functions[] = {NULL}; // TODO
-static const char *reserved_words[] = { "ACTION", "ADD", "AGGREGATE", "ALL", "ALTER", "AFTER", "AND", "AS", "ASC", "AVG", "AVG_ROW_LENGTH", "AUTO_INCREMENT", "BETWEEN", "BIGINT", "BIT", "BINARY", "BLOB", "BOOL", "BOTH", "BY", "CASCADE", "CASE", "CHAR", "CHARACTER", "CHANGE", "CHECK", "CHECKSUM", "COLUMN", "COLUMNS", "COMMENT", "CONSTRAINT", "CREATE", "CROSS", "CURRENT_DATE", "CURRENT_TIME", "CURRENT_TIMESTAMP", "DATA", "DATABASE", "DATABASES", "DATE", "DATETIME", "DAY", "DAY_HOUR", "DAY_MINUTE", "DAY_SECOND", "DAYOFMONTH", "DAYOFWEEK", "DAYOFYEAR", "DEC", "DECIMAL", "DEFAULT", "DELAYED", "DELAY_KEY_WRITE", "DELETE", "DESC", "DESCRIBE", "DISTINCT", "DISTINCTROW", "DOUBLE", "DROP", "END", "ELSE", "ESCAPE", "ESCAPED", "ENCLOSED", "ENUM", "EXPLAIN", "EXISTS", "FIELDS", "FILE", "FIRST", "FLOAT", "FLOAT4", "FLOAT8", "FLUSH", "FOREIGN", "FROM", "FOR", "FULL", "FUNCTION", "GLOBAL", "GRANT", "GRANTS", "GROUP", "HAVING", "HEAP", "HIGH_PRIORITY", "HOUR", "HOUR_MINUTE", "HOUR_SECOND", "HOSTS", "IDENTIFIED", "IGNORE", "IN", "INDEX", "INFILE", "INNER", "INSERT", "INSERT_ID", "INT", "INTEGER", "INTERVAL", "INT1", "INT2", "INT3", "INT4", "INT8", "INTO", "IF", "IS", "ISAM", "JOIN", "KEY", "KEYS", "KILL", "LAST_INSERT_ID", "LEADING", "LEFT", "LENGTH", "LIKE", "LINES", "LIMIT", "LOAD", "LOCAL", "LOCK", "LOGS", "LONG", "LONGBLOB", "LONGTEXT", "LOW_PRIORITY", "MAX", "MAX_ROWS", "MATCH", "MEDIUMBLOB", "MEDIUMTEXT", "MEDIUMINT", "MIDDLEINT", "MIN_ROWS", "MINUTE", "MINUTE_SECOND", "MODIFY", "MONTH", "MONTHNAME", "MYISAM", "NATURAL", "NUMERIC", "NO", "NOT", "NULL", "ON", "OPTIMIZE", "OPTION", "OPTIONALLY", "OR", "ORDER", "OUTER", "OUTFILE", "PACK_KEYS", "PARTIAL", "PASSWORD", "PRECISION", "PRIMARY", "PROCEDURE", "PROCESS", "PROCESSLIST", "PRIVILEGES", "READ", "REAL", "REFERENCES", "RELOAD", "REGEXP", "RENAME", "REPLACE", "RESTRICT", "RETURNS", "REVOKE", "RLIKE", "ROW", "ROWS", "SECOND", "SELECT", "SET", "SHOW", "SHUTDOWN", "SMALLINT", "SONAME", "SQL_BIG_TABLES", "SQL_BIG_SELECTS", "SQL_LOW_PRIORITY_UPDATES", "SQL_LOG_OFF", "SQL_LOG_UPDATE", "SQL_SELECT_LIMIT", "SQL_SMALL_RESULT", "SQL_BIG_RESULT", "SQL_WARNINGS", "STRAIGHT_JOIN", "STARTING", "STATUS", "STRING", "TABLE", "TABLES", "TEMPORARY", "TERMINATED", "TEXT", "THEN", "TIME", "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TINYINT", "TRAILING", "TO", "TYPE", "USE", "USING", "UNIQUE", "UNLOCK", "UNSIGNED", "UPDATE", "USAGE", "VALUES", "VARCHAR", "VARIABLES", "VARYING", "VARBINARY", "WITH", "WRITE", "WHEN", "WHERE", "YEAR", "YEAR_MONTH", "ZEROFILL", NULL };
+static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 
-void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs);
+void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
 
@@ -67,51 +70,38 @@ int dbd_initialize(dbi_plugin_t *plugin) {
 }
 
 int dbd_connect(dbi_driver_t *driver) {
-	MYSQL *mycon; /* The Connection To The MySQL Server */
-
-	/* These Are Variables Preloaded Into The Driver  */
+	MYSQL *conn;
+	
 	const char *host = dbi_driver_get_option(driver, "host");
-        const char *username = dbi_driver_get_option(driver, "username");
-        const char *password = dbi_driver_get_option(driver, "password");
-        const char *database = dbi_driver_get_option(driver, "database");
-        int port = dbi_driver_get_option_numeric(driver, "port");
+	const char *username = dbi_driver_get_option(driver, "username");
+	const char *password = dbi_driver_get_option(driver, "password");
+	const char *dbname = dbi_driver_get_option(driver, "dbname");
+	int port = dbi_driver_get_option_numeric(driver, "port");
+	/* mysql specific options */
+	const char *unix_socket = dbi_driver_get_option(driver, "mysql_unix_socket");
+	int compression = dbi_driver_get_option_numeric(driver, "mysql_compression");
 
-	/* Initialize Connection */
-	mycon = mysql_init(NULL);
+	int _compression = (compression > 0) ? CLIENT_COMPRESS : 0;
+	
+	if (port == -1) port = 0;
 
-	if(mycon == NULL){ /* Failure, Memory Problems */
-		return -1;
-	}
-
-	/* Attempt To Make Connection, Give Error On Failure */
-	if( mysql_real_connect(mycon, host, username, password, database, port, NULL, 0) ){
-		driver->connection = (void *) mycon;
-		
-		driver->current_db = strdup(driver->current_db);
-
-		return 0;
-	} else {
+	conn = mysql_init(NULL);
+	if (!conn || !mysql_real_connect(conn, host, username, password, dbname, port, unix_socket, _compression)) {
 		_error_handler(driver);
-
-		mysql_close(mycon);
-
+		mysql_close(conn);
 		return -1;
 	}
+	else {
+		driver->connection = (void *)conn;
+		if (dbname) driver->current_db = strdup(dbname);
+	}
+	
+	return 0;
 }
 
 int dbd_disconnect(dbi_driver_t *driver) {
-	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
-
-	if(mycon){
-		mysql_close(mycon);
-		driver->connection = NULL;
-		
-		return 0;
-	} else {
-
-		
-		return -1;
-	}
+	if (driver->connection) mysql_close((MYSQL *)driver->connection);
+	return 0;
 }
 
 int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
@@ -121,7 +111,7 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 	
 	if (result->result_state == ROWS_RETURNED) {
 		/* this is the first time we've been here */
-		_dbd_result_set_numfields(result, mysql_num_fields((MYSQL_RES*)result->result_handle));
+		_dbd_result_set_numfields(result, mysql_num_fields((MYSQL_RES *)result->result_handle));
 		_get_field_info(result);
 		result->result_state = GETTING_ROWS;
 	}
@@ -135,30 +125,22 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 }
 
 int dbd_free_query(dbi_result_t *result) {
-	if(result->result_handle) mysql_free_result((MYSQL_RES*)result->result_handle);
-
+	if (result->result_handle) mysql_free_result((MYSQL_RES *)result->result_handle);
 	return 0;
 }
 
-int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
-	/* libpq doesn't have to do anything, the row index is specified when
-	 * fetching fields */
+int dbd_goto_row(dbi_result_t *result, unsigned int row) {
+	// XXX TODO: kosherize this, handle efficient queries.
+	mysql_data_seek((MYSQL_RES *)result->result_handle, row);
 	return 1;
 }
 
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	return dbd_query(driver, "show databases");
+	return dbd_query(driver, "SHOW DATABASES");
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
-	/*return (dbi_result_t *)dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);*/
-	return dbd_query(driver, "show tables");
-	/* my (mmt) thought is to add a function:
-	 * 	char *dbi_result_get_column(result, int); which will return
-	 * 		the name of a certain column, then use this:
-	 * 	dbi_result_get_string(result,
-	 * 			      dbi_result_get_column(result, 0))
-	 *	rather than having to rename the column heading*/
+	return dbd_query(driver, "SHOW TABLES");
 }
 
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
@@ -166,235 +148,191 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	 * 
 	 * result_handle, numrows_matched, and numrows_changed.
 	 * everything else will be filled in by DBI */
-
-	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
-	MYSQL_RES *myres; /* MySQL's internal result type */
-	dbi_result_t *result; /* DBI's internal result type*/
-
-	/* Query, On Failure Return NULL */
-	if(mysql_query(mycon, statement)){
-		/* driver->error_message = strdup(driver->error_message, mysql_error(con)); */
-		/* driver->error_number = mysql_errno(con); */
-		_error_handler(driver);
 	
+	dbi_result_t *result;
+	MYSQL_RES *res;
+	
+	if (mysql_query((MYSQL *)driver->connection, statement)) {
+		_error_handler(driver);
+		return NULL;
+	}
+	
+	res = mysql_store_result((MYSQL *)driver->connection);
+	
+	if (!res) {
+		_error_handler(driver);
 		return NULL;
 	}
 
-	myres = mysql_store_result(mycon); /* Grab Result*/
-
-	result = _dbd_result_create(driver, (void *)myres,
-			mysql_num_rows(myres),
-			mysql_affected_rows(mycon));
+	result = _dbd_result_create(driver, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)driver->connection));
 
 	return result;
 }
 
 char *dbd_select_db(dbi_driver_t *driver, const char *db) {
-	/* postgresql doesn't support switching databases without reconnecting */
-	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
-
-	if(mysql_select_db(mycon, db)){ /* In Case Of Error */
+	if (mysql_select_db((MYSQL *)driver->connection, db)) {
 		_error_handler(driver);
-
 		return "";
 	}
 
-
-	return (char*)db;
-
+	return (char *)db;
 }
 
 int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
-	*errno = 0;
-	
-	*errstr = strdup(mysql_error((MYSQL*)driver->connection));
-
-	return 2;
+	*errno = mysql_errno((MYSQL *)driver->connection);
+	*errstr = strdup(mysql_error((MYSQL *)driver->connection));
+	return 3;
 }
 
-unsigned short _map_type( enum enum_field_types mytype)
-{
-	unsigned short type = 0;
-	
-	switch(mytype){
+/* CORE POSTGRESQL DATA FETCHING STUFF */
+
+void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs) {
+	unsigned int _type = 0;
+	unsigned int _attribs = 0;
+
+	switch (fieldtype) {
 		case FIELD_TYPE_YEAR:
-		case FIELD_TYPE_NULL:
+			_attribs |= DBI_INTEGER_UNSIGNED;
 		case FIELD_TYPE_TINY:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE1;
+			break;
 		case FIELD_TYPE_SHORT:
-		case FIELD_TYPE_LONG:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE2;
+			break;
 		case FIELD_TYPE_INT24:
-		case FIELD_TYPE_TIMESTAMP:
-		case FIELD_TYPE_LONGLONG: 
-			type = DBI_TYPE_INTEGER;
-		break;
-		
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE3;
+			break;
+		case FIELD_TYPE_LONG:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE4;
+			break;
+		case FIELD_TYPE_LONGLONG:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE8;
+			break;
+			
 		case FIELD_TYPE_FLOAT:
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE4;
+			break;
 		case FIELD_TYPE_DOUBLE:
-		case FIELD_TYPE_DECIMAL:
-			type = DBI_TYPE_DECIMAL;
-		break;
-		
-		case FIELD_TYPE_DATE:
-		case FIELD_TYPE_NEWDATE:
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE8;
+			break;
+			
+		case FIELD_TYPE_DATE: /* TODO parse n stuph to native DBI unixtime type. for now, string */
 		case FIELD_TYPE_TIME:
 		case FIELD_TYPE_DATETIME:
-		case FIELD_TYPE_STRING:
+		case FIELD_TYPE_NEWDATE:
+		case FIELD_TYPE_TIMESTAMP:
+			
+		case FIELD_TYPE_DECIMAL: /* decimal is actually a string, has arbitrary precision, no floating point rounding */
+		case FIELD_TYPE_ENUM:
+		case FIELD_TYPE_SET:
 		case FIELD_TYPE_VAR_STRING:
-		case FIELD_TYPE_BLOB:
+		case FIELD_TYPE_STRING:
+			_type = DBI_TYPE_STRING;
+			break;
+			
 		case FIELD_TYPE_TINY_BLOB:
 		case FIELD_TYPE_MEDIUM_BLOB:
 		case FIELD_TYPE_LONG_BLOB:
-		case FIELD_TYPE_SET:
-		case FIELD_TYPE_ENUM:
-			type = DBI_TYPE_STRING;
-		break;
-
-	}
-
-	return type;
-}
-
-/*****************************************************************************/
-/* _MAP_TYPE_ATTRIBUTES                                                      */
-/*****************************************************************************/
-/*
- * Precondition: none.
- * Postcondition: none.
- * Returns: The DBI type attributes associated with MySQL type mytype.
- */
-
-unsigned short _map_type_attributes( enum enum_field_types mytype )
-{
-	unsigned short attb=0;
-
-	switch(mytype){
-		case FIELD_TYPE_YEAR:
-		case FIELD_TYPE_NULL:
-			attb |= DBI_INTEGER_UNSIGNED;
-		case FIELD_TYPE_TINY:
-		case FIELD_TYPE_SHORT:
-			attb |= DBI_INTEGER_SIZE2;
-		break;
-
-		case FIELD_TYPE_LONG:
-		case FIELD_TYPE_INT24:
-		case FIELD_TYPE_TIMESTAMP:
-			attb |= DBI_INTEGER_SIZE4;
-		break;
-
-		case FIELD_TYPE_LONGLONG:
-			attb |= DBI_INTEGER_SIZE8;
-		break;
-
-		case FIELD_TYPE_FLOAT:
-			attb |= DBI_DECIMAL_SIZE4;
-		break;
-		
-		case FIELD_TYPE_DOUBLE:
-		case FIELD_TYPE_DECIMAL:
-			attb |= DBI_DECIMAL_SIZE8;
-		break;
-		
-		/* Add Decimal Sizes Later */
+		case FIELD_TYPE_BLOB:
+			_type = DBI_TYPE_BINARY;
+			break;
+			
 		default:
+			_type = DBI_TYPE_STRING;
+			break;
 	}
-
-	return attb;
-}
-
-void _translate_mysql_type(enum enum_field_types mytype, unsigned short *type, unsigned int *attb) {
-	*type = _map_type(mytype);
-	*attb = _map_type_attributes(mytype);
+	
+	*type = _type;
+	*attribs = _attribs;
 }
 
 void _get_field_info(dbi_result_t *result) {
 	unsigned int idx = 0;
-	MYSQL_FIELD *myfield;
-	char *fieldname;
+	MYSQL_FIELD *field;
 	unsigned short fieldtype;
 	unsigned int fieldattribs;
 
-	myfield = mysql_fetch_fields((MYSQL_RES*) result->result_handle);
+	field = mysql_fetch_fields((MYSQL_RES *)result->result_handle);
 	
 	while (idx < result->numfields) {
-		fieldname = myfield[idx].name;
-		_translate_mysql_type(myfield[idx].type, &fieldtype, &fieldattribs);
-		_dbd_result_add_field(result, idx, fieldname, fieldtype, fieldattribs);
+		_translate_mysql_type(field[idx].type, &fieldtype, &fieldattribs);
+		if ((fieldtype == DBI_TYPE_INTEGER) && (field->flags & UNSIGNED_FLAG)) fieldattribs |= DBI_INTEGER_UNSIGNED;
+		_dbd_result_add_field(result, idx, field[idx].name, fieldtype, fieldattribs);
 		idx++;
 	}
 }
 
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
-	dbi_driver_t *driver = result->driver;
-	MYSQL *mycon = (MYSQL*) driver->connection;
-	MYSQL_RES *myres = (MYSQL_RES *) result->result_handle;
-	MYSQL_ROW *myrow = NULL;
-
-	long *len = NULL;
-	char *string = NULL;
-	int i = 0;
+	MYSQL_RES *_res = result->result_handle;
+	MYSQL_ROW _row;
+	
+	int curfield = 0;
+	char *raw = NULL;
+	unsigned long *strsizes = NULL;
+	unsigned long sizeattrib;
 	dbi_data_t *data;
 
-	myrow = (MYSQL_ROW*) malloc(sizeof(MYSQL_ROW));
-	*myrow = mysql_fetch_row(myres);
+	_row = mysql_fetch_row(_res);
+	strsizes = mysql_fetch_lengths(_res);
 
-	len = mysql_fetch_lengths(myres);
+	while (curfield < result->numfields) {
+		raw = _row[curfield];
+		data = &row->field_values[curfield];
 
-	while ( i< result->numrows_matched) {
-		string = (char*) malloc(sizeof(char) * (len[i] + 1));
-
-		string[len[i]] = '\0';
-
-		memcpy((void*)string, *(myrow)[i], len[i]);
-
-		data = &row->field_values[i];
-	
-		switch (result->field_types[i]) {
+		switch (result->field_types[curfield]) {
 			case DBI_TYPE_INTEGER:
-				switch (result->field_attribs[i]) {
+				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
+				switch (sizeattrib) {
 					case DBI_INTEGER_SIZE1:
-						data->d_char = (char) atol(string); break;
+						data->d_char = (char) atol(raw); break;
 					case DBI_INTEGER_SIZE2:
-						data->d_short = (short) atol(string); break;
+						data->d_short = (short) atol(raw); break;
 					case DBI_INTEGER_SIZE3:
 					case DBI_INTEGER_SIZE4:
-						data->d_long = (long) atol(string); break;
+						data->d_long = (long) atol(raw); break;
 					case DBI_INTEGER_SIZE8:
-						data->d_longlong = (long long) atoll(string); break; /* hah, wonder if that'll work */
+						data->d_longlong = (long long) atoll(raw); break; /* hah, wonder if that'll work */
 					default:
 						break;
 				}
 				break;
 			case DBI_TYPE_DECIMAL:
-				switch (result->field_attribs[i]) {
+				sizeattrib = _dbd_isolate_attrib(result->field_attribs[curfield], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
+				switch (sizeattrib) {
 					case DBI_DECIMAL_SIZE4:
-						data->d_float = (float) strtod(string, NULL); break;
+						data->d_float = (float) strtod(raw, NULL); break;
 					case DBI_DECIMAL_SIZE8:
-						data->d_double = (double) strtod(string, NULL); break;
+						data->d_double = (double) strtod(raw, NULL); break;
 					default:
 						break;
 				}
 				break;
 			case DBI_TYPE_STRING:
-				data->d_string = strdup(string);
-				if (row->field_sizes) row->field_sizes[i] = len[i];
+				data->d_string = strdup(raw);
+				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
 				break;
 			case DBI_TYPE_BINARY:
-				if (row->field_sizes) row->field_sizes[i] = len[i];
-				memcpy(data->d_string, string, len[i]);
+				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
+				memcpy(data->d_string, raw, strsizes[curfield]);
 				break;
 				
 			case DBI_TYPE_ENUM:
 			case DBI_TYPE_SET:
 			default:
+				data->d_string = strdup(raw);
+				if (row->field_sizes) row->field_sizes[curfield] = strsizes[curfield];
 				break;
 		}
-
-		free(string);
-
-		i++;
+		curfield++;
 	}
 }
 

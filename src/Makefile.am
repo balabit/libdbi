@@ -2,6 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+LIBS = -lm # make sure this is right
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include
 
 lib_LTLIBRARIES = libdbi.la
