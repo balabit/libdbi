@@ -416,8 +416,12 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowi
 				break;
 			case DBI_TYPE_BINARY:
 				row->field_sizes[curfield] = (unsigned long long) strsizes[curfield];
-				data->d_string = malloc(strsizes[curfield]+1); // XXX debatable for non-mysql, need to reread mailing list thread
-				memcpy(data->d_string, raw, strsizes[curfield]+1); // XXX
+				data->d_string = malloc(strsizes[curfield]+1); // one extra char for libdbi's null
+				memcpy(data->d_string, raw, strsizes[curfield]);
+				data->d_string[strsizes[curfield]] = '\0'; // manually null-terminate the data so C string casting still works
+				if (dbi_conn_get_option_numeric(result->conn, "mysql_include_trailing_null") == 1) {
+					row->field_sizes[curfield]++; // the extra null we added was actually part of the original data
+				}
 				break;
 			case DBI_TYPE_DATETIME:
 				sizeattrib = _isolate_attrib(result->field_attribs[curfield], DBI_DATETIME_DATE, DBI_DATETIME_TIME);
