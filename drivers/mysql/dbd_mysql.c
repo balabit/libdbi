@@ -1,3 +1,26 @@
+/*
+ * Data types:
+ * 	TINYINT		-- short
+ * 	SMALLINT	-- short
+ * 	INTEGER		-- long
+ * 	MEDIUMINT	-- long
+ * 	BIGINT		-- double
+ * 	DECIMAL		-- double
+ * 	FLOAT		-- double
+ * 	DOUBLE		-- double
+ * 	TIMESTAMP	-- long
+ * 	DATE		-- char*
+ * 	TIME		-- char*
+ * 	DATETIME	-- char*
+ * 	YEAR		-- unsigned short
+ * 	STRING		-- char*
+ * 	BLOB		-- char*
+ * 	SET		-- char*
+ * 	ENUM		-- char*
+ * 	NULL		-- unsigned short
+ * 	CHAR		-- char
+ */
+
 /* Standard Libraries  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +35,9 @@
 
 /* No Custom Functions */
 #define DBD_CUSTOM_FUNCTIONS NULL
+
+/* Reserved Words */
+#define DBD_RESERVED_WORDS { "MYSQL", "MYSQL_RES" , 0} /* Not sure if this is what reserved words means*/
 
 /* Information About The Plugin */
 /* plugin name
@@ -71,6 +97,48 @@ void free_row( dbi_row_t *row)
 }
 
 /*****************************************************************************/
+/* DBD_GET_INFO                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+dbi_info_t *dbd_get_info()
+{
+	return &dbd_mysql_info;
+}
+
+/*****************************************************************************/
+/* DBD_GET_CUSTOM_FUNCTIONS                                                  */
+uui/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+char **dbd_get_custom_functions()
+{
+	return DBD_CUSTOM_FUNCTIONS;
+}
+
+/*****************************************************************************/
+/* DBD_GET_RESERVED_WORDS                                                    */
+/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+char **dbd_get_reserved_words()
+{
+	return DBD_RESERVED_WORDS;
+}
+
+/*****************************************************************************/
 /* DBD_INITIALIZE                                                            */
 /*****************************************************************************/
 /*
@@ -81,9 +149,10 @@ void free_row( dbi_row_t *row)
 
 int dbd_initialize( dbi_plugin_t *plugin )
 {
+	/*
 	plugin->info = &dbd_template_info;
 	plugin->custom_function_list = DBD_CUSTOM_FUNCTIONS;
-
+	*/
 	return 0;
 }
 
@@ -325,6 +394,7 @@ int dbd_fetch_row( dbi_result_t *result )
 
 	dbi_row_t *dbirow = NULL; /* Will Become result->row */
 	MYSQL_ROW *myrow = NULL; /* Will Become row->row_handle */
+	MYSQL_FIELD *myfield = NULL; /* For Iterations To Find row->field_* */
 
 	/* Temporary Storage For Errors */
 	int errno=0;
@@ -333,6 +403,8 @@ int dbd_fetch_row( dbi_result_t *result )
 	myrow = (MYSQL_ROW*) malloc(sizeof(MYSQL_ROW));
 	*myrow = mysql_fetch_row(result);
 
+	return NULL;
+	
 	/* Either No More Rows, Or Error*/
 	if(*myrow == NULL){
 
@@ -357,7 +429,23 @@ int dbd_fetch_row( dbi_result_t *result )
 	*         dbirow->field_types(very tedious), dbirow->field_values     *
 	*         (just as tedious, if not more so :)                         *
 	\*********************************************************************/
-	
+
+	/*********************************************************************\
+	* Psuedo Code For Rest Of Function:                                   *
+	* 	1) Allocate memory for field_names, field_types_*.              *
+	*	2) Loop for numfields number of times, grabbing MYSQL_FIELDs  *
+	*	   2.1) strcpy_safe column names to field names               *
+	*          2.2) switch() statement to find corrent field_type and     *
+	*	            field_type_attributes.                            *
+	*          2.3) find correct field length                             *
+	*               2.3.1) copy string to seperate buffer                 *
+	*               2.3.2) allocate memory for field_value                *
+	*	        2.3.3) make correct string conversion, atof, atoi etc.*
+	*       3) Free all result's previous row's.                          *
+	*       4) Set result's rows, return 0.                               *
+	* NOTE: field_names and field_types_* should both be part of the      *
+	*         dbi_result_t, not the dbi_row_t.                            *
+	\*********************************************************************/
 }
 
 /*****************************************************************************/
