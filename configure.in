@@ -69,6 +69,15 @@ fi
 AC_SUBST(DEBUG)
 AC_SUBST(PROFILE)
 
+case $host in
+	*-*-*bsd*)
+		dlopen_flag="RTLD_LAZY" ;;
+	*)
+		dlopen_flag="RTLD_NOW" ;;
+esac
+
+AC_DEFINE_UNQUOTED(DLOPEN_FLAG, $dlopen_flag, [ ])
+
 dnl ==============================
 dnl Check for libraries
 dnl ==============================
