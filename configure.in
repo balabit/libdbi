@@ -110,6 +110,8 @@ dnl ==============================
 case $host in
 	*-*-win32*)
 		shlib_ext=.dll ;;
+	*-*-cygwin*)
+		shlib_ext=.dll ;;
 	*-*-darwin*)
 		shlib_ext=.so ;;
 	*)
