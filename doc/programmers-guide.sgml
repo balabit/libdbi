@@ -12,7 +12,7 @@
 
 <BookInfo>
 	<Title>Database Independent Abstraction Layer for C</Title>
-	<SubTitle>libdbi Programmer's Guide</SubTitle>
+	<SubTitle>libdbi Programmer's Guide (OUTDATED SEE README!)</SubTitle>
 	<Author>
 		<Firstname>David</Firstname>
 		<Othername>A.</Othername>

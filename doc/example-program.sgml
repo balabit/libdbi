@@ -8,7 +8,7 @@ int main() {
     dbi_result result;
 
     double threshold = 4.333333;
-    unsigned int idnumber;
+    unsigned long idnumber;
     const char *fullname;
     
     dbi_initialize(NULL);
@@ -20,11 +20,11 @@ int main() {
     dbi_conn_set_option(conn, "dbname", "db_name");
 
     dbi_conn_connect(conn);
-    result = dbi_conn_query(conn, "SELECT id, name FROM coders"
+    result = dbi_conn_query(conn, "SELECT id, name FROM coders "
                                   "WHERE hours_of_sleep > %0.2f", threshold);
     
     while (dbi_result_next_row(result)) {
-        idnumber = dbi_result_get_long(result, "id");
+        idnumber = dbi_result_get_ulong(result, "id");
         fullname = dbi_result_get_string(result, "name");
         printf("%i. %s\n", idnumber, fullname);
     }

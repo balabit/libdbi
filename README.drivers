@@ -42,6 +42,16 @@ long long, not as unsigned long. When using the SUM() aggregate function, the
 resulting value is returned as a double. All unrecognized datatypes are
 preserved as strings.
 
+When accessing BINARY fields (which includes TEXT fields, since they are
+internally stored as BINARY), the MySQL API lies about the field's size. If you
+store binary data that happens to end with a NULL character, MySQL chops it off
+and your field size will be one less than it actually should be. In case your
+program relies on that trailing NULL being there, you can set the
+"mysql_include_trailing_null" option and libdbi will blindly tack a NULL
+character onto the end of each binary field value it retrieves. For more in
+depth information, read the mailing list post at
+http://sourceforge.net/mailarchive/forum.php?thread_id=1220296&forum_id=1098
+
 
 POSTGRESQL NOTES:
 -----------------

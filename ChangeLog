@@ -1,3 +1,19 @@
+2002-11-26	David A. Parker  <david at neongoat dot com>
+
+	* release 0.6.6 (the "Pre-Halloween" release)
+	* queries are now sent verbatim. old behavior moved to dbi_conn_queryf
+	  function. THIS CAN BREAK OLD CODE. IT WILL EAT YOUR FIRSTBORN CHILD.
+	  (hopefully that got your attention)
+	* docs are outdated, see README
+	* fixed mysql returning empty strings as NULL
+	* adapted to mysql's broken handling of trailing NULLs at the end of
+	  BINARY fields. see README.drivers
+	* began eliminating "int" values in favor of explicit types
+	* minor fix to error handling regarding NULL error messages
+	* fixed dbi_driver_is_reserved_word() hang
+	* Debian packaging done, "unstable" users can now apt-get install the
+	  following packages - libdbi0, libdbi0-dev, libdbd-mysql, libdbd-pgsql
+
 2002-06-14  David A. Parker  <david at neongoat dot com>
 	
 	* release 0.6.5 (the "Slowly Intoxicated" release)

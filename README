@@ -16,6 +16,24 @@ The plugin architecture allows for new database drivers to be easily added by a
 third party with flexbile licensing.
 
 
+WARNING:
+--------
+
+Since the following information is not in the documentation, which is outdated
+in this maintenance release, be sure to read this section:
+
+This version of libdbi sends queries untouched to the server, so no printf-like
+substitution is done. To accomplish the old behavior, just change your code to
+call the "dbi_conn_queryf" function instead of "dbi_conn_query". (this should
+be the only change that breaks old code written for libdbi 0.6.5)
+
+If you are using BINARY fields that might happen to have a NULL character as
+the last character of the field data, and are storing such fields in MySQL, see
+the MySQL section in README.drivers. Because of a situation with the MySQL
+client API (which is not specific to libdbi in any way), you may not get back
+the data you expect.
+
+
 INSTALLATION:
 -------------
 

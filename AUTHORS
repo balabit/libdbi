@@ -10,6 +10,7 @@ Driver developers:
 * PostgreSQL - David A. Parker <david at neongoat.com>
 
 These people have also contributed to the project:
+(if I forgot you, please let me know!)
 
 * Markus Hoenicka <hoenicka_markus at compuserve.com>
   - win32 port, atoll() portability, list_* tweaks, assorted bugfixes, error_flag scheme
@@ -35,6 +36,11 @@ These people have also contributed to the project:
 * jellifish <jellyfish at pisem.net>
   - fixed wrong mysql INSERT query behavior
 
+* Ollie Cook <ollie at uk.clara.net>
+  - fixed mysql driver returning empty string as NULL
+
+* Martin Kutschker <Martin.T.Kutschker at blackbox.net>
+  - assistance with bugfixes
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
