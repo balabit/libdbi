@@ -8,11 +8,11 @@ int main ()
 	dbi_row_t *row=NULL;
 
 	/* These are our data types, use for copying */
-	short sshort;		short *p_sshort=&sshort;
-	unsigned short ushort;	unsigned short *p_ushort=&ushort;
-	long slong;		long *p_slong=&slong;
-	double precision;	double *p_precision=&precision;
-	char *string;		char **p_string=&string;
+	short sshort=-1;		short *p_sshort=&sshort;
+	unsigned short ushort=-1;	unsigned short *p_ushort=&ushort;
+	long slong=-1;			long *p_slong=&slong;
+	double precision=-1;		double *p_precision=&precision;
+	char *string;			char **p_string=&string;
 
 
 	int numplugins = dbi_initialize(NULL);
@@ -38,7 +38,7 @@ int main ()
 	dbi_set_option(driver, "password", "");
 	dbi_set_option(driver, "database", "test");
 
-	printf("Options Set! Connecting...");
+	fprintf(stderr, "Options Set! Connecting...");
 
 	if( dbi_connect(driver) == -1 ){
 		fprintf(stderr, "Connection failed!\nTest failed.\n");
@@ -46,7 +46,7 @@ int main ()
 		return 1;
 	} /* else */ 
 
-	printf("Connected!\nQuerying Server...");
+	fprintf(stderr, "Connected!\nQuerying Server...");
 
 	result = dbi_query(driver, "SELECT * FROM dbi");
 
@@ -56,34 +56,36 @@ int main ()
 		return 1;
 	}
 
-	printf("Got Result!\nProcessing %d Rows...\n",
-		result->numrows);
+	fprintf(stderr, "Got Result!\nProcessing %d Rows...\n",
+		result->numrows_matched);
 
 	/* Each Row */
 	while(dbi_fetch_row(result)) {
-		if( dbi_fetch_field(result, "number", (void**) &p_slong) == -1 ){
+		if( dbi_fetch_field(result, "number", (void**) &p_precision) == -1 ){
 			fprintf(stderr, "Field fetching failed.\n");
 			break;
 		}
 
-		printf("Field 'number' Value [%d]\n",slong);
+		fprintf(stderr, "Field 'number' Value [%d]\n",precision);
+
+		precision = -1;
 	}
 
-	printf("Finished Processing Rows.\n");
+	fprintf(stderr, "Finished Processing Rows.\n");
 
-	printf("Freeing result...");
+	fprintf(stderr, "Freeing result...");
 
 	dbi_free_query(result);
 
-	printf("done.\nClosing driver...");
+	fprintf(stderr, "done.\nClosing driver...");
 
 	dbi_close_driver(driver);
 	
-	printf("done.\nShutting down DBI...");
+	fprintf(stderr, "done.\nShutting down DBI...");
 
 	dbi_shutdown();
 
-	printf("done.\n\nMySQL Test Has Been Successful!\n\nThank you for playing =P");
+	fprintf(stderr, "done.\n\nMySQL Test Has Been Successful!\n\nThank you for playing =P\n\n");
 
 	return 0;
 }
