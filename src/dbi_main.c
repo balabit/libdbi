@@ -51,8 +51,11 @@ static void _free_custom_functions(dbi_driver_t *driver);
 static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key);
 static int _update_internal_conn_list(dbi_conn_t *conn, int operation);
 static void _free_caps(_capability_t *caproot);
+static const char *_get_option(dbi_conn Conn, const char *key, int aggressive);
+static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive);
 
 dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
+int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __attribute__ ((format (printf, 3, 4)));
 
 static const char *ERROR = "ERROR";
 static dbi_driver_t *rootdriver;
@@ -405,6 +408,34 @@ dbi_error_flag dbi_conn_error_flag(dbi_conn Conn) {
 	return conn->error_flag;
 }
 
+int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) {
+	dbi_conn_t *conn = Conn;
+	char *msg;
+	int len;
+	va_list ap;
+	int trigger_callback;
+
+	if (!conn) return 0;
+
+	trigger_callback = dbi_conn_get_option_numeric(Conn, "UserErrorTriggersCallback");
+
+	va_start(ap, formatstr);
+	len = vasprintf(&msg, formatstr, ap);
+	va_end(ap);
+
+	if (conn->error_message) free(conn->error_message);
+	conn->error_message = msg;
+	conn->error_number = errnum;
+	conn->error_flag = DBI_ERROR_USER;
+
+	if (trigger_callback && (conn->error_handler != NULL)) {
+		/* trigger the external callback function */
+		conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
+	}
+	
+	return len;
+}
+
 /* DRIVER: option manipulation */
 
 int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
@@ -449,7 +480,7 @@ int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value) {
 	return 0;
 }
 
-const char *dbi_conn_get_option(dbi_conn Conn, const char *key) {
+static const char *_get_option(dbi_conn Conn, const char *key, int aggressive) {
 	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 
@@ -466,16 +497,24 @@ const char *dbi_conn_get_option(dbi_conn Conn, const char *key) {
 		return option->string_value;
 	}
 	else {
-		_error_handler(conn, DBI_ERROR_BADNAME);
+		if (aggressive) _error_handler(conn, DBI_ERROR_BADNAME);
 		return NULL;
 	}
 }
 
-int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
+const char *dbi_conn_get_option(dbi_conn Conn, const char *key) {
+	return _get_option(Conn, key, 0);
+}
+
+const char *dbi_conn_require_option(dbi_conn Conn, const char *key) {
+	return _get_option(Conn, key, 1);
+}
+
+static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive) {
 	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 
-	if (!conn) return -1;
+	if (!conn) return 0;
 	
 	option = conn->options;
 	while (option && strcasecmp(key, option->key)) {
@@ -486,9 +525,17 @@ int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
 		return option->numeric_value;
 	}
 	else {
-		_error_handler(conn, DBI_ERROR_BADNAME);
-		return -1;
+		if (aggressive) _error_handler(conn, DBI_ERROR_BADNAME);
+		return 0;
 	}
+}
+
+int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
+	return _get_option_numeric(Conn, key, 0);
+}
+
+int dbi_conn_require_option_numeric(dbi_conn Conn, const char *key) {
+	return _get_option_numeric(Conn, key, 1);
 }
 
 const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current) {
@@ -680,6 +727,22 @@ int dbi_conn_select_db(dbi_conn Conn, const char *db) {
 	return 0;
 }
 
+unsigned long long dbi_conn_sequence_last(dbi_conn Conn, const char *name) {
+	dbi_conn_t *conn = Conn;
+	unsigned long long result;
+	if (!conn) return 0;
+	result = conn->driver->functions->get_seq_last(conn, name);
+	return result;
+}
+
+unsigned long long dbi_conn_sequence_next(dbi_conn Conn, const char *name) {
+	dbi_conn_t *conn = Conn;
+	unsigned long long result;
+	if (!conn) return 0;
+	result = conn->driver->functions->get_seq_next(conn, name);
+	return result;
+}
+
 /* XXX INTERNAL PRIVATE IMPLEMENTATION FUNCTIONS XXX */
 
 static dbi_driver_t *_get_driver(const char *filename) {
@@ -721,7 +784,9 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->query_null = dlsym(dlhandle, "dbd_query_null")) == NULL) || dlerror() ||
 			((driver->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
 			((driver->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
-			((driver->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
+			((driver->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror() ||
+			((driver->functions->get_seq_last = dlsym(dlhandle, "dbd_get_seq_last")) == NULL) || dlerror() ||
+			((driver->functions->get_seq_next = dlsym(dlhandle, "dbd_get_seq_next")) == NULL) || dlerror()
 			)
 		{
 			free(driver->functions);

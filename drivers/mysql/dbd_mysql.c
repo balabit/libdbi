@@ -89,8 +89,6 @@ int dbd_connect(dbi_conn_t *conn) {
 
 	int _compression = (compression > 0) ? CLIENT_COMPRESS : 0;
 	
-	if (port == -1) port = 0;
-
 	mycon = mysql_init(NULL);
 	if (!mycon || !mysql_real_connect(mycon , host, username, password, dbname, port, unix_socket, _compression)) {
 		mysql_close(mycon);
@@ -255,6 +253,30 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	*errno = mysql_errno((MYSQL *)conn->connection);
 	*errstr = strdup(mysql_error((MYSQL *)conn->connection));
 	return 3;
+}
+
+unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence) {
+	dbi_result_t *result;
+	char *sql_cmd;
+	unsigned long long seq_last = 0;
+
+	asprintf(&sql_cmd, "SHOW TABLE STATUS LIKE '%s'", sequence);
+	result = dbd_query(conn, sql_cmd);
+	free(sql_cmd);
+	
+	/* grab #10 "Auto_increment" from result */
+	if (result && dbi_result_next_row((dbi_result)result)) {
+		seq_last = dbi_result_get_ulonglong((dbi_result)result, "Auto_increment");
+	}
+
+	dbi_result_free((dbi_result)result);
+
+	return seq_last;
+}
+
+unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
+	unsigned long long seq_last = dbd_get_seq_last(conn, sequence);
+	return seq_last + 1;
 }
 
 /* CORE MYSQL DATA FETCHING STUFF */

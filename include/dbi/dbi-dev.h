@@ -121,6 +121,8 @@ typedef struct dbi_functions_s {
 	int (*quote_string)(dbi_driver_t_pointer, const char *, char *);
 	char *(*select_db)(dbi_conn_t_pointer, const char *);
 	int (*geterror)(dbi_conn_t_pointer, int *, char **);
+	unsigned long long (*get_seq_last)(dbi_conn_t_pointer, const char *);
+	unsigned long long (*get_seq_next)(dbi_conn_t_pointer, const char *);
 } dbi_functions_t;
 
 typedef struct dbi_custom_function_s {

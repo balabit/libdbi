@@ -1,3 +1,21 @@
+2002-06-13  David A. Parker  <david at neongoat dot com>
+	
+	* release 0.6.5 (the "Slowly Intoxicated" release)
+	* new error handling framework
+	* beginnings of capabilities infrastructure
+	* extra hooks added to aid garbage collection
+	* sequencing API (mysql people can now use auto_increment! yay!)
+	* fixed small memory leak
+	* fixed big memory leak ;)
+	* fixed wrong mysql INSERT behavior
+	* fixed wrong mysql DATETIME parsing
+	* more cross-platform tweaks (asprintf for Solaris 7)
+	* new Debian packaging from scratch (bound for sid)
+	* support for queries with NULL characters
+	* additional helper functions for driver authors
+	* pattern matching ability for listing dbs/tables
+	* minor changes to option handling
+
 2002-02-10  David A. Parker  <david at neongoat dot com>
 	
 	* release 0.6.4 (the "Only 2 Dog-Weeks Late" release)

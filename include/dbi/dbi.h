@@ -90,6 +90,8 @@ int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value); /* if valu
 int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value);
 const char *dbi_conn_get_option(dbi_conn Conn, const char *key);
 int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key);
+const char *dbi_conn_require_option(dbi_conn Conn, const char *key); /* like get, but generate an error if key isn't found */
+int dbi_conn_require_option_numeric(dbi_conn Conn, const char *key); /* ditto */
 const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current); /* returns key of next option, or the first option key if current is NULL */
 void dbi_conn_clear_option(dbi_conn Conn, const char *key);
 void dbi_conn_clear_options(dbi_conn Conn);
@@ -99,6 +101,7 @@ void dbi_conn_close(dbi_conn Conn);
 int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest);
 void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function, void *user_argument);
 dbi_error_flag dbi_conn_error_flag(dbi_conn Conn);
+int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...);
 
 int dbi_conn_connect(dbi_conn Conn);
 int dbi_conn_get_socket(dbi_conn Conn);
@@ -107,6 +110,8 @@ dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pa
 dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...); 
 dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, unsigned long st_length); 
 int dbi_conn_select_db(dbi_conn Conn, const char *db);
+unsigned long long dbi_conn_sequence_last(dbi_conn Conn, const char *name); /* name of the sequence or table */
+unsigned long long dbi_conn_sequence_next(dbi_conn Conn, const char *name);
 
 dbi_conn dbi_result_get_conn(dbi_result Result);
 int dbi_result_free(dbi_result Result);

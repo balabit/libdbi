@@ -45,6 +45,8 @@ dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, u
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 char *dbd_select_db(dbi_conn_t *conn, const char *db);
 int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
+unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence);
+unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence);
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected);
