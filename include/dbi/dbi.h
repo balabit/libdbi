@@ -66,6 +66,7 @@ dbi_plugin dbi_plugin_list(dbi_plugin Current); /* returns next plugin. if curre
 dbi_plugin dbi_plugin_open(const char *name); /* goes thru linked list until it finds the right one */
 int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word);
 void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name);
+int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig);
 
 const char *dbi_plugin_get_name(dbi_plugin Plugin);
 const char *dbi_plugin_get_filename(dbi_plugin Plugin);
@@ -74,8 +75,6 @@ const char *dbi_plugin_get_maintainer(dbi_plugin Plugin);
 const char *dbi_plugin_get_url(dbi_plugin Plugin);
 const char *dbi_plugin_get_version(dbi_plugin Plugin);
 const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin);
-
-int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig);
 
 dbi_driver dbi_driver_new(const char *name); /* shortcut for dbi_driver_open(dbi_plugin_open("foo")) */
 dbi_driver dbi_driver_open(dbi_plugin Plugin); /* returns an actual instance of the driver */

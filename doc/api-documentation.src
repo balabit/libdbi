@@ -613,7 +613,7 @@ NAME dbi_result_get_fields
 		<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
 		<ListItem><Para><Literal>%m</Literal>: A time_t value representing a DATE and/or TIME</Para></ListItem>
 	</ItemizedList>
-	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &id_number, &name)</Literal></Para>
+	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &amp;id_number, &amp;name)</Literal></Para>
 	ENDDESC
 	ARG Result The target query result.
 	ARG format The field format string as described above.
@@ -625,7 +625,7 @@ NAME dbi_result_get_fields
 NAME dbi_result_bind_fields
 	PROTO int dbi_result_bind_fields(dbi_result Result, const char *format, ...)
 	DESC-VERBATIM
-	<Para>Bind multiple fields in the current result set, using a printf-like syntax. See <Literal><XRef linkend="dbi-result-get-fields"></Literal> for a detailed explanation of the syntax.</Para>
+	<Para>Bind multiple fields in the current result set, using a printf-like syntax. See <XRef linkend="dbi-result-get-fields"> for a detailed explanation of the syntax.</Para>
 	ENDDESC
 	ARG Result The target query result.
 	ARG format The field format string as described above.

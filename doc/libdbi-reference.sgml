@@ -90,6 +90,16 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
+		<Section id="dbi-plugin-quote-string" XRefLabel="dbi_plugin_quote_string"><Title>dbi_plugin_quote_string</Title>
+			<Para><ProgramListing>int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig)</ProgramListing></Para>
+			<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and will point to a newly allocated one (which you still must free on your own).</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The new string's length.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
 		<Section id="reference-plugin-info"><Title>Plugin Information</Title>
 			<Section id="dbi-plugin-get-name" XRefLabel="dbi_plugin_get_name"><Title>dbi_plugin_get_name</Title>
 				<Para><ProgramListing>const char *dbi_plugin_get_name(dbi_plugin Plugin)</ProgramListing></Para>
@@ -256,7 +266,7 @@ published by the Free Software Foundation.
 			<VariableList>
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>XXX TODO</Para></ListItem>
+					<ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>
@@ -266,7 +276,7 @@ published by the Free Software Foundation.
 			<VariableList>
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>XXX TODO</Para></ListItem>
+					<ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>
@@ -330,7 +340,7 @@ published by the Free Software Foundation.
 		</Section>
 		<Section id="reference-driver-error"><Title>Error Handling</Title>		
 			<Section id="dbi-driver-error" XRefLabel="dbi_driver_error"><Title>dbi_driver_error</Title>
-				<Para><ProgramListing>int dbi_driver_error(dbi_driver Driver, char *errmsg_dest)</ProgramListing></Para>
+				<Para><ProgramListing>int dbi_driver_error(dbi_driver Driver, char **errmsg_dest)</ProgramListing></Para>
 				<Para>Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.</Para>
 				<VariableList>
 					<VarListEntry>
@@ -573,6 +583,16 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
+		<Section id="dbi-result-get-field-size-idx" XRefLabel="dbi_result_get_field_size_idx"><Title>dbi_result_get_field_size_idx</Title>
+			<Para><ProgramListing>unsigned int dbi_result_get_field_size_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The size in bytes of the target field data.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
 		<Section id="dbi-result-get-field-length" XRefLabel="dbi_result_get_field_length"><Title>dbi_result_get_field_length</Title>
 			<Para><ProgramListing>unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldname)</ProgramListing></Para>
 			<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
@@ -580,6 +600,112 @@ published by the Free Software Foundation.
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
 					<ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-length-idx" XRefLabel="dbi_result_get_field_length_idx"><Title>dbi_result_get_field_length_idx</Title>
+			<Para><ProgramListing>unsigned int dbi_result_get_field_length_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-idx" XRefLabel="dbi_result_get_field_idx"><Title>dbi_result_get_field_idx</Title>
+			<Para><ProgramListing>int dbi_result_get_field_idx(dbi_result Result, const char *fieldname)</ProgramListing></Para>
+			<Para>Given a field's name, return that field's numeric index.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The index (starting at 1) of the target field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-name" XRefLabel="dbi_result_get_field_name"><Title>dbi_result_get_field_name</Title>
+			<Para><ProgramListing>const char *dbi_result_get_field_name(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Given a field's numeric index, return that field's name.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's name.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-numfields" XRefLabel="dbi_result_get_numfields"><Title>dbi_result_get_numfields</Title>
+			<Para><ProgramListing>unsigned int dbi_result_get_numfields(dbi_result Result)</ProgramListing></Para>
+			<Para>Returns the number of fields in the query result.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>Result</Literal>: The target query result.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The number of fields in the query result.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-type" XRefLabel="dbi_result_get_field_type"><Title>dbi_result_get_field_type</Title>
+			<Para><ProgramListing>unsigned short dbi_result_get_field_type(dbi_result Result, const char *fieldname)</ProgramListing></Para>
+			<Para>Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's data type.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-type-idx" XRefLabel="dbi_result_get_field_type_idx"><Title>dbi_result_get_field_type_idx</Title>
+			<Para><ProgramListing>unsigned short dbi_result_get_field_type_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's data type.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-attrib" XRefLabel="dbi_result_get_field_attrib"><Title>dbi_result_get_field_attrib</Title>
+			<Para><ProgramListing>unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldname, unsigned long attribmin, unsigned long attribmax)</ProgramListing></Para>
+			<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-attrib-idx" XRefLabel="dbi_result_get_field_attrib_idx"><Title>dbi_result_get_field_attrib_idx</Title>
+			<Para><ProgramListing>unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax)</ProgramListing></Para>
+			<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-attribs" XRefLabel="dbi_result_get_field_attribs"><Title>dbi_result_get_field_attribs</Title>
+			<Para><ProgramListing>unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname)</ProgramListing></Para>
+			<Para>Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's attributes.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-field-attribs-idx" XRefLabel="dbi_result_get_field_attribs_idx"><Title>dbi_result_get_field_attribs_idx</Title>
+			<Para><ProgramListing>unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The target field's attributes.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>
@@ -601,6 +727,7 @@ published by the Free Software Foundation.
 				<ListItem><Para><Literal>%B</Literal>: A local copy of binary data (must be freed by program)</Para></ListItem>
 				<ListItem><Para><Literal>%t</Literal>: A read-only string representing a SET</Para></ListItem>
 				<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
+				<ListItem><Para><Literal>%m</Literal>: A time_t value representing a DATE and/or TIME</Para></ListItem>
 			</ItemizedList>
 			<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &amp;id_number, &amp;name)</Literal></Para>
 			<VariableList>
@@ -796,6 +923,16 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
+		<Section id="dbi-result-get-datetime" XRefLabel="dbi_result_get_datetime"><Title>dbi_result_get_datetime</Title>
+			<Para><ProgramListing>time_t dbi_result_get_datetime(dbi_result Result, const char *fieldname)</ProgramListing></Para>
+			<Para>Fetch the data stored in the specified field, which contains a DATE and/or TIME value.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
 		<Section id="dbi-result-bind-char" XRefLabel="dbi_result_bind_char"><Title>dbi_result_bind_char</Title>
 			<Para><ProgramListing>int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto)</ProgramListing></Para>
 			<Para>Bind the specified variable to the specified field, which holds a character.</Para>
@@ -953,6 +1090,185 @@ published by the Free Software Foundation.
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
 					<ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-bind-datetime" XRefLabel="dbi_result_bind_datetime"><Title>dbi_result_bind_datetime</Title>
+			<Para><ProgramListing>int dbi_result_bind_datetime(dbi_result Result, const char *fieldname, time_t *bindto)</ProgramListing></Para>
+			<Para>Bind the specified variable to the specified field, which holds a DATE and/or TIME value.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-char-idx" XRefLabel="dbi_result_get_char_idx"><Title>dbi_result_get_char_idx</Title>
+			<Para><ProgramListing>signed char dbi_result_get_char_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a character.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-uchar-idx" XRefLabel="dbi_result_get_uchar_idx"><Title>dbi_result_get_uchar_idx</Title>
+			<Para><ProgramListing>unsigned char dbi_result_get_uchar_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains an unsigned character.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-short-idx" XRefLabel="dbi_result_get_short_idx"><Title>dbi_result_get_short_idx</Title>
+			<Para><ProgramListing>short dbi_result_get_short_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a short integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-ushort-idx" XRefLabel="dbi_result_get_ushort_idx"><Title>dbi_result_get_ushort_idx</Title>
+			<Para><ProgramListing>unsigned short dbi_result_get_ushort_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-long-idx" XRefLabel="dbi_result_get_long_idx"><Title>dbi_result_get_long_idx</Title>
+			<Para><ProgramListing>long dbi_result_get_long_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a long integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-ulong-idx" XRefLabel="dbi_result_get_ulong_idx"><Title>dbi_result_get_ulong_idx</Title>
+			<Para><ProgramListing>unsigned long dbi_result_get_ulong_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains an unsigned long integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-longlong-idx" XRefLabel="dbi_result_get_longlong_idx"><Title>dbi_result_get_longlong_idx</Title>
+			<Para><ProgramListing>long long dbi_result_get_longlong_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a long long integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-ulonglong-idx" XRefLabel="dbi_result_get_ulonglong_idx"><Title>dbi_result_get_ulonglong_idx</Title>
+			<Para><ProgramListing>unsigned long long dbi_result_get_ulonglong_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-float-idx" XRefLabel="dbi_result_get_float_idx"><Title>dbi_result_get_float_idx</Title>
+			<Para><ProgramListing>float dbi_result_get_float_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a floating-point number.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-double-idx" XRefLabel="dbi_result_get_double_idx"><Title>dbi_result_get_double_idx</Title>
+			<Para><ProgramListing>double dbi_result_get_double_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a double-precision fractional number.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-string-idx" XRefLabel="dbi_result_get_string_idx"><Title>dbi_result_get_string_idx</Title>
+			<Para><ProgramListing>const char *dbi_result_get_string_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-binary-idx" XRefLabel="dbi_result_get_binary_idx"><Title>dbi_result_get_binary_idx</Title>
+			<Para><ProgramListing>const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-string-copy-idx" XRefLabel="dbi_result_get_string_copy_idx"><Title>dbi_result_get_string_copy_idx</Title>
+			<Para><ProgramListing>char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-binary-copy-idx" XRefLabel="dbi_result_get_binary_copy_idx"><Title>dbi_result_get_binary_copy_idx</Title>
+			<Para><ProgramListing>unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-enum-idx" XRefLabel="dbi_result_get_enum_idx"><Title>dbi_result_get_enum_idx</Title>
+			<Para><ProgramListing>const char *dbi_result_get_enum_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains an ENUM (which will be represented as a read-only string).</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-set-idx" XRefLabel="dbi_result_get_set_idx"><Title>dbi_result_get_set_idx</Title>
+			<Para><ProgramListing>const char *dbi_result_get_set_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the speficied field, which contains a SET (which will be represented as a read-only string).</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-datetime-idx" XRefLabel="dbi_result_get_datetime_idx"><Title>dbi_result_get_datetime_idx</Title>
+			<Para><ProgramListing>time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned int idx)</ProgramListing></Para>
+			<Para>Fetch the data stored in the specified field, which contains a DATE and/or TIME value.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The data stored in the specified field.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>
