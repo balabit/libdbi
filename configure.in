@@ -130,7 +130,7 @@ AC_DEFINE_UNQUOTED(DLSYM_PREFIX, "$dlsym_prefix", [ Specifies a required prefix 
 
 
 AC_CHECK_FUNCS(strtoll)
-AC_REPLACE_FUNCS(atoll)
+AC_REPLACE_FUNCS(atoll timegm)
 AC_CHECK_FUNCS(vasprintf)
 AC_REPLACE_FUNCS(asprintf)
 
