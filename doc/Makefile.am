@@ -4,6 +4,6 @@ AUTOMAKE_OPTIONS = foreign
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
-doc_DATA = plugin_authors_guide.txt programmers_reference.txt
+doc_DATA = 
 
 EXTRA_DIST = $(doc_DATA)
