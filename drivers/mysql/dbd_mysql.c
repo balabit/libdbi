@@ -42,7 +42,7 @@
 #include <mysql/mysql.h>
 #include "mysql-stuff.h"
 
-static const dbi_info_t plugin_info = {
+static const dbi_info_t driver_info = {
 	"mysql",
 	"MySQL database support (using libmysqlclient6)",
 	"Mark M. Tobenkin <mark@brentwoodradio.com>",
@@ -54,60 +54,60 @@ static const dbi_info_t plugin_info = {
 static const char *custom_functions[] = {NULL}; // TODO
 static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 
-void _internal_error_handler(dbi_driver_t *driver, const char *errmsg, const int errno);
+void _internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno);
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
 time_t _parse_datetime(const char *raw, unsigned long attribs);
 
-void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
-	/* this is the first function called after the plugin module is loaded into memory */
-	*_plugin_info = &plugin_info;
+void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words) {
+	/* this is the first function called after the driver module is loaded into memory */
+	*_driver_info = &driver_info;
 	*_custom_functions = custom_functions;
 	*_reserved_words = reserved_words;
 }
 
-int dbd_initialize(dbi_plugin_t *plugin) {
+int dbd_initialize(dbi_driver_t *driver) {
 	/* perform any database-specific server initialization.
-	 * this is called right after dbd_register_plugin().
-	 * return -1 on error, 0 on success. if -1 is returned, the plugin will not
-	 * be added to the list of available plugins. */
+	 * this is called right after dbd_register_driver().
+	 * return -1 on error, 0 on success. if -1 is returned, the driver will not
+	 * be added to the list of available drivers. */
 	
 	return 0;
 }
 
-int dbd_connect(dbi_driver_t *driver) {
-	MYSQL *conn;
+int dbd_connect(dbi_conn_t *conn) {
+	MYSQL *mycon;
 	
-	const char *host = dbi_driver_get_option(driver, "host");
-	const char *username = dbi_driver_get_option(driver, "username");
-	const char *password = dbi_driver_get_option(driver, "password");
-	const char *dbname = dbi_driver_get_option(driver, "dbname");
-	int port = dbi_driver_get_option_numeric(driver, "port");
+	const char *host = dbi_conn_get_option(conn, "host");
+	const char *username = dbi_conn_get_option(conn, "username");
+	const char *password = dbi_conn_get_option(conn, "password");
+	const char *dbname = dbi_conn_get_option(conn, "dbname");
+	int port = dbi_conn_get_option_numeric(conn, "port");
 	/* mysql specific options */
-	const char *unix_socket = dbi_driver_get_option(driver, "mysql_unix_socket");
-	int compression = dbi_driver_get_option_numeric(driver, "mysql_compression");
+	const char *unix_socket = dbi_conn_get_option(conn, "mysql_unix_socket");
+	int compression = dbi_conn_get_option_numeric(conn, "mysql_compression");
 
 	int _compression = (compression > 0) ? CLIENT_COMPRESS : 0;
 	
 	if (port == -1) port = 0;
 
-	conn = mysql_init(NULL);
-	if (!conn || !mysql_real_connect(conn, host, username, password, dbname, port, unix_socket, _compression)) {
-		_internal_error_handler(driver, "Unable to connect to database server", 0);
-		mysql_close(conn);
+	mycon = mysql_init(NULL);
+	if (!mycon || !mysql_real_connect(mycon , host, username, password, dbname, port, unix_socket, _compression)) {
+		_internal_error_handler(conn, "Unable to connect to database server", 0);
+		mysql_close(mycon);
 		return -1;
 	}
 	else {
-		driver->connection = (void *)conn;
-		if (dbname) driver->current_db = strdup(dbname);
+		conn->connection = (void *)conn;
+		if (dbname) conn->current_db = strdup(dbname);
 	}
 	
 	return 0;
 }
 
-int dbd_disconnect(dbi_driver_t *driver) {
-	if (driver->connection) mysql_close((MYSQL *)driver->connection);
+int dbd_disconnect(dbi_conn_t *conn) {
+	if (conn->connection) mysql_close((MYSQL *)conn->connection);
 	return 0;
 }
 
@@ -142,34 +142,34 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1;
 }
 
-int dbd_get_socket(dbi_driver_t *driver){
-	MYSQL *mycon = (MYSQL*)driver->connection;
+int dbd_get_socket(dbi_conn_t *conn){
+	MYSQL *mycon = (MYSQL*)conn->connection;
 
 	if(!mycon) return -1;
 
 	return (int)mycon->net.fd;
 }
 
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern) {
+dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 	dbi_result_t *res;
 	char *sql_cmd;
 
 	if (pattern == NULL) {
-		return dbd_query(driver, "SHOW DATABASES");
+		return dbd_query(conn, "SHOW DATABASES");
 	}
 	else {
 		asprintf(&sql_cmd, "SHOW DATABASES LIKE '%s'", pattern);
-		res = dbd_query(driver, sql_cmd);
+		res = dbd_query(conn, sql_cmd);
 		free(sql_cmd);
 		return res;
 	}
 }
 
-dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
-	return dbd_query(driver, "SHOW TABLES");
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db) {
+	return dbd_query(conn, "SHOW TABLES");
 }
 
-int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {
 	/* foo's -> 'foo\'s' */
 	unsigned int len;
 	
@@ -180,7 +180,7 @@ int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
 	return len+2;
 }
 
-dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
+dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	/* allocate a new dbi_result_t and fill its applicable members:
 	 * 
 	 * result_handle, numrows_matched, and numrows_changed.
@@ -189,61 +189,61 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	dbi_result_t *result;
 	MYSQL_RES *res;
 	
-	if (mysql_query((MYSQL *)driver->connection, statement)) {
-		_error_handler(driver);
+	if (mysql_query((MYSQL *)conn->connection, statement)) {
+		_error_handler(conn);
 		return NULL;
 	}
 	
-	res = mysql_store_result((MYSQL *)driver->connection);
+	res = mysql_store_result((MYSQL *)conn->connection);
 	
 	if (!res) {
-		_error_handler(driver);
+		_error_handler(conn);
 		return NULL;
 	}
 
-	result = _dbd_result_create(driver, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)driver->connection));
+	result = _dbd_result_create(conn, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)conn->connection));
 
 	return result;
 }
 
-char *dbd_select_db(dbi_driver_t *driver, const char *db) {
-	if (mysql_select_db((MYSQL *)driver->connection, db)) {
-		_error_handler(driver);
+char *dbd_select_db(dbi_conn_t *conn, const char *db) {
+	if (mysql_select_db((MYSQL *)conn->connection, db)) {
+		_error_handler(conn);
 		return "";
 	}
 
 	return (char *)db;
 }
 
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
+int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 
-	if (strcmp("",mysql_error((MYSQL *)driver->connection)) == 0) {
+	if (strcmp("",mysql_error((MYSQL *)conn->connection)) == 0) {
 		return -1;
 	}
 	
-	if (!driver->connection) {
-		_internal_error_handler(driver, "No connection found", 0);
+	if (!conn->connection) {
+		_internal_error_handler(conn, "No connection found", 0);
 		return 2;
 	}
 	
-	*errno = mysql_errno((MYSQL *)driver->connection);
-	*errstr = strdup(mysql_error((MYSQL *)driver->connection));
+	*errno = mysql_errno((MYSQL *)conn->connection);
+	*errstr = strdup(mysql_error((MYSQL *)conn->connection));
 	return 3;
 }
 
 
-void _internal_error_handler(dbi_driver_t *driver, const char *errmsg, const int errno)
+void _internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno)
 {
-	void (*errfunc)(dbi_driver_t *, void *);
+	void (*errfunc)(dbi_conn_t *, void *);
 	/* set the values*/
-	driver->error_number = errno;
-	driver->error_message = strdup(errmsg);
+	conn->error_number = errno;
+	conn->error_message = strdup(errmsg);
 
-	if(driver->error_handler != NULL){
-		errfunc = driver->error_handler;
-		errfunc(driver, driver->error_handler_argument);
+	if(conn->error_handler != NULL){
+		errfunc = conn->error_handler;
+		errfunc(conn, conn->error_handler_argument);
 	}
 }
 

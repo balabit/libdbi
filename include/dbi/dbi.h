@@ -31,8 +31,8 @@ extern "C" {
 #include <stdarg.h>
 
 /* opaque type definitions */
-typedef void * dbi_plugin;
 typedef void * dbi_driver;
+typedef void * dbi_conn;
 typedef void * dbi_result;
 
 /* values for the int in field_types[] */
@@ -58,47 +58,47 @@ typedef void * dbi_result;
 #define DBI_DATETIME_DATE 1
 #define DBI_DATETIME_TIME 2
 
-int dbi_initialize(const char *plugindir);
+int dbi_initialize(const char *driverdir);
 void dbi_shutdown();
 const char *dbi_version();
 
-dbi_plugin dbi_plugin_list(dbi_plugin Current); /* returns next plugin. if current is NULL, return first plugin. */
-dbi_plugin dbi_plugin_open(const char *name); /* goes thru linked list until it finds the right one */
-int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word);
-void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name);
-int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig);
+dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if current is NULL, return first driver. */
+dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
+int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
+void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
+int dbi_driver_quote_string(dbi_driver Driver, char **orig);
 
-const char *dbi_plugin_get_name(dbi_plugin Plugin);
-const char *dbi_plugin_get_filename(dbi_plugin Plugin);
-const char *dbi_plugin_get_description(dbi_plugin Plugin);
-const char *dbi_plugin_get_maintainer(dbi_plugin Plugin);
-const char *dbi_plugin_get_url(dbi_plugin Plugin);
-const char *dbi_plugin_get_version(dbi_plugin Plugin);
-const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin);
+const char *dbi_driver_get_name(dbi_driver Driver);
+const char *dbi_driver_get_filename(dbi_driver Driver);
+const char *dbi_driver_get_description(dbi_driver Driver);
+const char *dbi_driver_get_maintainer(dbi_driver Driver);
+const char *dbi_driver_get_url(dbi_driver Driver);
+const char *dbi_driver_get_version(dbi_driver Driver);
+const char *dbi_driver_get_date_compiled(dbi_driver Driver);
 
-dbi_driver dbi_driver_new(const char *name); /* shortcut for dbi_driver_open(dbi_plugin_open("foo")) */
-dbi_driver dbi_driver_open(dbi_plugin Plugin); /* returns an actual instance of the driver */
-dbi_plugin dbi_driver_get_plugin(dbi_driver Driver);
-int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value); /* if value is NULL, remove option from list */
-int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value);
-const char *dbi_driver_get_option(dbi_driver Driver, const char *key);
-int dbi_driver_get_option_numeric(dbi_driver Driver, const char *key);
-const char *dbi_driver_get_option_list(dbi_driver Driver, const char *current); /* returns key of next option, or the first option key if current is NULL */
-void dbi_driver_clear_option(dbi_driver Driver, const char *key);
-void dbi_driver_clear_options(dbi_driver Driver);
-void dbi_driver_close(dbi_driver Driver);
+dbi_conn dbi_conn_new(const char *name); /* shortcut for dbi_conn_open(dbi_driver_open("foo")) */
+dbi_conn dbi_conn_open(dbi_driver Driver); /* returns an actual instance of the conn */
+dbi_driver dbi_conn_get_driver(dbi_conn Conn);
+int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value); /* if value is NULL, remove option from list */
+int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value);
+const char *dbi_conn_get_option(dbi_conn Conn, const char *key);
+int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key);
+const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current); /* returns key of next option, or the first option key if current is NULL */
+void dbi_conn_clear_option(dbi_conn Conn, const char *key);
+void dbi_conn_clear_options(dbi_conn Conn);
+void dbi_conn_close(dbi_conn Conn);
 
-int dbi_driver_error(dbi_driver Driver, char **errmsg_dest);
-void dbi_driver_error_handler(dbi_driver Driver, void *function, void *user_argument);
+int dbi_conn_error(dbi_conn Conn, char **errmsg_dest);
+void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument);
 
-int dbi_driver_connect(dbi_driver Driver);
-int dbi_driver_get_socket(dbi_driver Driver);
-dbi_result dbi_driver_get_db_list(dbi_driver Driver, const char *pattern);
-dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db);
-dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...); 
-int dbi_driver_select_db(dbi_driver Driver, const char *db);
+int dbi_conn_connect(dbi_conn Conn);
+int dbi_conn_get_socket(dbi_conn Conn);
+dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern);
+dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db);
+dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...); 
+int dbi_conn_select_db(dbi_conn Conn, const char *db);
 
-dbi_driver dbi_result_get_driver(dbi_result Result);
+dbi_conn dbi_result_get_conn(dbi_result Result);
 int dbi_result_free(dbi_result Result);
 int dbi_result_seek_row(dbi_result Result, unsigned int row);
 int dbi_result_first_row(dbi_result Result);

@@ -2,11 +2,11 @@
 #include <dbi/dbi.h>
 
 int main(int argc, char **argv) {
-	dbi_plugin plugin = NULL;
-	dbi_driver driver;
+	dbi_driver driver = NULL;
+	dbi_conn conn;
 	dbi_result result;
 
-	char *plugindir="/home/mmt/code/CVS/libdbi/local/lib/dbd";
+	char *driverdir="/home/mmt/code/CVS/libdbi/local/lib/dbd";
 
 	int sqlTAGID;
 	char *sqlFILENAME;
@@ -14,35 +14,35 @@ int main(int argc, char **argv) {
 
 	char *errmsg;
 	int curplugidx = 0;
-	int numplugins;
+	int numdrivers;
 
 	if(argc > 1){
 		argv++;
 		printf("Looking in: %s", *argv);
 		dbi_initialize(*argv);
 	} else {
-		printf("Looking in: %s", plugindir);
-		dbi_initialize(plugindir);
+		printf("Looking in: %s", driverdir);
+		dbi_initialize(driverdir);
 	}
 	
 	printf("\nLibrary version: %s\n", dbi_version());
 	
-	if (numplugins < 1) {
-		if (numplugins == -1) printf("Couldn't open plugin directory.\n");
+	if (numdrivers < 1) {
+		if (numdrivers == -1) printf("Couldn't open driver directory.\n");
 		printf("Unloading dbi, later...\n");
 		dbi_shutdown();
 		return 1;
 	}
 	
-		driver = dbi_driver_new("mysql");
-		plugin = dbi_driver_get_plugin(driver);
-		if (driver == NULL) {
-			printf("Can't load driver 'mysql'...\n");
+		conn = dbi_conn_new("mysql");
+		driver = dbi_conn_get_driver(conn);
+		if (conn == NULL) {
+			printf("Can't load conn 'mysql'...\n");
 			dbi_shutdown();
 			return 1;
 		}
 		
-		printf("\n\tPLUGIN %d of %d\n\t---------------\n", curplugidx+1, numplugins);
+		printf("\n\tPLUGIN %d of %d\n\t---------------\n", curplugidx+1, numdrivers);
 		
 		printf("\tName:       %s\n"
 			   "\tFilename:   %s\n"
@@ -50,39 +50,39 @@ int main(int argc, char **argv) {
 			   "\tMaintainer: %s\n"
 			   "\tURL:        %s\n"
 			   "\tVersion:    %s\n"
-			   "\tCompiled:   %s\n", dbi_plugin_get_name(plugin), dbi_plugin_get_filename(plugin), dbi_plugin_get_description(plugin), dbi_plugin_get_maintainer(plugin), dbi_plugin_get_url(plugin), dbi_plugin_get_version(plugin), dbi_plugin_get_date_compiled(plugin));
+			   "\tCompiled:   %s\n", dbi_driver_get_name(driver), dbi_driver_get_filename(driver), dbi_driver_get_description(driver), dbi_driver_get_maintainer(driver), dbi_driver_get_url(driver), dbi_driver_get_version(driver), dbi_driver_get_date_compiled(driver));
 
-		printf("\tCreating driver instance of plugin... ");
-		driver = dbi_driver_open(plugin);
+		printf("\tCreating conn instance of driver... ");
+		conn = dbi_conn_open(driver);
 		
-		if (driver == NULL) {
+		if (conn == NULL) {
 			printf("Failed.\n");
 			dbi_shutdown();
 			return 1;
 		}
 		printf("OK.\n");
 		
-		//dbi_driver_set_option(driver, "host", "localhost");
-		//dbi_driver_set_option_numeric(driver, "port", 12345);
-		dbi_driver_set_option(driver, "username", "");
-		dbi_driver_set_option(driver, "password", "");
-		dbi_driver_set_option(driver, "dbname", "test");
-		//dbi_driver_set_option_numeric(driver, "efficient-queries", 0);
+		//dbi_conn_set_option(conn, "host", "localhost");
+		//dbi_conn_set_option_numeric(conn, "port", 12345);
+		dbi_conn_set_option(conn, "username", "");
+		dbi_conn_set_option(conn, "password", "");
+		dbi_conn_set_option(conn, "dbname", "test");
+		//dbi_conn_set_option_numeric(conn, "efficient-queries", 0);
 
 		printf("Options set, about to connect...\n");
 
-		if (dbi_driver_connect(driver) == -1) {
-			dbi_driver_error(driver, &errmsg);
+		if (dbi_conn_connect(conn) == -1) {
+			dbi_conn_error(conn, &errmsg);
 			printf("FAILED! Error message: %s\n", errmsg);
 			free(errmsg);
 			dbi_shutdown();
 			return 1;
 		}
 		fprintf(stderr,"Connected to socket: %d, about to query... ",
-				dbi_driver_get_socket(driver));
+				dbi_conn_get_socket(conn));
 		while(1){}
 
-		result = dbi_driver_query(driver, "SELECT * FROM sample");
+		result = dbi_conn_query(conn, "SELECT * FROM sample");
 		if (result) {
 			printf("OK\n");
 			dbi_result_bind_fields(result, "key1.%l enum1.%s", &sqlTAGID, &sqlFILENAME);
@@ -94,12 +94,12 @@ int main(int argc, char **argv) {
 			dbi_result_free(result);
 		}
 		else {
-			dbi_driver_error(driver, &errmsg);
+			dbi_conn_error(conn, &errmsg);
 			printf("FAILED! Error message: %s", errmsg);
 			free(errmsg);
 		}
 		
-		dbi_driver_close(driver);
+		dbi_conn_close(conn);
 		curplugidx++;
 		printf("\n");
 		

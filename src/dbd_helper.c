@@ -35,10 +35,10 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
+dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
-	result->driver = driver;
+	result->conn = conn;
 	result->result_handle = handle;
 	result->numrows_matched = numrows_matched;
 	result->numrows_affected = numrows_affected;

@@ -41,7 +41,7 @@
 #include <libpq-fe.h>
 #include "pgsql-stuff.h"
 
-static const dbi_info_t plugin_info = {
+static const dbi_info_t driver_info = {
 	"pgsql",
 	"PostgreSQL database support (using libpq)",
 	"David A. Parker <david@neongoat.com>",
@@ -57,32 +57,32 @@ void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
 
-void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
-	/* this is the first function called after the plugin module is loaded into memory */
-	*_plugin_info = &plugin_info;
+void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words) {
+	/* this is the first function called after the driver module is loaded into memory */
+	*_driver_info = &driver_info;
 	*_custom_functions = custom_functions;
 	*_reserved_words = reserved_words;
 }
 
-int dbd_initialize(dbi_plugin_t *plugin) {
+int dbd_initialize(dbi_driver_t *driver) {
 	/* perform any database-specific server initialization.
-	 * this is called right after dbd_register_plugin().
-	 * return -1 on error, 0 on success. if -1 is returned, the plugin will not
-	 * be added to the list of available plugins. */
+	 * this is called right after dbd_register_driver().
+	 * return -1 on error, 0 on success. if -1 is returned, the driver will not
+	 * be added to the list of available drivers. */
 	
 	return 0;
 }
 
-int dbd_connect(dbi_driver_t *driver) {
-	const char *host = dbi_driver_get_option(driver, "host");
-	const char *username = dbi_driver_get_option(driver, "username");
-	const char *password = dbi_driver_get_option(driver, "password");
-	const char *dbname = dbi_driver_get_option(driver, "dbname");
-	int port = dbi_driver_get_option_numeric(driver, "port");
+int dbd_connect(dbi_conn_t *conn) {
+	const char *host = dbi_conn_get_option(conn, "host");
+	const char *username = dbi_conn_get_option(conn, "username");
+	const char *password = dbi_conn_get_option(conn, "password");
+	const char *dbname = dbi_conn_get_option(conn, "dbname");
+	int port = dbi_conn_get_option_numeric(conn, "port");
 
 	/* pgsql specific options */
-	const char *options = dbi_driver_get_option(driver, "pgsql_options");
-	const char *tty = dbi_driver_get_option(driver, "pgsql_tty");
+	const char *options = dbi_conn_get_option(conn, "pgsql_options");
+	const char *tty = dbi_conn_get_option(conn, "pgsql_tty");
 
 	PGconn *conn;
 	char *port_str;
@@ -110,19 +110,19 @@ int dbd_connect(dbi_driver_t *driver) {
 	if (!conn) return -1;
 
 	if (PQstatus(conn) == CONNECTION_BAD) {
-		_error_handler(driver);
+		_error_handler(conn);
 		PQfinish(conn);
 		return -1;
 	}
 	else {
-		driver->connection = (void *)conn;
+		conn->connection = (void *)conn;
 	}
 	
 	return 0;
 }
 
-int dbd_disconnect(dbi_driver_t *driver) {
-	if (driver->connection) PQfinish((PGconn *)driver->connection);
+int dbd_disconnect(dbi_conn_t *conn) {
+	if (conn->connection) PQfinish((PGconn *)conn->connection);
 	return 0;
 }
 
@@ -157,35 +157,35 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1;
 }
 
-int dbd_get_socket(dbi_driver_t *driver)
+int dbd_get_socket(dbi_conn_t *conn)
 {
-	PGconn *conn = (PGconn*) driver->connection;
+	PGconn *conn = (PGconn*) conn->connection;
 
 	if(!conn) return -1;
 
 	return PQsocket(conn);
 }
 
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern) {
+dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 	dbi_result_t *res;
 	char *sql_cmd;
 
 	if (pattern == NULL) {
-		return dbd_query(driver, "SELECT datname AS dbname FROM pg_database");
+		return dbd_query(conn, "SELECT datname AS dbname FROM pg_database");
 	}
 	else {
 		asprintf(&sql_cmd, "SELECT datname AS dbname FROM pg_database WHERE datname LIKE '%s'", pattern);
-		res = dbd_query(driver, sql_cmd);
+		res = dbd_query(conn, sql_cmd);
 		free(sql_cmd);
 		return res;
 	}
 }
 
-dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
-	return (dbi_result_t *)dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db) {
+	return (dbi_result_t *)dbi_conn_query((dbi_conn)conn, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
 }
 
-int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
+int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {
 	/* foo's -> 'foo\'s' */
 	const char *escaped = "'\"\\"; // XXX TODO check if this is right
 	char *curdest = dest;
@@ -215,7 +215,7 @@ int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest) {
 	return strlen(dest);
 }
 
-dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
+dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	/* allocate a new dbi_result_t and fill its applicable members:
 	 * 
 	 * result_handle, numrows_matched, and numrows_changed.
@@ -225,30 +225,30 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	PGresult *res;
 	int resstatus;
 	
-	res = PQexec((PGconn *)driver->connection, statement);
+	res = PQexec((PGconn *)conn->connection, statement);
 	if (res) resstatus = PQresultStatus(res);
 	if (!res || ((resstatus != PGRES_COMMAND_OK) && (resstatus != PGRES_TUPLES_OK))) {
 		PQclear(res);
 		return NULL;
 	}
 
-	result = _dbd_result_create(driver, (void *)res, PQntuples(res), atol(PQcmdTuples(res)));
+	result = _dbd_result_create(conn, (void *)res, PQntuples(res), atol(PQcmdTuples(res)));
 
 	return result;
 }
 
-char *dbd_select_db(dbi_driver_t *driver, const char *db) {
+char *dbd_select_db(dbi_conn_t *conn, const char *db) {
 	/* postgresql doesn't support switching databases without reconnecting */
 	return NULL;
 }
 
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
+int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 	
 	*errno = 0;
-	if (!driver->connection) *errstr = strdup("Unable to connect to database");
-	else *errstr = strdup(PQerrorMessage((PGconn *)driver->connection));
+	if (!conn->connection) *errstr = strdup("Unable to connect to database");
+	else *errstr = strdup(PQerrorMessage((PGconn *)conn->connection));
 	
 	return 2;
 }

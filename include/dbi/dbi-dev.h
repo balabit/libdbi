@@ -32,8 +32,8 @@ extern "C" {
  *********************/
 
 /* to fool the compiler into letting us use the following structs before they're actually defined: */
-typedef struct dbi_plugin_s *dbi_plugin_t_pointer;
 typedef struct dbi_driver_s *dbi_driver_t_pointer;
+typedef struct dbi_conn_s *dbi_conn_t_pointer;
 typedef struct _field_binding_s *_field_binding_t_pointer;
 
 typedef union dbi_data_u {
@@ -53,8 +53,8 @@ typedef struct dbi_row_s {
 } dbi_row_t;
 
 typedef struct dbi_result_s {
-	dbi_driver_t_pointer driver;
-	void *result_handle; /* will be typecast into driver-specific type */
+	dbi_conn_t_pointer conn;
+	void *result_handle; /* will be typecast into conn-specific type */
 	unsigned long numrows_matched; /* set immediately after query */
 	unsigned long numrows_affected;
 	_field_binding_t_pointer field_bindings;
@@ -85,7 +85,7 @@ typedef struct dbi_info_s {
 	const char *name; /* all lowercase letters and numbers, no spaces */
 	const char *description; /* one or two short sentences, no newlines */
 	const char *maintainer; /* Full Name <fname@fooblah.com> */
-	const char *url; /* where this plugin came from (if maintained by a third party) */
+	const char *url; /* where this driver came from (if maintained by a third party) */
 	const char *version;
 	const char *date_compiled;
 } dbi_info_t;
@@ -98,20 +98,20 @@ typedef struct dbi_option_s {
 } dbi_option_t;
 
 typedef struct dbi_functions_s {
-	void (*register_plugin)(const dbi_info_t **, const char ***, const char ***);
-	int (*initialize)(dbi_plugin_t_pointer);
-	int (*connect)(dbi_driver_t_pointer);
-	int (*disconnect)(dbi_driver_t_pointer);
+	void (*register_driver)(const dbi_info_t **, const char ***, const char ***);
+	int (*initialize)(dbi_driver_t_pointer);
+	int (*connect)(dbi_conn_t_pointer);
+	int (*disconnect)(dbi_conn_t_pointer);
 	int (*fetch_row)(dbi_result_t *, unsigned int);
 	int (*free_query)(dbi_result_t *);
 	int (*goto_row)(dbi_result_t *, unsigned int);
-	int (*get_socket)(dbi_driver_t_pointer);
-	dbi_result_t *(*list_dbs)(dbi_driver_t_pointer, const char *);
-	dbi_result_t *(*list_tables)(dbi_driver_t_pointer, const char *);
-	dbi_result_t *(*query)(dbi_driver_t_pointer, const char *);
-	int (*quote_string)(dbi_plugin_t_pointer, const char *, char *);
-	char *(*select_db)(dbi_driver_t_pointer, const char *);
-	int (*geterror)(dbi_driver_t_pointer, int *, char **);
+	int (*get_socket)(dbi_conn_t_pointer);
+	dbi_result_t *(*list_dbs)(dbi_conn_t_pointer, const char *);
+	dbi_result_t *(*list_tables)(dbi_conn_t_pointer, const char *);
+	dbi_result_t *(*query)(dbi_conn_t_pointer, const char *);
+	int (*quote_string)(dbi_driver_t_pointer, const char *, char *);
+	char *(*select_db)(dbi_conn_t_pointer, const char *);
+	int (*geterror)(dbi_conn_t_pointer, int *, char **);
 } dbi_functions_t;
 
 typedef struct dbi_custom_function_s {
@@ -120,30 +120,30 @@ typedef struct dbi_custom_function_s {
 	struct dbi_custom_function_s *next;
 } dbi_custom_function_t;
 
-typedef struct dbi_plugin_s {
+typedef struct dbi_driver_s {
 	void *dlhandle;
 	char *filename; /* full pathname */
 	const dbi_info_t *info;
 	dbi_functions_t *functions;
 	dbi_custom_function_t *custom_functions;
 	const char **reserved_words;
-	struct dbi_plugin_s *next;
-} dbi_plugin_t;
+	struct dbi_driver_s *next;
+} dbi_driver_t;
 	
-typedef struct dbi_driver_s {
-	dbi_plugin_t *plugin; /* generic unchanging attributes shared by all instances of this driver */
+typedef struct dbi_conn_s {
+	dbi_driver_t *driver; /* generic unchanging attributes shared by all instances of this conn */
 	dbi_option_t *options;
-	void *connection; /* will be typecast into driver-specific type */
+	void *connection; /* will be typecast into conn-specific type */
 	char *current_db;
 	int error_number; /*XXX*/
 	char *error_message; /*XXX*/
 	void *error_handler;
 	void *error_handler_argument;
-	struct dbi_driver_s *next; /* so libdbi can unload all drivers at exit */
-} dbi_driver_t;
+	struct dbi_conn_s *next; /* so libdbi can unload all conns at exit */
+} dbi_conn_t;
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
-void _error_handler(dbi_driver_t *driver);
+void _error_handler(dbi_conn_t *conn);
 
 #ifdef __cplusplus
 }

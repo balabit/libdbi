@@ -31,22 +31,22 @@ extern "C" {
 #include <dbi/dbi-dev.h>
 
 /* FUNCTIONS EXPORTED BY EACH PLUGIN */
-void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words);
-int dbd_initialize(dbi_plugin_t *plugin);
-int dbd_connect(dbi_driver_t *driver);
-int dbd_disconnect(dbi_driver_t *driver);
+void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_functions, const char ***_reserved_words);
+int dbd_initialize(dbi_driver_t *driver);
+int dbd_connect(dbi_conn_t *conn);
+int dbd_disconnect(dbi_conn_t *conn);
 int dbd_fetch_row(dbi_result_t *result, unsigned int rownum);
 int dbd_free_query(dbi_result_t *result);
 int dbd_goto_row(dbi_result_t *result, unsigned int row);
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern);
-dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db);
-dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement);
-int dbd_quote_string(dbi_plugin_t *plugin, const char *orig, char *dest);
-char *dbd_select_db(dbi_driver_t *driver, const char *db);
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr);
+dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern);
+dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db);
+dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
+int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
+char *dbd_select_db(dbi_conn_t *conn, const char *db);
+int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
 
 /* _DBD_* PLUGIN AUTHORS HELPER FUNCTIONS */
-dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected);
+dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected);
 void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields);
 void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs);
 dbi_row_t *_dbd_row_allocate(unsigned int numfields);

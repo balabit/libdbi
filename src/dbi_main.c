@@ -46,59 +46,59 @@
 #endif
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
-static dbi_plugin_t *_get_plugin(const char *filename);
-static void _free_custom_functions(dbi_plugin_t *plugin);
-static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key);
-static int _update_internal_driver_list(dbi_driver_t *driver, int operation);
+static dbi_driver_t *_get_driver(const char *filename);
+static void _free_custom_functions(dbi_driver_t *driver);
+static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key);
+static int _update_internal_conn_list(dbi_conn_t *conn, int operation);
 
-dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
+dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 
 static const char *ERROR = "ERROR";
-static dbi_plugin_t *rootplugin;
 static dbi_driver_t *rootdriver;
+static dbi_conn_t *rootconn;
 
 /* XXX DBI CORE FUNCTIONS XXX */
 
-int dbi_initialize(const char *plugindir) {
+int dbi_initialize(const char *driverdir) {
 	DIR *dir;
-	struct dirent *plugin_dirent = NULL;
+	struct dirent *driver_dirent = NULL;
 	struct stat statbuf;
 	char fullpath[FILENAME_MAX];
-	char *effective_plugindir;
+	char *effective_driverdir;
 	
 	int num_loaded = 0;
-	dbi_plugin_t *plugin = NULL;
-	dbi_plugin_t *prevplugin = NULL;
+	dbi_driver_t *driver = NULL;
+	dbi_driver_t *prevdriver = NULL;
 	
-	rootplugin = NULL;
-	effective_plugindir = (plugindir ? (char *)plugindir : DBI_PLUGIN_DIR);
-	dir = opendir(effective_plugindir);
+	rootdriver = NULL;
+	effective_driverdir = (driverdir ? (char *)driverdir : DBI_PLUGIN_DIR);
+	dir = opendir(effective_driverdir);
 
 	if (dir == NULL) {
 		return -1;
 	}
 	else {
-		while ((plugin_dirent = readdir(dir)) != NULL) {
-			plugin = NULL;
-			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_plugindir, plugin_dirent->d_name);
-			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), PLUGIN_EXT))) {
+		while ((driver_dirent = readdir(dir)) != NULL) {
+			driver = NULL;
+			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_driverdir, driver_dirent->d_name);
+			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(driver_dirent->d_name, '.'), PLUGIN_EXT))) {
 				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
-				plugin = _get_plugin(fullpath);
-				if (plugin && (plugin->functions->initialize(plugin) != -1)) {
-					if (!rootplugin) {
-						rootplugin = plugin;
+				driver = _get_driver(fullpath);
+				if (driver && (driver->functions->initialize(driver) != -1)) {
+					if (!rootdriver) {
+						rootdriver = driver;
 					}
-					if (prevplugin) {
-						prevplugin->next = plugin;
+					if (prevdriver) {
+						prevdriver->next = driver;
 					}
-					prevplugin = plugin;
+					prevdriver = driver;
 					num_loaded++;
 				}
 				else {
-					if (plugin && plugin->dlhandle) dlclose(plugin->dlhandle);
-					if (plugin && plugin->functions) free(plugin->functions);
-					if (plugin) free(plugin);
-					plugin = NULL; /* don't include in linked list */
+					if (driver && driver->dlhandle) dlclose(driver->dlhandle);
+					if (driver && driver->functions) free(driver->functions);
+					if (driver) free(driver);
+					driver = NULL; /* don't include in linked list */
 				}
 			}
 		}
@@ -109,29 +109,29 @@ int dbi_initialize(const char *plugindir) {
 }
 
 void dbi_shutdown() {
+	dbi_conn_t *curconn = rootconn;
+	dbi_conn_t *nextconn;
+	
 	dbi_driver_t *curdriver = rootdriver;
 	dbi_driver_t *nextdriver;
 	
-	dbi_plugin_t *curplugin = rootplugin;
-	dbi_plugin_t *nextplugin;
+	while (curconn) {
+		nextconn = curconn->next;
+		dbi_conn_close((dbi_conn)curconn);
+		curconn = nextconn;
+	}
 	
 	while (curdriver) {
 		nextdriver = curdriver->next;
-		dbi_driver_close((dbi_driver)curdriver);
+		dlclose(curdriver->dlhandle);
+		free(curdriver->functions);
+		_free_custom_functions(curdriver);
+		free(curdriver->filename);
+		free(curdriver);
 		curdriver = nextdriver;
 	}
-	
-	while (curplugin) {
-		nextplugin = curplugin->next;
-		dlclose(curplugin->dlhandle);
-		free(curplugin->functions);
-		_free_custom_functions(curplugin);
-		free(curplugin->filename);
-		free(curplugin);
-		curplugin = nextplugin;
-	}
 
-	rootplugin = NULL;
+	rootdriver = NULL;
 }
 
 const char *dbi_version() {
@@ -140,47 +140,47 @@ const char *dbi_version() {
 
 /* XXX PLUGIN FUNCTIONS XXX */
 
-dbi_plugin dbi_plugin_list(dbi_plugin Current) {
-	dbi_plugin_t *current = Current;
+dbi_driver dbi_driver_list(dbi_driver Current) {
+	dbi_driver_t *current = Current;
 
 	if (current == NULL) {
-		return (dbi_plugin)rootplugin;
+		return (dbi_driver)rootdriver;
 	}
 
-	return (dbi_plugin)current->next;
+	return (dbi_driver)current->next;
 }
 
-dbi_plugin dbi_plugin_open(const char *name) {
-	dbi_plugin_t *plugin = rootplugin;
+dbi_driver dbi_driver_open(const char *name) {
+	dbi_driver_t *driver = rootdriver;
 
-	while (plugin && strcasecmp(name, plugin->info->name)) {
-		plugin = plugin->next;
+	while (driver && strcasecmp(name, driver->info->name)) {
+		driver = driver->next;
 	}
 
-	return plugin;
+	return driver;
 }
 
-int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word) {
+int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word) {
 	unsigned int idx = 0;
-	dbi_plugin_t *plugin = Plugin;
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return 0;
+	if (!driver) return 0;
 	
-	while (plugin->reserved_words[idx]) {
-		if (strcasecmp(word, plugin->reserved_words[idx]) == 0) {
+	while (driver->reserved_words[idx]) {
+		if (strcasecmp(word, driver->reserved_words[idx]) == 0) {
 			return 1;
 		}
 	}
 	return 0;
 }
 
-void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name) {
-	dbi_plugin_t *plugin = Plugin;
+void *dbi_driver_specific_function(dbi_driver Driver, const char *name) {
+	dbi_driver_t *driver = Driver;
 	dbi_custom_function_t *custom;
 
-	if (!plugin) return NULL;
+	if (!driver) return NULL;
 
-	custom = plugin->custom_functions;
+	custom = driver->custom_functions;
 	
 	while (custom && strcasecmp(name, custom->name)) {
 		custom = custom->next;
@@ -191,73 +191,73 @@ void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name) {
 
 /* PLUGIN: informational functions */
 
-const char *dbi_plugin_get_name(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_name(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 	
-	return plugin->info->name;
+	return driver->info->name;
 }
 
-const char *dbi_plugin_get_filename(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_filename(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 	
-	return plugin->filename;
+	return driver->filename;
 }
 
-const char *dbi_plugin_get_description(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_description(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 	
-	return plugin->info->description;
+	return driver->info->description;
 }
 
-const char *dbi_plugin_get_maintainer(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_maintainer(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 
-	return plugin->info->maintainer;
+	return driver->info->maintainer;
 }
 
-const char *dbi_plugin_get_url(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_url(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 
-	return plugin->info->url;
+	return driver->info->url;
 }
 
-const char *dbi_plugin_get_version(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_version(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 	
-	return plugin->info->version;
+	return driver->info->version;
 }
 
-const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
+const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
 	
-	if (!plugin) return ERROR;
+	if (!driver) return ERROR;
 	
-	return plugin->info->date_compiled;
+	return driver->info->date_compiled;
 }
 
-int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig) {
-	dbi_plugin_t *plugin = Plugin;
+int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
+	dbi_driver_t *driver = Driver;
 	char *temp;
 	char *newstr;
 	int newlen;
 	
-	if (!plugin || !orig || !*orig) return -1;
+	if (!driver || !orig || !*orig) return -1;
 
 	newstr = malloc((strlen(*orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 	
-	newlen = plugin->functions->quote_string(plugin, *orig, newstr);
+	newlen = driver->functions->quote_string(driver, *orig, newstr);
 	if (newlen < 0) {
 		free(newstr);
 		return -1;
@@ -272,110 +272,110 @@ int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig) {
 
 /* XXX DRIVER FUNCTIONS XXX */
 
-dbi_driver dbi_driver_new(const char *name) {
-	dbi_plugin plugin;
+dbi_conn dbi_conn_new(const char *name) {
 	dbi_driver driver;
+	dbi_conn conn;
 
-	plugin = dbi_plugin_open(name);
-	driver = dbi_driver_open(plugin);
+	driver = dbi_driver_open(name);
+	conn = dbi_conn_open(driver);
 
-	return driver;
+	return conn;
 }
 
-dbi_driver dbi_driver_open(dbi_plugin Plugin) {
-	dbi_plugin_t *plugin = Plugin;
-	dbi_driver_t *driver;
+dbi_conn dbi_conn_open(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
+	dbi_conn_t *conn;
 	
-	if (!plugin) {
-		return NULL;
-	}
-
-	driver = (dbi_driver_t *) malloc(sizeof(dbi_driver_t));
 	if (!driver) {
 		return NULL;
 	}
-	driver->plugin = plugin;
-	driver->options = NULL;
-	driver->connection = NULL;
-	driver->current_db = NULL;
-	driver->error_number = 0;
-	driver->error_message = NULL;
-	driver->error_handler = NULL;
-	driver->error_handler_argument = NULL;
-	_update_internal_driver_list(driver, 1);
 
-	return (dbi_driver)driver;
+	conn = (dbi_conn_t *) malloc(sizeof(dbi_conn_t));
+	if (!conn) {
+		return NULL;
+	}
+	conn->driver = driver;
+	conn->options = NULL;
+	conn->connection = NULL;
+	conn->current_db = NULL;
+	conn->error_number = 0;
+	conn->error_message = NULL;
+	conn->error_handler = NULL;
+	conn->error_handler_argument = NULL;
+	_update_internal_conn_list(conn, 1);
+
+	return (dbi_conn)conn;
 }
 
-void dbi_driver_close(dbi_driver Driver) {
-	dbi_driver_t *driver = Driver;
+void dbi_conn_close(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
 	
-	if (!driver) return;
+	if (!conn) return;
 	
-	_update_internal_driver_list(driver, -1);
+	_update_internal_conn_list(conn, -1);
 	
-	driver->plugin->functions->disconnect(driver);
-	driver->plugin = NULL;
-	dbi_driver_clear_options(Driver);
-	driver->connection = NULL;
+	conn->driver->functions->disconnect(conn);
+	conn->driver = NULL;
+	dbi_conn_clear_options(Conn);
+	conn->connection = NULL;
 	
-	if (driver->current_db) free(driver->current_db);
-	if (driver->error_message) free(driver->error_message);
-	driver->error_number = 0;
+	if (conn->current_db) free(conn->current_db);
+	if (conn->error_message) free(conn->error_message);
+	conn->error_number = 0;
 	
-	driver->error_handler = NULL;
-	driver->error_handler_argument = NULL;
-	free(driver);
+	conn->error_handler = NULL;
+	conn->error_handler_argument = NULL;
+	free(conn);
 }
 
-dbi_plugin dbi_driver_get_plugin(dbi_driver Driver) {
-	dbi_driver_t *driver = Driver;
+dbi_driver dbi_conn_get_driver(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
 	
-	if (!driver) return NULL;
+	if (!conn) return NULL;
 	
-	return driver->plugin;
+	return conn->driver;
 }
 
-int dbi_driver_error(dbi_driver Driver, char **errmsg_dest) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_error(dbi_conn Conn, char **errmsg_dest) {
+	dbi_conn_t *conn = Conn;
 	char number_portion[20];
 	char *errmsg;
 	
-	if (driver->error_number) {
-		snprintf(number_portion, 20, "%d: ", driver->error_number);
+	if (conn->error_number) {
+		snprintf(number_portion, 20, "%d: ", conn->error_number);
 	}
 	else {
 		number_portion[0] = '\0';
 	}
 
-	asprintf(&errmsg, "%s%s", number_portion, driver->error_message);
+	asprintf(&errmsg, "%s%s", number_portion, conn->error_message);
 	*errmsg_dest = errmsg;
 
-	return driver->error_number;
+	return conn->error_number;
 }
 
-void dbi_driver_error_handler(dbi_driver Driver, void *function, void *user_argument) {
-	dbi_driver_t *driver = Driver;
-	driver->error_handler = function;
+void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument) {
+	dbi_conn_t *conn = Conn;
+	conn->error_handler = function;
 	if (function == NULL) {
-		driver->error_handler_argument = NULL;
+		conn->error_handler_argument = NULL;
 	}
 	else {
-		driver->error_handler_argument = user_argument;
+		conn->error_handler_argument = user_argument;
 	}
 }
 
 /* DRIVER: option manipulation */
 
-int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 	
-	if (!driver) {
+	if (!conn) {
 		return -1;
 	}
 	
-	option = _find_or_create_option_node(driver, key);
+	option = _find_or_create_option_node(conn, key);
 	if (!option) {
 		return -1;
 	}
@@ -387,15 +387,15 @@ int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value) {
 	return 0;
 }
 
-int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 	
-	if (!driver) {
+	if (!conn) {
 		return -1;
 	}
 	
-	option = _find_or_create_option_node(driver, key);
+	option = _find_or_create_option_node(conn, key);
 	if (!option) {
 		return -1;
 	}
@@ -407,15 +407,15 @@ int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value)
 	return 0;
 }
 
-const char *dbi_driver_get_option(dbi_driver Driver, const char *key) {
-	dbi_driver_t *driver = Driver;
+const char *dbi_conn_get_option(dbi_conn Conn, const char *key) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 
-	if (!driver) {
+	if (!conn) {
 		return NULL;
 	}
 	
-	option = driver->options;
+	option = conn->options;
 	while (option && strcasecmp(key, option->key)) {
 		option = option->next;
 	}
@@ -423,13 +423,13 @@ const char *dbi_driver_get_option(dbi_driver Driver, const char *key) {
 	return option ? option->string_value : NULL;
 }
 
-int dbi_driver_get_option_numeric(dbi_driver Driver, const char *key) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 
-	if (!driver) return -1;
+	if (!conn) return -1;
 	
-	option = driver->options;
+	option = conn->options;
 	while (option && strcasecmp(key, option->key)) {
 		option = option->next;
 	}
@@ -437,11 +437,11 @@ int dbi_driver_get_option_numeric(dbi_driver Driver, const char *key) {
 	return option ? option->numeric_value : -1;
 }
 
-const char *dbi_driver_get_option_list(dbi_driver Driver, const char *current) {
-	dbi_driver_t *driver = Driver;
+const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 	
-	if (driver && driver->options) option = driver->options;
+	if (conn && conn->options) option = conn->options;
 	else return NULL;
 	
 	if (!current) {
@@ -455,21 +455,21 @@ const char *dbi_driver_get_option_list(dbi_driver Driver, const char *current) {
 	}
 }
 
-void dbi_driver_clear_option(dbi_driver Driver, const char *key) {
-	dbi_driver_t *driver = Driver;
+void dbi_conn_clear_option(dbi_conn Conn, const char *key) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *prevoption;
 	dbi_option_t *option;
 	
-	if (!driver) return;
-	option = driver->options;
+	if (!conn) return;
+	option = conn->options;
 	
 	while (option && strcasecmp(key, option->key)) {
 		prevoption = option;
 		option = option->next;
 	}
 	if (!option) return;
-	if (option == driver->options) {
-		driver->options = option->next;
+	if (option == conn->options) {
+		conn->options = option->next;
 	}
 	else {
 		prevoption->next = option->next;
@@ -480,13 +480,13 @@ void dbi_driver_clear_option(dbi_driver Driver, const char *key) {
 	return;
 }
 
-void dbi_driver_clear_options(dbi_driver Driver) {
-	dbi_driver_t *driver = Driver;
+void dbi_conn_clear_options(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
 	dbi_option_t *cur;
 	dbi_option_t *next;
 
-	if (!driver) return;
-	cur = driver->options;
+	if (!conn) return;
+	cur = conn->options;
 	
 	while (cur) {
 		next = cur->next;
@@ -496,108 +496,108 @@ void dbi_driver_clear_options(dbi_driver Driver) {
 		cur = next;
 	}
 
-	driver->options = NULL;
+	conn->options = NULL;
 }
 
 /* DRIVER: SQL layer functions */
 
-int dbi_driver_connect(dbi_driver Driver) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_connect(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
 	int retval;
 	
-	if (!driver) return -1;
+	if (!conn) return -1;
 	
-	retval = driver->plugin->functions->connect(driver);
+	retval = conn->driver->functions->connect(conn);
 	//if (retval == -1) {			XXX cant call error handler when connection is already failed and terminated
-	//	_error_handler(driver);
+	//	_error_handler(conn);
 	//}
 	return retval;
 }
 
-int dbi_driver_get_socket(dbi_driver Driver){
-	dbi_driver_t *driver = Driver;
+int dbi_conn_get_socket(dbi_conn Conn){
+	dbi_conn_t *conn = Conn;
 	int retval;
 
-	if(!driver) return -1;
+	if(!conn) return -1;
 
-	retval = driver->plugin->functions->get_socket(driver);
+	retval = conn->driver->functions->get_socket(conn);
 
 	return retval;
 }
 
-dbi_result dbi_driver_get_db_list(dbi_driver Driver, const char *pattern) {
-	dbi_driver_t *driver = Driver;
+dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
+	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
 	
-	if (!driver) return NULL;
+	if (!conn) return NULL;
 	
-	result = driver->plugin->functions->list_dbs(driver, pattern);
+	result = conn->driver->functions->list_dbs(conn, pattern);
 	
 	if (result == NULL) {
-		_error_handler(driver);
+		_error_handler(conn);
 	}
 
 	return (dbi_result)result;
 }
 
-dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db) {
-	dbi_driver_t *driver = Driver;
+dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db) {
+	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
 	
-	if (!driver) return NULL;
+	if (!conn) return NULL;
 	
-	result = driver->plugin->functions->list_tables(driver, db);
+	result = conn->driver->functions->list_tables(conn, db);
 	
 	if (result == NULL) {
-		_error_handler(driver);
+		_error_handler(conn);
 	}
 	
 	return (dbi_result)result;
 }
 
-dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) {
-	dbi_driver_t *driver = Driver;
+dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) {
+	dbi_conn_t *conn = Conn;
 	char *statement;
 	dbi_result_t *result;
 	va_list ap;
 
-	if (!driver) return NULL;
+	if (!conn) return NULL;
 	
 	va_start(ap, formatstr);
 	vasprintf(&statement, formatstr, ap);
 	va_end(ap);
 	
-	result = driver->plugin->functions->query(driver, statement);
+	result = conn->driver->functions->query(conn, statement);
 
 	if (result == NULL) {
-		_error_handler(driver);
+		_error_handler(conn);
 	}
 	free(statement);
 	
 	return (dbi_result)result;
 }
 
-int dbi_driver_select_db(dbi_driver Driver, const char *db) {
-	dbi_driver_t *driver = Driver;
+int dbi_conn_select_db(dbi_conn Conn, const char *db) {
+	dbi_conn_t *conn = Conn;
 	char *retval;
 	
-	if (!driver) return -1;
+	if (!conn) return -1;
 	
-	free(driver->current_db);
-	driver->current_db = NULL;
+	free(conn->current_db);
+	conn->current_db = NULL;
 	
-	retval = driver->plugin->functions->select_db(driver, db);
+	retval = conn->driver->functions->select_db(conn, db);
 	
 	if (retval == NULL) {
-		_error_handler(driver);
+		_error_handler(conn);
 	}
 	
 	if (retval[0] == '\0') {
-		/* if "" was returned, driver doesn't support switching databases */
+		/* if "" was returned, conn doesn't support switching databases */
 		return -1;
 	}
 	else {
-		driver->current_db = strdup(retval);
+		conn->current_db = strdup(retval);
 	}
 	
 	return 0;
@@ -605,8 +605,8 @@ int dbi_driver_select_db(dbi_driver Driver, const char *db) {
 
 /* XXX INTERNAL PRIVATE IMPLEMENTATION FUNCTIONS XXX */
 
-static dbi_plugin_t *_get_plugin(const char *filename) {
-	dbi_plugin_t *plugin;
+static dbi_driver_t *_get_driver(const char *filename) {
+	dbi_driver_t *driver;
 	void *dlhandle;
 	const char **custom_functions_list;
 	unsigned int idx = 0;
@@ -620,45 +620,45 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 		return NULL;
 	}
 	else {
-		plugin = (dbi_plugin_t *) malloc(sizeof(dbi_plugin_t));
-		if (!plugin) return NULL;
+		driver = (dbi_driver_t *) malloc(sizeof(dbi_driver_t));
+		if (!driver) return NULL;
 
-		plugin->dlhandle = dlhandle;
-		plugin->filename = strdup(filename);
-		plugin->next = NULL;
-		plugin->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
+		driver->dlhandle = dlhandle;
+		driver->filename = strdup(filename);
+		driver->next = NULL;
+		driver->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
 
 		if ( /* nasty looking if block... is there a better way to do it? */
-			((plugin->functions->register_plugin = dlsym(dlhandle, "dbd_register_plugin")) == NULL) || dlerror() ||
-			((plugin->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
-			((plugin->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
-			((plugin->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
-			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
-			((plugin->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
-			((plugin->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
-			((plugin->functions->get_socket = dlsym(dlhandle, "dbd_get_socket")) == NULL) || dlerror() ||
-			((plugin->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
-			((plugin->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
-			((plugin->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
-			((plugin->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
-			((plugin->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
-			((plugin->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
+			((driver->functions->register_driver = dlsym(dlhandle, "dbd_register_driver")) == NULL) || dlerror() ||
+			((driver->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
+			((driver->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
+			((driver->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
+			((driver->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
+			((driver->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
+			((driver->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
+			((driver->functions->get_socket = dlsym(dlhandle, "dbd_get_socket")) == NULL) || dlerror() ||
+			((driver->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
+			((driver->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
+			((driver->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
+			((driver->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
+			((driver->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
+			((driver->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
 			)
 		{
-			free(plugin->functions);
-			free(plugin->filename);
-			free(plugin);
+			free(driver->functions);
+			free(driver->filename);
+			free(driver);
 			return NULL;
 		}
-		plugin->functions->register_plugin(&plugin->info, &custom_functions_list, &plugin->reserved_words);
-		plugin->custom_functions = NULL; /* in case no custom functions are available */
+		driver->functions->register_driver(&driver->info, &custom_functions_list, &driver->reserved_words);
+		driver->custom_functions = NULL; /* in case no custom functions are available */
 		while (custom_functions_list && custom_functions_list[idx] != NULL) {
 			custom = (dbi_custom_function_t *) malloc(sizeof(dbi_custom_function_t));
 			if (!custom) {
-				_free_custom_functions(plugin);
-				free(plugin->functions);
-				free(plugin->filename);
-				free(plugin);
+				_free_custom_functions(driver);
+				free(driver->functions);
+				free(driver->filename);
+				free(driver);
 				return NULL;
 			}
 			custom->next = NULL;
@@ -666,15 +666,15 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			snprintf(function_name, 256, "dbd_%s", custom->name);
 			custom->function_pointer = dlsym(dlhandle, function_name);
 			if (!custom->function_pointer || dlerror()) {
-				_free_custom_functions(plugin);
+				_free_custom_functions(driver);
 				free(custom); /* not linked into the list yet */
-				free(plugin->functions);
-				free(plugin->filename);
-				free(plugin);
+				free(driver->functions);
+				free(driver->filename);
+				free(driver);
 				return NULL;
 			}
-			if (plugin->custom_functions == NULL) {
-				plugin->custom_functions = custom;
+			if (driver->custom_functions == NULL) {
+				driver->custom_functions = custom;
 			}
 			else {
 				prevcustom->next = custom;
@@ -683,15 +683,15 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			idx++;
 		}
 	}
-	return plugin;
+	return driver;
 }
 
-static void _free_custom_functions(dbi_plugin_t *plugin) {
+static void _free_custom_functions(dbi_driver_t *driver) {
 	dbi_custom_function_t *cur;
 	dbi_custom_function_t *next;
 
-	if (!plugin) return;
-	cur = plugin->custom_functions;
+	if (!driver) return;
+	cur = driver->custom_functions;
 
 	while (cur) {
 		next = cur->next;
@@ -699,52 +699,52 @@ static void _free_custom_functions(dbi_plugin_t *plugin) {
 		cur = next;
 	}
 
-	plugin->custom_functions = NULL;
+	driver->custom_functions = NULL;
 }
 
-static int _update_internal_driver_list(dbi_driver_t *driver, const int operation) {
-	/* maintain internal linked list of drivers so that we can unload them all
+static int _update_internal_conn_list(dbi_conn_t *conn, const int operation) {
+	/* maintain internal linked list of conns so that we can unload them all
 	 * when dbi is shutdown
 	 * 
-	 * operation = -1: remove driver
-	 *           =  0: just look for driver (return 1 if found, -1 if not)
-	 *           =  1: add driver */
-	dbi_driver_t *curdriver = rootdriver;
-	dbi_driver_t *prevdriver = NULL;
+	 * operation = -1: remove conn
+	 *           =  0: just look for conn (return 1 if found, -1 if not)
+	 *           =  1: add conn */
+	dbi_conn_t *curconn = rootconn;
+	dbi_conn_t *prevconn = NULL;
 
 	if ((operation == -1) || (operation == 0)) {
-		while (curdriver && (curdriver != driver)) {
-			prevdriver = curdriver;
-			curdriver = curdriver->next;
+		while (curconn && (curconn != conn)) {
+			prevconn = curconn;
+			curconn = curconn->next;
 		}
-		if (!curdriver) return -1;
+		if (!curconn) return -1;
 		if (operation == 0) return 1;
 		else if (operation == -1) {
-			if (prevdriver) prevdriver->next = curdriver->next;
-			else rootdriver = NULL;
+			if (prevconn) prevconn->next = curconn->next;
+			else rootconn = NULL;
 			return 0;
 		}
 	}
 	else if (operation == 1) {
-		while (curdriver && curdriver->next) {
-			curdriver = curdriver->next;
+		while (curconn && curconn->next) {
+			curconn = curconn->next;
 		}
-		if (curdriver) {
-			curdriver->next = driver;
+		if (curconn) {
+			curconn->next = conn;
 		}
 		else {
-			rootdriver = driver;
+			rootconn = conn;
 		}
-		driver->next = NULL;
+		conn->next = NULL;
 		return 0;
 	}
 	return -1;
 }
 
-static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key) {
+static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key) {
 	dbi_option_t *prevoption = NULL;
-	dbi_driver_t *driver = Driver;
-	dbi_option_t *option = driver->options;
+	dbi_conn_t *conn = Conn;
+	dbi_option_t *option = conn->options;
 
 	while (option && strcasecmp(key, option->key)) {
 		prevoption = option;
@@ -756,8 +756,8 @@ static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *
 		option = (dbi_option_t *) malloc(sizeof(dbi_option_t));
 		if (!option) return NULL;
 		option->next = NULL;
-		if (driver->options == NULL) {
-		    driver->options = option;
+		if (conn->options == NULL) {
+		    conn->options = option;
 		}
 		else {
 		    prevoption->next = option;
@@ -767,13 +767,13 @@ static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *
 	return option;
 }
 
-void _error_handler(dbi_driver_t *driver) {
+void _error_handler(dbi_conn_t *conn) {
 	int errno = 0;
 	char *errmsg = NULL;
-	void (*errfunc)(dbi_driver_t *, void *);
+	void (*errfunc)(dbi_conn_t *, void *);
 	int errstatus;
 	
-	errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
+	errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
 
 	if (errstatus == -1) {
 		/* not _really_ an error */
@@ -781,15 +781,15 @@ void _error_handler(dbi_driver_t *driver) {
 	}
 
 	if (errno) {
-		driver->error_number = errno;
+		conn->error_number = errno;
 	}
 	if (errmsg) {
-		driver->error_message = errmsg;
+		conn->error_message = errmsg;
 	}
-	if (driver->error_handler != NULL) {
+	if (conn->error_handler != NULL) {
 		/* trigger the external callback function */
-		errfunc = driver->error_handler;
-		errfunc(driver, driver->error_handler_argument);
+		errfunc = conn->error_handler;
+		errfunc(conn, conn->error_handler_argument);
 	}
 }
 

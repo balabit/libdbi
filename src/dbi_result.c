@@ -37,7 +37,7 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-extern void _error_handler(dbi_driver_t *driver);
+extern void _error_handler(dbi_conn_t *conn);
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
 static _field_binding_t *_find_or_create_binding_node(dbi_result_t *result, const char *fieldname);
@@ -83,14 +83,14 @@ int dbi_result_seek_row(dbi_result Result, unsigned int row) {
 		return 1;
 	}
 	
-	/* row is one-based for the user, but zero-based to the dbd driver */
-	retval = result->driver->plugin->functions->goto_row(result, row-1);
+	/* row is one-based for the user, but zero-based to the dbd conn */
+	retval = result->conn->driver->functions->goto_row(result, row-1);
 	if (retval == -1) {
-		_error_handler(result->driver);
+		_error_handler(result->conn);
 	}
-	retval = result->driver->plugin->functions->fetch_row(result, row-1);
+	retval = result->conn->driver->functions->fetch_row(result, row-1);
 	if (retval == 0) {
-		_error_handler(result->driver);
+		_error_handler(result->conn);
 		return 0;
 	}
 
@@ -257,7 +257,7 @@ int dbi_result_free(dbi_result Result) {
 	int retval;
 	if (!result) return -1;
 	
-	retval = result->driver->plugin->functions->free_query(result);
+	retval = result->conn->driver->functions->free_query(result);
 
 	while (result->field_bindings) {
 		_remove_binding_node(result, result->field_bindings);
@@ -273,17 +273,17 @@ int dbi_result_free(dbi_result Result) {
 	}
 
 	if (retval == -1) {
-		_error_handler(result->driver);
+		_error_handler(result->conn);
 	}
 
 	free(result);
 	return retval;
 }
 
-dbi_driver dbi_result_get_driver(dbi_result Result) {
+dbi_conn dbi_result_get_conn(dbi_result Result) {
 	dbi_result_t *result = Result;
 	if (!result) return NULL;
-	return result->driver;
+	return result->conn;
 }
 
 /* RESULT: mass retrieval functions */
