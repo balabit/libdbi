@@ -80,7 +80,6 @@ int dbd_connect(dbi_driver_t *driver) {
 	mycon = mysql_init(NULL);
 
 	if(mycon == NULL){ /* Failure, Memory Problems */
-		_specific_error_handler(driver, "Not Enough Memory");
 		return -1;
 	}
 
@@ -110,7 +109,6 @@ int dbd_disconnect(dbi_driver_t *driver) {
 		return 0;
 	} else {
 
-		_specific_error_handler(driver, "Invalid MySQL Identifier");
 		
 		return -1;
 	}
