@@ -30,7 +30,35 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+
+/* Dlopen stuff */
+#if HAVE_LTDL_H
+#include <ltdl.h>
+#define my_dlopen(foo,bar) lt_dlopen(foo)
+#define my_dlsym lt_dlsym
+#define my_dlclose lt_dlclose
+#define my_dlerror lt_dlerror
+#elif HAVE_MACH_O_DYLD_H
+#include <mach-o/dyld.h>
+static void * dyld_dlopen(const char * file);
+static void * dyld_dlsym(void * hand, const char * name);
+static int dyld_dlclose(void * hand);
+static const char * dyld_dlerror();
+#define my_dlopen(foo,bar) dyld_dlopen(foo)
+#define my_dlsym dyld_dlsym
+#define my_dlerror dyld_dlerror
+#define my_dlclose dyld_dlclose
+#elif HAVE_DLFCN_H
 #include <dlfcn.h>
+#define my_dlopen dlopen
+#define my_dlsym dlsym
+#define my_dlclose dlclose
+#define my_dlerror dlerror
+#else
+#error no dynamic loading support
+#endif
+/* end dlopen stuff */
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -81,7 +109,9 @@ int dbi_initialize(const char *driverdir) {
 	int num_loaded = 0;
 	dbi_driver_t *driver = NULL;
 	dbi_driver_t *prevdriver = NULL;
-	
+#if HAVE_LTDL_H
+        (void)lt_dlinit();
+#endif	
 	rootdriver = NULL;
 	effective_driverdir = (driverdir ? (char *)driverdir : DBI_DRIVER_DIR);
 	dir = opendir(effective_driverdir);
@@ -107,7 +137,7 @@ int dbi_initialize(const char *driverdir) {
 					num_loaded++;
 				}
 				else {
-					if (driver && driver->dlhandle) dlclose(driver->dlhandle);
+					if (driver && driver->dlhandle) my_dlclose(driver->dlhandle);
 					if (driver && driver->functions) free(driver->functions);
 					if (driver) free(driver);
 					driver = NULL; /* don't include in linked list */
@@ -136,7 +166,7 @@ void dbi_shutdown() {
 	
 	while (curdriver) {
 		nextdriver = curdriver->next;
-		dlclose(curdriver->dlhandle);
+		my_dlclose(curdriver->dlhandle);
 		free(curdriver->functions);
 		_free_custom_functions(curdriver);
 		_free_caps(curdriver->caps);
@@ -144,7 +174,9 @@ void dbi_shutdown() {
 		free(curdriver);
 		curdriver = nextdriver;
 	}
-
+#if HAVE_LTDL_H
+        (void)lt_dlexit();
+#endif	
 	rootdriver = NULL;
 }
 
@@ -821,7 +853,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 	dbi_custom_function_t *custom = NULL;
 	char function_name[256];
 
-	dlhandle = dlopen(filename, DLOPEN_FLAG); /* DLOPEN_FLAG defined by autoconf */
+	dlhandle = my_dlopen(filename, DLOPEN_FLAG); /* DLOPEN_FLAG defined by autoconf */
 
 	if (dlhandle == NULL) {
 		return NULL;
@@ -837,24 +869,24 @@ static dbi_driver_t *_get_driver(const char *filename) {
 		driver->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
 
 		if ( /* nasty looking if block... is there a better way to do it? */
-			((driver->functions->register_driver = dlsym(dlhandle, DLSYM_PREFIX "dbd_register_driver")) == NULL) || dlerror() ||
-			((driver->functions->initialize = dlsym(dlhandle, DLSYM_PREFIX "dbd_initialize")) == NULL) || dlerror() ||
-			((driver->functions->connect = dlsym(dlhandle, DLSYM_PREFIX "dbd_connect")) == NULL) || dlerror() ||
-			((driver->functions->disconnect = dlsym(dlhandle, DLSYM_PREFIX "dbd_disconnect")) == NULL) || dlerror() ||
-			((driver->functions->fetch_row = dlsym(dlhandle, DLSYM_PREFIX "dbd_fetch_row")) == NULL) || dlerror() ||
-			((driver->functions->free_query = dlsym(dlhandle, DLSYM_PREFIX "dbd_free_query")) == NULL) || dlerror() ||
-			((driver->functions->goto_row = dlsym(dlhandle, DLSYM_PREFIX "dbd_goto_row")) == NULL) || dlerror() ||
-			((driver->functions->get_socket = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_socket")) == NULL) || dlerror() ||
-			((driver->functions->list_dbs = dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) || dlerror() ||
-			((driver->functions->list_tables = dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) || dlerror() ||
-			((driver->functions->query = dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) || dlerror() ||
-			((driver->functions->query_null = dlsym(dlhandle, DLSYM_PREFIX "dbd_query_null")) == NULL) || dlerror() ||
-			((driver->functions->quote_string = dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_string")) == NULL) || dlerror() ||
-			((driver->functions->select_db = dlsym(dlhandle, DLSYM_PREFIX "dbd_select_db")) == NULL) || dlerror() ||
-			((driver->functions->geterror = dlsym(dlhandle, DLSYM_PREFIX "dbd_geterror")) == NULL) || dlerror() ||
-			((driver->functions->get_seq_last = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_last")) == NULL) || dlerror() ||
-			((driver->functions->get_seq_next = dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_next")) == NULL) || dlerror() ||
-			((driver->functions->ping = dlsym(dlhandle, DLSYM_PREFIX "dbd_ping")) == NULL) || dlerror()
+			((driver->functions->register_driver = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_register_driver")) == NULL) ||
+			((driver->functions->initialize = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_initialize")) == NULL) ||
+			((driver->functions->connect = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_connect")) == NULL) ||
+			((driver->functions->disconnect = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_disconnect")) == NULL) ||
+			((driver->functions->fetch_row = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_fetch_row")) == NULL) ||
+			((driver->functions->free_query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_free_query")) == NULL) ||
+			((driver->functions->goto_row = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_goto_row")) == NULL) ||
+			((driver->functions->get_socket = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_socket")) == NULL) ||
+			((driver->functions->list_dbs = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) ||
+			((driver->functions->list_tables = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) ||
+			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||
+			((driver->functions->query_null = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query_null")) == NULL) ||
+			((driver->functions->quote_string = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_string")) == NULL) ||
+			((driver->functions->select_db = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_select_db")) == NULL) ||
+			((driver->functions->geterror = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_geterror")) == NULL) ||
+			((driver->functions->get_seq_last = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_last")) == NULL) ||
+			((driver->functions->get_seq_next = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_next")) == NULL) ||
+			((driver->functions->ping = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_ping")) == NULL)
 			)
 		{
 			free(driver->functions);
@@ -876,8 +908,8 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			custom->next = NULL;
 			custom->name = custom_functions_list[idx];
 			snprintf(function_name, 256, DLSYM_PREFIX "dbd_%s", custom->name);
-			custom->function_pointer = dlsym(dlhandle, function_name);
-			if (!custom->function_pointer || dlerror()) {
+			custom->function_pointer = my_dlsym(dlhandle, function_name);
+			if (!custom->function_pointer) {
 				_free_custom_functions(driver);
 				free(custom); /* not linked into the list yet */
 				free(driver->functions);
@@ -1055,3 +1087,54 @@ unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, uns
 	return (attribs & attrib_mask);
 }
 
+#if HAVE_MACH_O_DYLD_H
+static int dyld_error_set=0;
+static void * dyld_dlopen(const char * file)
+{
+	NSObjectFileImage o=NULL;
+	NSObjectFileImageReturnCode r;
+	NSModule m=NULL;
+	const unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR | NSLINKMODULE_OPTION_PRIVATE;
+	dyld_error_set=0;
+	r = NSCreateObjectFileImageFromFile(file,&o);
+	if (NSObjectFileImageSuccess == r)
+	{
+		m=NSLinkModule(o,file,flags);
+		NSDestroyObjectFileImage(o);
+		if (!m) dyld_error_set=1;
+	}
+        return (void*)m;
+}
+static void * dyld_dlsym(void * hand, const char * name)
+{
+        NSSymbol * sym=NSLookupSymbolInModule((NSModule)hand, name);
+	void * addr = NULL;
+	dyld_error_set=0;
+	if (sym) addr=(void*)NSAddressOfSymbol(sym);
+	if (!addr) dyld_error_set=1;
+        return addr;
+}
+static int dyld_dlclose(void * hand)
+{
+        int retVal=0;
+	dyld_error_set=0;
+        if (!NSUnLinkModule((NSModule)hand, 0))
+	{
+	        dyld_error_set=1;
+		retVal=-1;
+	}
+        return retVal;
+}
+
+static const char * dyld_dlerror()
+{
+	NSLinkEditErrors ler;
+	int lerno;
+	const char *errstr;
+	const char *file;
+	NSLinkEditError(&ler, &lerno, &file, &errstr);
+	if (!dyld_error_set) errstr=NULL;
+	dyld_error_set=0;
+	return errstr;
+}
+#endif /* HAVE_MACH_O_DYLD_H */
