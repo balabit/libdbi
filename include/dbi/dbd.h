@@ -58,6 +58,7 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int numrows_matched, const char **stringarray);
 void _dbd_register_driver_cap(dbi_driver_t *driver, const char *capname, int value);
 void _dbd_register_conn_cap(dbi_conn_t *conn, const char *capname, int value);
+int _dbd_result_add_to_conn(dbi_result_t *result);
 
 #ifdef __cplusplus
 }

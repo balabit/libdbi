@@ -96,6 +96,7 @@ const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current); /* ret
 void dbi_conn_clear_option(dbi_conn Conn, const char *key);
 void dbi_conn_clear_options(dbi_conn Conn);
 int dbi_conn_cap_get(dbi_conn Conn, const char *capname);
+int dbi_conn_disjoin_results(dbi_conn Conn);
 void dbi_conn_close(dbi_conn Conn);
 
 int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest);
@@ -135,6 +136,7 @@ unsigned long dbi_result_get_field_attrib(dbi_result Result, const char *fieldna
 unsigned long dbi_result_get_field_attrib_idx(dbi_result Result, unsigned int idx, unsigned long attribmin, unsigned long attribmax);
 unsigned long dbi_result_get_field_attribs(dbi_result Result, const char *fieldname);
 unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int idx);
+int dbi_result_disjoin(dbi_result Result);
 
 int dbi_result_get_fields(dbi_result Result, const char *format, ...);
 int dbi_result_bind_fields(dbi_result Result, const char *format, ...);

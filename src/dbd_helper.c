@@ -38,6 +38,23 @@
 static _capability_t *_find_or_create_driver_cap(dbi_driver_t *driver, const char *capname);
 static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *capname);
 
+int _dbd_result_add_to_conn(dbi_result_t *result) {
+	dbi_conn_t *conn = result->conn;
+	
+	if (conn->resuls_size < conn->results_used+1) {
+		dbi_result_t **results = (dbi_result_t **) realloc(conn->results, sizeof(dbi_result_t *) * (conn->results_size+1));
+		if (!results) {
+			return 0;
+		}
+		conn->results = results;
+		conn->results_size++;
+	}
+
+	conn->results[conn->results_used] = result;
+	conn->results_used++;
+	return 1;
+}
+
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
@@ -53,6 +70,12 @@ dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned int nu
 	result->result_state = (numrows_matched > 0) ? ROWS_RETURNED : NOTHING_RETURNED;
 	result->rows = calloc(numrows_matched+1, sizeof(dbi_row_t *));
 	result->currowidx = 0;
+
+	if (!_dbd_result_add_to_conn(result)) {
+		dbi_result_free((dbi_result)result);
+		return NULL;
+	}
+	
 	return result;
 }
 
@@ -142,6 +165,7 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int
 	result->rows = calloc(numrows_matched+1, sizeof(dbi_row_t *));
 	result->currowidx = 0;
 
+
 	/* then set numfields */
 	result->field_types[0] = DBI_TYPE_STRING;
 	result->field_attribs[0] = 0;
@@ -152,6 +176,11 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned int
 		row->field_values[0].d_string = strdup(stringarray[currow]);
 		row->field_sizes[0] = strlen(stringarray[currow]);
 		_dbd_row_finalize(result, row, 0);
+	}
+	
+	if (!_dbd_result_add_to_conn(result)) {
+		dbi_result_free((dbi_result)result);
+		return NULL;
 	}
 	
 	return result;

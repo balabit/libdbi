@@ -153,6 +153,9 @@ typedef struct dbi_conn_s {
 	char *error_message; /*XXX*/
 	dbi_conn_error_handler_func error_handler;
 	void *error_handler_argument;
+	dbi_result_t **results; /* for garbage-collector-mandated result disjoins */
+	int results_used;
+	int results_size;
 	struct dbi_conn_s *next; /* so libdbi can unload all conns at exit */
 } dbi_conn_t;
 
