@@ -1,7 +1,7 @@
 #!/bin/bash
-#export LANG=en_US
+libtoolize --force --copy
 aclocal
+autoheader
 automake --add-missing
 autoconf
-autoheader
 echo "Done, ready to ./configure && make dist."
