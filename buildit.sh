@@ -1,5 +1,5 @@
 #!/bin/bash
-export LANG=en_US
+#export LANG=en_US
 aclocal
 automake --add-missing
 autoconf
