@@ -334,7 +334,7 @@ const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
 	return driver->info->date_compiled;
 }
 
-int dbi_driver_quote_string(dbi_driver Driver, const char *orig, char **newquoted) {
+int dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newquoted) {
 	dbi_driver_t *driver = Driver;
 	char *newstr;
 	int newlen;
@@ -358,7 +358,7 @@ int dbi_driver_quote_string(dbi_driver Driver, const char *orig, char **newquote
 	return newlen;
 }
 
-int dbi_driver_quote_string_inplace(dbi_driver Driver, char **orig) {
+int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
 	char *temp = NULL;
 	char *newstr = NULL;
 	int newlen;
@@ -367,7 +367,7 @@ int dbi_driver_quote_string_inplace(dbi_driver Driver, char **orig) {
 		return -1;
 	}
 	
-	newlen = dbi_driver_quote_string(Driver, *orig, &newstr);
+	newlen = dbi_driver_quote_string_copy(Driver, *orig, &newstr);
 	temp = *orig;
 	*orig = newstr;
 	free(temp); /* original unescaped string */
@@ -723,6 +723,17 @@ int dbi_conn_get_socket(dbi_conn Conn){
 	return retval;
 }
 
+const char *dbi_conn_get_encoding(dbi_conn Conn){
+	dbi_conn_t *conn = Conn;
+	const char *retval;
+
+	if (!conn) return NULL;
+
+	retval = conn->driver->functions->get_encoding(conn);
+
+	return retval;
+}
+
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
 	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
@@ -893,6 +904,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->free_query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_free_query")) == NULL) ||
 			((driver->functions->goto_row = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_goto_row")) == NULL) ||
 			((driver->functions->get_socket = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_socket")) == NULL) ||
+			((driver->functions->get_encoding = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_encoding")) == NULL) ||
 			((driver->functions->list_dbs = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) ||
 			((driver->functions->list_tables = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) ||
 			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||
