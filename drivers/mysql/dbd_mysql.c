@@ -1,298 +1,297 @@
-/*
- * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE), David Parker, Mark Tobenkin.
- * http://libdbi.sourceforge.net
- * 
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
- * dbd_template.c: Template plugin for libdbi.
- * Copyright (C) 2001, Mark M. Tobenkin <mark@brentwoodradio.com>
- * http://libdbi.sourceforge.net/plugins/lookup.php?name=mysql
- * 
- * $Id$
- */
-
+/* Standard Libraries  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/* For return/parameter Types  */
 #include <dbi/dbi.h>
-/* any database library includes */
 
+/* Database Specific Libraries  */
+#include <mysql/mysql.h>
+
+
+/* No Custom Functions */
 #define DBD_CUSTOM_FUNCTIONS NULL
 
+/* Information About The Plugin */
+/* plugin name
+ * plugin description
+ * plugin author
+ * plugin URL
+ * plugin version
+ * compile date
+ */
 dbi_info_t dbd_template_info = {
-	/* short name, used for loading drivers by name */
-	"mysql",
-	/* short desc, no more than two sentences, no newlines */
-	"Wrapper for libmysql-client for use with MySQL servers",
-	/* plugin author/maintainer, email address */
-	"Mark M. Tobenkin <mark@brentwoodradio.com>",
-	/* URL of plugin, if maintained by a third party */
-	"http://libdbi.sourceforge.net/plugins/lookup.php?name=mysql",
-	/* plugin version */
-	"mysql v0.0.1",
-	/* compilation date */
-	__DATE__
+        "mysql",
+        "Wrapper for libmysql-client for use with MySQL servers",
+        "Mark M. Tobenkin <mark@brentwoodradio.com>",
+        "http://libdbi.sourceforge.net/plugins/lookup.php?name=mysql",
+        "mysql v0.0.1",
+        __DATE__
 };
 
-int dbd_initialize(dbi_plugin_t *myself) {
-	/* fill info structure and custom function list. name and filename will
-	 * already be set by the main dbi initialization. functions and custom_functions
-	 * will be automatically set by dbi initialization after this function executes.
-	 * also perform any database-specific init. return -1 on error, 0 on success */
-	
-	myself->info = &dbd_template_info;
-	myself->custom_functions_list = DBD_CUSTOM_FUNCTIONS;
-	/* other init... */
-	
+/*****************************************************************************/
+/* STRCPY_SAFE                                                               */
+/*****************************************************************************/
+/*
+ * Precondtion: str2 != NULL, str1 passed by reference
+ * Postcondition: str1 == str2, any memory is allocated
+ * Returns: new string
+ */
+
+char *strcpy_safe(char *str1, char *str2)
+{
+	char *final=NULL;
+
+	if(str1) free(str1);
+
+	final = (char*) malloc( sizeof(char) * (1 + strlen(str2)) );
+	strcpy(final, str2);
+
+	return final;
+}
+
+/*****************************************************************************/
+/* DBD_INITIALIZE                                                            */
+/*****************************************************************************/
+/*
+ * Precondition: plugin != NULL
+ * Postcondition: plugin ready for usage
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_initialize( dbi_plugin_t *plugin )
+{
+	plugin->info = &dbd_template_info;
+	plugin->custom_function_list = DBD_CUSTOM_FUNCTIONS;
+
 	return 0;
 }
 
-int dbd_connect(dbi_driver_t *myself) {
-	char *host = dbi_get_option(myself, "host");
-	char *username = dbi_get_option(myself, "username");
-	char *password = dbi_get_option(myself, "password");
-	char *database = dbi_get_option(myself, "database");
-	int port = dbi_get_option_numeric(myself, "port");
-	/* grab any other options the database needs and connect! */
-	/* myself->generic_connection and myself->connection should
-	 * also be set if applicable */
-	MYSQL *con;
 
+/*****************************************************************************/
+/* DBD_CONNECT                                                               */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: set driver's connection to MYSQL connection,
+ *	set error_string on failure
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_connect( dbi_driver_t *driver )
+{
+	MYSQL *con; /* The Connection To The MySQL Server */
+
+	/* These Are Variables Preloaded Into The Driver  */
+	char *host = dbi_get_option(myself, "host");
+        char *username = dbi_get_option(myself, "username");
+        char *password = dbi_get_option(myself, "password");
+        char *database = dbi_get_option(myself, "database");
+        int port = dbi_get_option_numeric(myself, "port");
+
+	char *error; /* Temporary Storage For mysql_error()  */
+	
+	/* Initialize Connection */
 	con = mysql_init(NULL);
 
-	if(con == NULL){
-		strcpy(driver->error_message, "Not Enough Memory To Allocate Handle");
+	if(con == NULL){ /* Failure, Memory Problems */
+		driver->error_string = strcpy_safe(driver->error_string, "Not Enough Memory");
+
 		return -1;
 	}
 
-	if(mysql_real_connect(con, host, username, password, database, port, NULL, NULL)){
-		driver->connection = (void*) con;
-		strcpy(driver->currentdb, db);
-	} else {
-		strcpy(driver->error_message, mysql_error(con));
-		driver->error_number = mysql_errno(con);
-		mysql_close(con);
-		return -1;
-	}
-
-	return 0;
-}
-
-int dbd_disconnect(dbi_driver_t *myself)
-{
-	if(myself && myself->connection){
-		mysql_close( (MYSQL*) myself->connection);
-		myself->connection = NULL;
-		return 0;
-	} else {
-		if(myself)
-			strcpy(myself->error_string, "No Connection To Close");
-		return -1;
-	}
-}
-
-
-
-int dbd_fetch_field(dbi_result_t *result, const char *key, void *dest) {
-	/* grab the value in the field, convert it to the
-	 * appropriate C datatype, and stuff it into dest */
-	dbi_row_t *row;
-	int i, f = -1;	
-
-	row = result->rows;
-
-	if(!row){
-		dest = NULL;
-		strcpy(result->driver->error_string, "No row fetched yet"); /* later add sprintf here*/
-		return -1;
-	}
-
-	for(i = 0; i < row->numfields; i++){
-		if(!strcmp(key, row->field_names[i]))
-			break;
-	}
-
-	if(i == row->numfields){
-		dest = NULL;
-		strcpy(result->driver->error_string, "Field does not exist"); /* later add sprintf here*/
-		return -1;
-	}
-
-	dest = row->field_values[i];
-
-	return 0;
-}
-
-int dbd_fetch_row(dbi_result_t *result) {
-	dbi_row_t *trav;
-	MYSQL_ROW row; 
-	
-	if(!result) return -1;
-
-
-	/* Grab a Row*/
-	row = mysql_fetch_row((MYSQL_RES*)result->result_handle);
-
-	/* If no row, check for errors, or just say it's empty*/
-	if(row == NULL){
-		if(mysql_errno((MYSQL*)result->driver->connection)){
-			strcpy(result->driver->error_message, mysql_error((MYSQL*)result->driver->connection));
-			result->driver->error_number = mysql_errno((MYSQL*)result->driver->connection);
-			return -1;
-		}
-		return 0;
-	}
-
-	while(trav){ /* Free all preexisting rows */
-		trav = result->row;
-		result->row = result->row->next;
-		free(trav);
-	}
-
-	result->row =  (dbi_row_t *) malloc(sizeof(dbi_row_t));
-	result->row->row_handle = (void *) row;
-	result->row->next = NULL;
-
-	
-	/*************************TODO***********************************/
-	/*                                                              *
-	 * As we don't know our mask/enum scheme yet for columns types, *
-	 * The section turning fields into fully-qualified rows is      *
-	 * incomplete.                                                  *
-	 ****************************************************************/
+	/* Attempt To Make Connection, Give Error On Failure */
+	if( mysql_real_connect(con, host, username, password, database, port, NULL, 0) ){
+		driver->connection = (void *) con;
 		
-	return 1; /* return -1 on error, 0 on no more rows, 1 on successful fetchrow */
-}
+		driver->currentdb = strcpy_safe(driver->currentdb, database);
 
-int dbd_free_query(dbi_result_t *result) {
-	/* do whatever's necessary... */
-	mysql_free_result(result);
-	return 0;
-}
-
-int dbd_goto_row(dbi_result_t *result, unsigned int row) {
-	/* do whatever's necessary... */
-	return 0;
-}
-
-const char **dbd_list_dbs(dbi_driver_t *myself) {
-	/* do whatever's necessary... */
-	MYSQL_RES *res=NULL;
-	MYSQL_ROW *row=NULL;
-	MYSQL_FIELD *field=NULL;
-	char **ret=NULL;
-	char **trav=NULL;
-	int *length=NULL;
-	
-	res = mysql_list_dbs((MYSQL*)myself->connection, "%");
-
-	ret = (char**)malloc(sizeof(char*) * mysql_num_rows(res));
-	trav = ret;
-
-	while(row = mysql_fetch_row(res)){
-		/*field = mysql_fetch_field(row);*/
-		length = mysql_fetch_lengths(res);
-
-		*trav = (char *)malloc( sizeof(char) + *length + 1);
-
-		strncpy(*trav, row, *length);
-
-		trav++;
-	}
-	
-	mysql_free_result(res);
-
-	return trav;
-}
-
-const char **dbd_list_tables(dbi_driver_t *myself, const char *db) {
-	/* do whatever's necessary... */
-}
-
-unsigned int dbd_num_rows(dbi_result_t *result) {
-	/* return the numrows_matched or numrows_changed from the
-	 * result struct, depending on what the database supports */
-	if(result)
-		return result->numrows_matched;
-	else
 		return 0;
-}
-
-unsigned int dbd_num_rows_affected(dbi_result_t *result) {
-	/* return the numrows_matched or numrows_changed from the
-	 * result struct, depending on what the database supports */
-	if(result)
-		return result->numrows_changed;
-	else
-		return 0;
-}
-
-dbi_result_t *dbd_query(dbi_driver_t *myself, const char *statement) {
-	/* allocate a new dbi_result_t and fill its applicable members:
-	 * driver, result_handle, numrows_matched, numrows_changed, row */
-	MYSQL_RES *res;
-	dbi_result_t *ret;
-
-	if(!mysql_query( (MYSQL*)myself->connection, statement)){
-		res = mysql_store_result((MYSQL*) myself->connection);
 	} else {
-		strcpy(myself->error_message, mysql_error((MYSQL*)myself->connection));
-		myself->error_number = mysql_errno((MYSQL*)myself->connection);
+		error = mysql_error(con);
+
+		driver->error_string = strcpy_safe(driver->error_string, error);
+
+		driver->error_number = mysql_errno(con);
+
+		mysql_close(con);
+
+		return -1;
+	}
+}
+
+/*****************************************************************************/
+/* DBD_DISCONNECT                                                            */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: driver's connection (if any) disconnected, or error message
+ *	set
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_disconnect( dbi_driver_t *driver )
+{
+	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
+
+	if(con){
+		mysql_close(con);
+		driver->connection = NULL;
+		
+		return 0;
+	} else {
+
+		driver->error_string = strcpy_safe(driver->error_string, error);
+		
+		return -1;
+	}
+}
+
+/*****************************************************************************/
+/* DBD_SELECT_DB                                                             */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL, database != NULL
+ * Postcondition: connection set to new database, driver's currentdb set to new
+ *	database, set's error string/number on failure.
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_select_db( dbi_driver_t *driver, char *database)
+{
+	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
+	char *error; /* Temporary Storage For mysql_error() */
+
+	if(mysql_select_db(con, database)){ /* In Case Of Error */
+		error = mysql_error(con);
+
+		driver->error_string = strcpy_safe(driver->error_string, error);
+
+		driver->error_number = mysql_errno(con);
+
+		return -1;
+	}
+
+	/* Update driver */
+	driver->currentdb = strcpy_safe(driver->currentdb, database);
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* DBD_QUERY                                                                 */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL, statement != NULL
+ * Postcondition: query's server and creates dbi_result_t
+ * Returns: dbi_result_t on success, sets driver's error_string on failure
+ *	and returns NULL
+ */
+
+dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
+{
+	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
+	MYSQL_RES *myres; /* MySQL's internal result type */
+	dbi_result_t *dbires; /* DBI's internal result type*/
+
+	char *error; /* Temporary Storage For mysql_error() */
+
+	/* Query, On Failure Return NULL */
+	if(mysql_query(con, statement)){
+
+		error = mysql_error(con); 
+
+		driver->error_string = strcpy_safe(driver->error_string, error);
+	
+		driver->error_number = mysql_errno(con);
+	
 		return NULL;
 	}
 
-	ret = malloc(sizeof(dbi_result_t));
-	ret->result_handle = res;
-	ret->driver = myself;
-	ret->numrows_changed = mysql_affected_rows((MYSQL*)myself->connection);
-	ret->numrows_matched = mysql_num_rows(res);
+	myres = mysql_store_result(con); /* Grab Result*/
 
-	return ret;
+	dbires = (dbi_result_t*) malloc(sizeof(dbi_result_t));
+	dbires->result_handle = (void*) myres;
+	dbires->driver = driver;
+	dbires->numrows_changed = mysql_affected_rows(con);
+	dbires->numrows_matched = mysql_num_rows(myres);
+	dbires->row = NULL;
+
+	return dbires;
 }
 
-dbi_result_t *dbd_efficient_query(dbi_driver_t *myself, const char *statement) {
-	/* do whatever's necessary... */
-	/* allocate a new dbi_result_t and fill its applicable members:
-	 * driver, result_handle, numrows_matched, numrows_changed, row */
-	return 0;
+/*****************************************************************************/
+/* DBD_EFFICIENT_QUERY                                                       */
+/*****************************************************************************/
+/*
+ * TODO
+ */
+
+dbi_result_t *dbd_efficient_query( dbi_driver_t *driver, char *statement )
+{
+
 }
 
-int dbd_select_db(dbi_driver_t *myself, const char *db) {
-	/* do whatever's necessary... */
-	/* keep track of current db in myself->current_db */
-	return 0;
-}
+/*****************************************************************************/
+/* DBD_FETCH_ROW                                                             */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL, result->driver != NULL,
+ *	result->driver->connection != NULL
+ * Postcondition: sets result's row to next row, or NULL if empty
+ * Returns: 1 on success, -1 on failure, 0 if no rows
+ */
 
-const char *dbd_errstr(dbi_driver_t *myself) {
-	if(myself){
-		strcpy(myself->error_string, mysql_error((MYSQL*)myself->connection));
-		return myself->error_string;
-	}else
+int dbd_fetch_row( dbi_result_t *result )
+{
+	dbi_driver_t *driver = result->driver; /* Our Driver */
+	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
+	MYSQL_RES *result = (MYSQL_RES*) result->result_handle; /* Our Result */
+
+	dbi_row_t *dbirow = NULL; /* Will Become result->row */
+	MYSQL_ROW *myrow = NULL; /* Will Become row->row_handle */
+
+	/* Temporary Storage For Errors */
+	char *error=NULL;
+	int errno=0;
+
+	/* Grab Row */
+	myrow = (MYSQL_ROW*) malloc(sizeof(MYSQL_ROW));
+	*myrow = mysql_fetch_row(result);
+
+	/* Either No More Rows, Or Error*/
+	if(*myrow == NULL){
+
+		if( errno = mysql_errno(con) ){ /* In Case Of Error */
+			error = mysql_error(con);
+
+			driver->error_string = strcpy_safe(driver->error_string, error);
+
+			driver->error_number = errno;
+
+			return -1;
+		}
+
 		return 0;
+	}
+
+	/* Create Row */
+	dbirow = (dbi_row_t*) malloc(sizeof(dbi_row_t));
+	dbirow->row_handle = (void*) myrow;
+	dbirow->next = NULL;
+	dbirow->numfields = mysql_num_fields(result);
+
+	/*********************************************************************\
+	* TODO: Interpret MYSQL_FIELDs to find dbirow->field_names,           *
+	*         dbirow->field_types(very tedious), dbirow->field_values     *
+	*         (just as tedious, if not more so :)                         *
+	\*********************************************************************/
+	
+	/*********************************************************************\
+	* NOTE: Should we really have field_values? Why not use a combination *
+	*         of row_handle and fetch_field()?                            *
+	\*********************************************************************/
 }
 
-int dbd_errno(dbi_driver_t *myself) {
-	if(myself){
-		myself->error_number = mysql_error((MYSQL*)myself->connection);
-		return myself->error_number;
-	}else
-		return 0;
-}
 
-/**************************************
- * CUSTOM DATABASE-SPECIFIC FUNCTIONS *
- **************************************/
