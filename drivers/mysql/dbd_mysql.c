@@ -171,6 +171,10 @@ int dbd_disconnect( dbi_driver_t *driver )
  * Returns: list of db names
  */
 
+/*****************************************************************************\
+* TODO: Switch list dbs && list tables to return a result.                    *
+\*****************************************************************************/
+
 char **dbd_list_dbs( dbi_driver_t *driver )
 {
 	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
@@ -189,6 +193,25 @@ char **dbd_list_dbs( dbi_driver_t *driver )
 	while(myrow = mysql_fetch_row(res)){
 		
 	}
+	/*
+	return dbd_query(driver, "show databases");
+	*/
+}
+
+/*****************************************************************************/
+/* DBD_LIST_TABLES                                                           */
+/*****************************************************************************/
+/*
+ * Precondition:
+ * Postcondition:
+ * Returns:
+ */
+
+char **dbd_list_tables( dbi_driver-t *driver )
+{
+	/*
+	return dbd_query(driver, "show tables");
+	*/
 }
 
 /*****************************************************************************/
@@ -264,6 +287,24 @@ dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
 dbi_result_t *dbd_efficient_query( dbi_driver_t *driver, char *statement )
 {
 
+}
+
+/*****************************************************************************/
+/* DBD_GOTO_ROW                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL
+ * Postcondition: next fetched row will be the rowth row
+ * Returns:
+ */
+
+int dbi_goto_row(dbi_result_t *result, unsigned int row)
+{
+	MYSQL_RES *res = (MYSQL_RES *)result->result_handle;
+	
+	mysql_row_seek(res, (MYSQL_FIELD_OFFSET) row);
+
+	return 0;
 }
 
 /*****************************************************************************/
