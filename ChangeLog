@@ -1,7 +1,11 @@
-2004-01-13	David A. Parker  <david at neongoat dot com>
+2004-01-16	David A. Parker  <david at neongoat dot com>
 
-	* release 0.7.2
-	* (fill right before release and update date)
+	* release 0.7.2 (the "Shoshified" release)
+	* time_t values are now returned in GMT, not local time
+	* added encoding accessor
+	* added read-only string quoting function
+	* added range checking functions
+	* fixed various corner-case bugs
 
 2003-07-09	David A. Parker  <david at neongoat dot com>
 
