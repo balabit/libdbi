@@ -20,6 +20,8 @@
  * $Id$
  */
 
+#define _GNU_SOURCE /* since we need the asprintf() prototype */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -286,18 +288,18 @@ dbi_plugin dbi_driver_get_plugin(dbi_driver Driver) {
 	return driver->plugin;
 }
 
-int dbi_driver_error(dbi_driver Driver, char *errmsg_dest) {
+int dbi_driver_error(dbi_driver Driver, char **errmsg_dest) {
 	dbi_driver_t *driver = Driver;
 	char number_portion[20];
-	char errmsg[512];
+	char *errmsg;
 	if (driver->error_number) {
 		snprintf(number_portion, 20, "%d: ", driver->error_number);
 	}
 	else {
 		number_portion[0] = '\0';
 	}
-	snprintf(errmsg, 512, "%s%s", number_portion, driver->error_message);
-	errmsg_dest = errmsg;
+	asprintf(&errmsg, "%s%s", number_portion, driver->error_message);
+	*errmsg_dest = errmsg;
 	return driver->error_number;
 }
 
@@ -453,9 +455,9 @@ int dbi_driver_connect(dbi_driver Driver) {
 	int retval;
 	if (!driver) return -1;
 	retval = driver->plugin->functions->connect(driver);
-	if (retval == -1) {
-		_error_handler(driver);
-	}
+	//if (retval == -1) {			XXX cant call error handler when connection is already failed and terminated
+	//	_error_handler(driver);
+	//}
 	return retval;
 }
 
@@ -480,8 +482,6 @@ dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db) {
 	}
 	return (dbi_result)result;
 }
-
-int vasprintf(char **, const char *, va_list); /* to shut up gcc */
 
 dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) {
 	dbi_driver_t *driver = Driver;

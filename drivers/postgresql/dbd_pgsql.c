@@ -24,6 +24,8 @@
  * $Id$
  */
 
+#define _GNU_SOURCE /* we need asprintf */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,9 +52,6 @@ static const char *reserved_words[] = PGSQL_RESERVED_WORDS;
 void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
-
-/* to shut gcc up... */
-int asprintf(char **, const char *, ...);
 
 void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the plugin module is loaded into memory */
@@ -84,13 +83,19 @@ int dbd_connect(dbi_driver_t *driver) {
 	PGconn *conn;
 	char *port_str;
 	char *conninfo;
+	char *conninfo_kludge;
 
-	if (port) asprintf(&port_str, "%d", port);
+	if (port > 0) asprintf(&port_str, "%d", port);
 	else port_str = NULL;
 
-	asprintf(&conninfo, "host='%s' port='%s' dbname='%s' user='%s' password='%s' options='%s' tty='%s'",
-		host ? host : "", /* if we pass a NULL directly to the %s it will show up as "(null)" */
-		port_str ? port_str : "",
+	/* YUCK YUCK YUCK YUCK YUCK. stupid libpq. */
+	if (host && port_str) asprintf(&conninfo_kludge, "host='%s' port='%s'", host, port_str);
+	else if (host) asprintf(&conninfo_kludge, "host='%s'", host);
+	else if (port_str) asprintf(&conninfo_kludge, "port='%s'", port_str);
+	else conninfo_kludge = NULL;
+	
+	asprintf(&conninfo, "%s dbname='%s' user='%s' password='%s' options='%s' tty='%s'",
+		conninfo_kludge ? conninfo_kludge : "", /* if we pass a NULL directly to the %s it will show up as "(null)" */
 		dbname ? dbname : "",
 		username ? username : "",
 		password ? password : "",
@@ -101,6 +106,7 @@ int dbd_connect(dbi_driver_t *driver) {
 	if (!conn) return -1;
 
 	if (PQstatus(conn) == CONNECTION_BAD) {
+		_error_handler(driver);
 		PQfinish(conn);
 		return -1;
 	}
@@ -125,6 +131,7 @@ int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 		/* this is the first time we've been here */
 		_dbd_result_set_numfields(result, PQnfields((PGresult *)result->result_handle));
 		_get_field_info(result);
+		result->result_state = GETTING_ROWS;
 	}
 
 	/* get row here */
@@ -195,46 +202,54 @@ void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned
 	unsigned int _type = 0;
 	unsigned int _attribs = 0;
 	
-	/* this could use some work... but postgresql's datatypes are so borked up!*@&?!! */
-	
 	switch (oid) {
+		case PG_TYPE_CHAR:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE1;
+			break;
 		case PG_TYPE_INT2:
-			type = DBI_TYPE_INTEGER;
-			attribs |= DBI_INTEGER_SIZE2;
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE2;
 			break;
 		case PG_TYPE_INT4:
-			type = DBI_TYPE_INTEGER;
-			attribs |= DBI_INTEGER_SIZE4;
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE4;
+			break;
+		case PG_TYPE_INT8:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE8;
+			break;
+		case PG_TYPE_OID:
+			_type = DBI_TYPE_INTEGER;
+			_attribs |= DBI_INTEGER_SIZE8;
+			_attribs |= DBI_INTEGER_UNSIGNED;
 			break;
 			
 		case PG_TYPE_FLOAT4:
-			type = DBI_TYPE_DECIMAL;
-			attribs |= DBI_DECIMAL_SIZE4;
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE4;
 			break;
-		case PG_TYPE_MONEY:
 		case PG_TYPE_FLOAT8:
-			type = DBI_TYPE_DECIMAL;
-			attribs |= DBI_DECIMAL_SIZE8;
+			_type = DBI_TYPE_DECIMAL;
+			_attribs |= DBI_DECIMAL_SIZE8;
 			break;
 
-		case PG_TYPE_CHAR:
 		case PG_TYPE_NAME:
-		case PG_TYPE_CHAR16:
 		case PG_TYPE_TEXT:
 		case PG_TYPE_CHAR2:
 		case PG_TYPE_CHAR4:
 		case PG_TYPE_CHAR8:
 		case PG_TYPE_BPCHAR:
 		case PG_TYPE_VARCHAR:
-			type = DBI_TYPE_STRING;
+			_type = DBI_TYPE_STRING;
 			break;
 
 		case PG_TYPE_BYTEA:
-			type = DBI_TYPE_BINARY;
+			_type = DBI_TYPE_BINARY;
 			break;
 			
 		default:
-			type = DBI_TYPE_STRING;
+			_type = DBI_TYPE_STRING;
 			break;
 	}
 	
@@ -252,7 +267,7 @@ void _get_field_info(dbi_result_t *result) {
 	while (idx < result->numfields) {
 		pgOID = PQftype((PGresult *)result->result_handle, idx);
 		fieldname = PQfname((PGresult *)result->result_handle, idx);
-		_translate_postrgresql_type(pgOID, &fieldtype, &fieldattribs);
+		_translate_postgresql_type(pgOID, &fieldtype, &fieldattribs);
 		_dbd_result_add_field(result, idx, fieldname, fieldtype, fieldattribs);
 		idx++;
 	}
@@ -272,14 +287,14 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 			case DBI_TYPE_INTEGER:
 				switch (result->field_attribs[curfield]) {
 					case DBI_INTEGER_SIZE1:
-						data.d_char = (char) atol(raw); break;
+						data->d_char = (char) atol(raw); break;
 					case DBI_INTEGER_SIZE2:
-						data.d_short = (short) atol(raw); break;
+						data->d_short = (short) atol(raw); break;
 					case DBI_INTEGER_SIZE3:
 					case DBI_INTEGER_SIZE4:
-						data.d_long = (long) atol(raw); break;
+						data->d_long = (long) atol(raw); break;
 					case DBI_INTEGER_SIZE8:
-						data.d_longlong = (long long) atoll(raw); break; /* hah, wonder if that'll work */
+						data->d_longlong = (long long) atoll(raw); break; /* hah, wonder if that'll work */
 					default:
 						break;
 				}
@@ -287,20 +302,20 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 			case DBI_TYPE_DECIMAL:
 				switch (result->field_attribs[curfield]) {
 					case DBI_DECIMAL_SIZE4:
-						data.d_float = (float) strtod(raw, NULL); break;
+						data->d_float = (float) strtod(raw, NULL); break;
 					case DBI_DECIMAL_SIZE8:
-						data.d_double = (double) strtod(raw, NULL); break;
+						data->d_double = (double) strtod(raw, NULL); break;
 					default:
 						break;
 				}
 				break;
 			case DBI_TYPE_STRING:
-				data.d_string = strdup(raw);
+				data->d_string = strdup(raw);
 				if (row->field_sizes) row->field_sizes[curfield] = strsize;
 				break;
 			case DBI_TYPE_BINARY:
 				if (row->field_sizes) row->field_sizes[curfield] = strsize;
-				memcpy(data.d_string, raw, strsize);
+				memcpy(data->d_string, raw, strsize);
 				break;
 				
 			case DBI_TYPE_ENUM:

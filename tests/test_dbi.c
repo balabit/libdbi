@@ -6,6 +6,11 @@ int main() {
 	dbi_driver driver;
 	dbi_result result;
 
+	int sqlID;
+	char *sqlNAME;
+	double sqlBALANCE;
+
+	char *errmsg;
 	int curplugidx = 0;
 	int numplugins = dbi_initialize(NULL);
 	
@@ -46,16 +51,38 @@ int main() {
 		}
 		printf("OK.\n");
 		
-		/*dbi_driver_set_option(driver, "host", "localhost");
-		dbi_driver_set_option(driver, "username", "chug");
-		dbi_driver_set_option(driver, "password", "dIP!");
-		dbi_driver_set_option(driver, "database", "my_database");
-		dbi_driver_set_option_numeric(driver, "efficient-queries", 0);
+		//dbi_driver_set_option(driver, "host", "localhost");
+		//dbi_driver_set_option_numeric(driver, "port", 12345);
+		dbi_driver_set_option(driver, "username", "test");
+		dbi_driver_set_option(driver, "password", "");
+		dbi_driver_set_option(driver, "dbname", "template1");
+		//dbi_driver_set_option_numeric(driver, "efficient-queries", 0);
 
 		printf("Options set, about to connect...\n");
 
-		dbi_driver_connect(driver);
-		printf("Connected, about to query...\n"); */
+		if (dbi_driver_connect(driver) == -1) {
+			dbi_driver_error(driver, &errmsg);
+			printf("FAILED! Error message: %s\n", errmsg);
+			free(errmsg);
+		}
+		printf("Connected, about to query... ");
+
+		result = dbi_driver_query(driver, "SELECT * FROM foo");
+		if (result) {
+			printf("OK\n");
+			dbi_result_bind_fields(result, "id.%l name.%s balance.%d", &sqlID, &sqlNAME, &sqlBALANCE);
+			printf("\nID\tNAME\t\tBALANCE\n");
+			while (dbi_result_next_row(result)) {
+				printf("%d.\t%s\t%0.2f\n", sqlID, sqlNAME, sqlBALANCE);
+			}
+			printf("Done fetching rows.\n");
+			dbi_result_free(result);
+		}
+		else {
+			dbi_driver_error(driver, &errmsg);
+			printf("FAILED! Error message: %s", errmsg);
+			free(errmsg);
+		}
 		
 		dbi_driver_close(driver);
 		curplugidx++;

@@ -66,20 +66,11 @@ static void _bind_helper_enum(_field_binding_t *binding);
 /* XXX ROW SEEKING AND FETCHING XXX */
 
 int dbi_result_seek_row(dbi_result Result, unsigned int row) {
-	/* row is one-based, not zero */
 	dbi_result_t *result = Result;
-	dbi_row_t *rowarray;
 	int retval;
-	
-	if (!result || (result->numrows_matched == 0) || (row > result->numrows_matched)) return 0;
 
-	if (result->numfields == 0) {
-		/* this is the first row we're getting, allocate stuff */
-		rowarray = calloc(result->numrows_matched, sizeof(dbi_row_t *));
-		if (!rowarray) return 0;
-		result->rows = (dbi_row_t **)rowarray;
-	}
-	
+	if (!result || (result->result_state == NOTHING_RETURNED) || (row > result->numrows_matched)) return 0;
+
 	if (_is_row_fetched(result, row) == 1) {
 		/* jump right to it */
 		result->currowidx = row;
@@ -87,11 +78,12 @@ int dbi_result_seek_row(dbi_result Result, unsigned int row) {
 		return 1;
 	}
 	
-	retval = result->driver->plugin->functions->goto_row(result, row);
+	/* row is one-based for the user, but zero-based to the dbd driver */
+	retval = result->driver->plugin->functions->goto_row(result, row-1);
 	if (retval == -1) {
 		_error_handler(result->driver);
 	}
-	retval = result->driver->plugin->functions->fetch_row(result, row);
+	retval = result->driver->plugin->functions->fetch_row(result, row-1);
 	if (retval == 0) {
 		_error_handler(result->driver);
 		return 0;
@@ -164,13 +156,11 @@ int dbi_result_free(dbi_result Result) {
 	while (result->field_bindings) {
 		_remove_binding_node(result, result->field_bindings);
 	}
-	while (result->field_names[idx]) {
-		free(result->field_names[idx]);
-		idx++;
-	}
-	free(result->field_names); /* XXX ???????? */
-	free(result->field_types); /* XXX ???????? */
-	free(result->field_attribs); /* XXX ?????? */
+	
+	_free_string_list(result->field_names, result->numfields);
+	/* free(result->field_types); XXX ???????? */
+	free(result->field_attribs);
+
 	if (result->rows) {
 		for (idx = 0; idx <= result->numrows_matched; idx++) {
 			_free_row(result->rows[idx]);
