@@ -61,12 +61,12 @@ int main ()
 
 	/* Each Row */
 	while(dbi_fetch_row(result)) {
-		if( dbi_fetch_field(result, "number", (void**) &p_precision) == -1 ){
+		if( dbi_fetch_field(result, "string", (void**) &p_string) == -1 ){
 			fprintf(stderr, "Field fetching failed.\n");
 			break;
 		}
 
-		fprintf(stderr, "Field 'number' Value [%d]\n",precision);
+		fprintf(stderr, "Field 'number' Value [%s]\n", string);
 
 		precision = -1;
 	}

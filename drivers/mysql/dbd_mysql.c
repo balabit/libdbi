@@ -471,28 +471,6 @@ int dbd_fetch_row( dbi_result_t *result )
 	row->next = NULL;
 	row->numfields = mysql_num_fields(myres);
 
-	/*********************************************************************\
-	* TODO: Interpret MYSQL_FIELDs to find row->field_names,              *
-	*         row->field_types(very tedious), row->field_values           *
-	*         (just as tedious, if not more so :)                         *
-	\*********************************************************************/
-
-	/*********************************************************************\
-	* Psuedo Code For Rest Of Function:                                   *
-	* 	1) Allocate memory for field_names, field_types_*.            *
-	*	2) Loop for numfields number of times, grabbing MYSQL_FIELDs  *
-	*	   2.1) _strcpy_safe column names to field names              *
-	*          2.2) switch() statement to find corrent field_type and     *
-	*	            field_type_attributes.                            *
-	*          2.3) find correct field length                             *
-	*               2.3.1) copy string to seperate buffer                 *
-	*               2.3.2) allocate memory for field_value                *
-	*	        2.3.3) make correct string conversion, atof, atoi etc.*
-	*       3) Free all result's previous row's.                          *
-	*       4) Set result's rows, return 0.                               *
-	* NOTE: field_names and field_types_* should both be part of the      *
-	*         dbi_result_t, not the dbi_row_t.                            *
-	\*********************************************************************/
 	row->field_names = (char **) malloc(sizeof(char*) * (row->numfields + 1)); 
 	row->field_types = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
 	row->field_type_attributes = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
@@ -511,6 +489,9 @@ int dbd_fetch_row( dbi_result_t *result )
 		string[len[i]] = '\0';
 		memcpy((void*)string, *(myrow)[i], len[i]);
 
+		fprintf(stderr, "Debugging Statement (sorry): String Value [%s]\n",
+				string);
+
 		row->field_types[i] = _map_type(myfield->type);
 		row->field_type_attributes[i] = _map_type_attributes(myfield->type);
 
@@ -527,9 +508,13 @@ int dbd_fetch_row( dbi_result_t *result )
 				*((long*)row->field_values[i]) = (long) atol(string);
 			}
 		}else if(row->field_types[i] == DBI_TYPE_DECIMAL){
-			
-			row->field_values[i] = malloc(sizeof(double));
-			*((double*)row->field_values[i]) = (double) atof(string);
+			if(row->field_type_attributes[i] & DBI_DECIMAL_SIZE4){	
+				row->field_values[i] = malloc(sizeof(float));
+				*((float*)row->field_values[i]) = atof(string);
+			}else{
+				row->field_values[i] = malloc(sizeof(double));
+				*((double*)row->field_values[i]) = atof(string);
+			}
 			
 		} else if(row->field_types[i] == DBI_TYPE_STRING){
 			
