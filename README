@@ -13,7 +13,9 @@ leverage the power of multiple databases and multiple simultaneous database
 connections by using this framework.
 
 The plugin architecture allows for new database drivers to be easily added by a
-third party with flexbile licensing.
+third party with flexbile licensing. See the libdbi-drivers project
+(http://libdbi-drivers.sourceforge.net) for the drivers officially
+supported by libdbi.
 
 
 WARNING:
@@ -38,13 +40,11 @@ INSTALLATION:
 -------------
 
 Perform the regular ./configure, make, make install. See INSTALL for the
-generic details of each step. Some of the libdbi-specific options to configure
-that may interest you are: --with-mysql, --with-pgsql. These will enable
-compilation of specific database drivers, of which you will need at least one
-to make libdbi do anything useful. See ./configure --help for more libdbi
+generic details of each step. See ./configure --help for more libdbi
 configuration options.
 
 If you are building the Win32 port, see README.win32.
+If you are building the OSX port, see README.osx.
 
 
 FEATURES:
@@ -98,12 +98,13 @@ SUPPORTED PLATFORMS:
 libdbi has been written with cross-platform availability in mind. To date, it
 has been successfully tested with:
 
-Linux: Debian, RedHat, Slackware
-Windows: 98, NT4, 2000 -- see README.win32
-FreeBSD: 4.3, 4.4
+Linux: Debian, RedHat, Slackware, Gentoo
+Windows: 98, NT4, 2000, XP
+FreeBSD: 4.3 through 4.7
 SunOS: 2.8
 Solaris: 7
 AIX: 4.2, 4.3 and 5.1
+OSX: 10.2
 
 If you are using libdbi on a platform not listed here, please notify the
 mailing list! (see below)
