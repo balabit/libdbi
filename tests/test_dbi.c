@@ -78,7 +78,9 @@ int main(int argc, char **argv) {
 			dbi_shutdown();
 			return 1;
 		}
-		printf("Connected, about to query... ");
+		fprintf(stderr,"Connected to socket: %d, about to query... ",
+				dbi_driver_get_socket(driver));
+		while(1){}
 
 		result = dbi_driver_query(driver, "SELECT * FROM sample");
 		if (result) {

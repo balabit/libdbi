@@ -344,12 +344,12 @@ static void _free_result_rows(dbi_result_t *result) {
 
 	for (row_idx = 0; row_idx <= result->numrows_matched; row_idx++) {
 		if (result->rows[row_idx]) {
-			for(idx = 0; idx < result->numfields ; idx++) {
-				if (((result->field_types[idx] == DBI_TYPE_STRING) ||
-						 (result->field_types[idx] == DBI_TYPE_ENUM) ||
-						 (result->field_types[idx] == DBI_TYPE_SET)) &&
-						(result->rows[row_idx]->field_values[idx].d_string)){
-					free(result->rows[row_idx]->field_values[idx].d_string);
+			for(row_idx = 0; row_idx < result->numfields ; row_idx++) {
+				if (((result->field_types[row_idx] == DBI_TYPE_STRING) ||
+						 (result->field_types[row_idx] == DBI_TYPE_ENUM) ||
+						 (result->field_types[row_idx] == DBI_TYPE_SET)) &&
+						(result->rows[row_idx]->field_values[row_idx].d_string)){
+					free(result->rows[row_idx]->field_values[row_idx].d_string);
 				}
 			}	
 			free(result->rows[row_idx]->field_values);

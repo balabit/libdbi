@@ -142,6 +142,14 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1;
 }
 
+int dbd_get_socket(dbi_driver_t *driver){
+	MYSQL *mycon = (MYSQL*)driver->connection;
+
+	if(!mycon) return -1;
+
+	return (int)mycon->net.fd;
+}
+
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern) {
 	dbi_result_t *res;
 	char *sql_cmd;

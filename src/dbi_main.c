@@ -514,6 +514,17 @@ int dbi_driver_connect(dbi_driver Driver) {
 	return retval;
 }
 
+int dbi_driver_get_socket(dbi_driver Driver){
+	dbi_driver_t *driver = Driver;
+	int retval;
+
+	if(!driver) return -1;
+
+	retval = driver->plugin->functions->get_socket(driver);
+
+	return retval;
+}
+
 dbi_result dbi_driver_get_db_list(dbi_driver Driver, const char *pattern) {
 	dbi_driver_t *driver = Driver;
 	dbi_result_t *result;
@@ -625,6 +636,7 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
 			((plugin->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
 			((plugin->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
+			((plugin->functions->get_socket = dlsym(dlhandle, "dbd_get_socket")) == NULL) || dlerror() ||
 			((plugin->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
 			((plugin->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
 			((plugin->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
@@ -763,6 +775,9 @@ void _error_handler(dbi_driver_t *driver) {
 	
 	errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
 
+	if(errstatus == -1){
+		return;
+	}
 	if (errno) {
 		driver->error_number = errno;
 	}

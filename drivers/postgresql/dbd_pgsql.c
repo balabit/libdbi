@@ -157,6 +157,15 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1;
 }
 
+int dbd_get_socket(dbi_driver_t *driver)
+{
+	PGconn *conn = (PGconn*) driver->connection;
+
+	if(!conn) return -1;
+
+	return PQsocket(conn);
+}
+
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern) {
 	dbi_result_t *res;
 	char *sql_cmd;
