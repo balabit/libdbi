@@ -35,6 +35,10 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
+#ifndef HAVE_TIMEGM
+time_t timegm(struct tm *tm);
+#endif
+
 static _capability_t *_find_or_create_driver_cap(dbi_driver_t *driver, const char *capname);
 static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *capname);
 
