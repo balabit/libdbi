@@ -502,16 +502,6 @@ dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) {
 	}
 	free(statement);
 	
-	/* at this point we have a dbi_result_t newly allocated by the plugin */
-	result->driver = driver;
-	result->field_bindings = NULL;
-	result->numfields = 0;
-	result->field_names = NULL;
-	result->field_types = NULL;
-	result->field_attribs = NULL;
-	result->rows = NULL;
-	result->currowidx = 0;
-	
 	return (dbi_result)result;
 }
 

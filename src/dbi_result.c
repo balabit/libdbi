@@ -92,9 +92,9 @@ int dbi_result_seek_row(dbi_result Result, unsigned int row) {
 		_error_handler(result->driver);
 	}
 	retval = result->driver->plugin->functions->fetch_row(result, row);
-	if (retval == -1) {
-		retval = 0;
+	if (retval == 0) {
 		_error_handler(result->driver);
+		return 0;
 	}
 
 	result->currowidx = row;

@@ -6,11 +6,56 @@
  * dbd_pgsql.c: PostgreSQL database support (using libpq)
  * Copyright (C) 2001, David Parker <david@neongoat.com>.
  * http://libdbi.sourceforge.net
- *
- * http://www.postgresql.org/idocs/index.php?sql-keywords-appendix.html
- *
+ * 
  * $Id$
  */
+
+/* OID declarations from src/interfaces/odbc/pgtypes.h */
+
+#define PG_TYPE_BOOL			16
+#define PG_TYPE_BYTEA			17
+#define PG_TYPE_CHAR			18
+#define PG_TYPE_NAME			19
+#define PG_TYPE_INT8			20
+#define PG_TYPE_INT2			21
+#define PG_TYPE_INT2VECTOR		22
+#define PG_TYPE_INT4			23
+#define PG_TYPE_REGPROC			24
+#define PG_TYPE_TEXT			25
+#define PG_TYPE_OID				26
+#define PG_TYPE_TID				27
+#define PG_TYPE_XID				28
+#define PG_TYPE_CID				29
+#define PG_TYPE_OIDVECTOR		30
+#define PG_TYPE_SET				32
+#define PG_TYPE_CHAR2			409
+#define PG_TYPE_CHAR4			410
+#define PG_TYPE_CHAR8			411
+#define PG_TYPE_POINT			600
+#define PG_TYPE_LSEG			601
+#define PG_TYPE_PATH			602
+#define PG_TYPE_BOX				603
+#define PG_TYPE_POLYGON			604
+#define PG_TYPE_FILENAME		605
+#define PG_TYPE_FLOAT4			700
+#define PG_TYPE_FLOAT8			701
+#define PG_TYPE_ABSTIME			702
+#define PG_TYPE_RELTIME			703
+#define PG_TYPE_TINTERVAL		704
+#define PG_TYPE_UNKNOWN			705
+#define PG_TYPE_MONEY			790
+#define PG_TYPE_OIDINT2			810
+#define PG_TYPE_OIDINT4			910
+#define PG_TYPE_OIDNAME			911
+#define PG_TYPE_BPCHAR			1042
+#define PG_TYPE_VARCHAR			1043
+#define PG_TYPE_DATE			1082
+#define PG_TYPE_TIME			1083
+#define PG_TYPE_DATETIME		1184
+#define PG_TYPE_TIMESTAMP		1296
+#define PG_TYPE_NUMERIC			1700
+
+/* list from http://www.postgresql.org/idocs/index.php?sql-keywords-appendix.html */
 
 #define PGSQL_RESERVED_WORDS { \
 	"ABORT", \

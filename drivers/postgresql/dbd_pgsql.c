@@ -30,9 +30,10 @@
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
+#include <dbi/dbd.h>
 
-#include <postgresql/libpq-fe.h>
-#include "pgsql-reserved.h"
+#include <libpq-fe.h>
+#include "pgsql-stuff.h"
 
 static const dbi_info_t plugin_info = {
 	"pgsql",
@@ -46,24 +47,12 @@ static const dbi_info_t plugin_info = {
 static const char *custom_functions[] = {NULL}; // TODO
 static const char *reserved_words[] = PGSQL_RESERVED_WORDS;
 
-/* function delarations */
-void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words);
-int dbd_initialize(dbi_plugin_t *plugin);
-int dbd_connect(dbi_driver_t *driver);
-int dbd_disconnect(dbi_driver_t *driver);
-int dbd_fetch_row(dbi_result_t *result, unsigned int rownum);
-int dbd_free_query(dbi_result_t *result);
-int dbd_goto_row(dbi_driver_t *driver, unsigned int row);
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver);
-dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db);
-dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement);
-char *dbd_select_db(dbi_driver_t *driver, const char *db);
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr);
-int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr);
+void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs);
+void _get_field_info(dbi_result_t *result);
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
 
 /* to shut gcc up... */
 int asprintf(char **, const char *, ...);
-
 
 void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the plugin module is loaded into memory */
@@ -128,8 +117,22 @@ int dbd_disconnect(dbi_driver_t *driver) {
 }
 
 int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
-	/* XXX XXX XXX XXX XXX XXX XXX XXX */
-	return -1; /* return -1 on error, 0 on no more rows, 1 on successful fetchrow */
+	dbi_row_t *row = NULL;
+
+	if (result->result_state == NOTHING_RETURNED) return -1;
+	
+	if (result->result_state == ROWS_RETURNED) {
+		/* this is the first time we've been here */
+		_dbd_result_set_numfields(result, PQnfields((PGresult *)result->result_handle));
+		_get_field_info(result);
+	}
+
+	/* get row here */
+	row = _dbd_row_allocate(result->numfields, result->has_string_fields);
+	_get_row_data(result, row, rownum);
+	_dbd_row_finalize(result, row, rownum);
+	
+	return 1; /* 0 on error, 1 on successful fetchrow */
 }
 
 int dbd_free_query(dbi_result_t *result) {
@@ -144,11 +147,11 @@ int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
 }
 
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	return (dbi_result_t *)dbd_query(driver, "SELECT datname AS dbname FROM pg_database");
+	return dbd_query(driver, "SELECT datname AS dbname FROM pg_database");
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
-	return dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
+	return (dbi_result_t *)dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);
 }
 
 dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
@@ -161,23 +164,15 @@ dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement) {
 	PGresult *res;
 	int resstatus;
 	
-	result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
-	if (!result) {
-		return NULL;
-	}
-
 	res = PQexec((PGconn *)driver->connection, statement);
 	if (res) resstatus = PQresultStatus(res);
 	if (!res || ((resstatus != PGRES_COMMAND_OK) && (resstatus != PGRES_TUPLES_OK))) {
 		PQclear(res);
-		free(result);
 		return NULL;
 	}
-	
-	result->result_handle = (void *)res;
-	result->numrows_matched = PQntuples(res);
-	result->numrows_affected = atoi(PQcmdTuples(res));
-	
+
+	result = _dbd_result_create(driver, (void *)res, PQntuples(res), atol(PQcmdTuples(res)));
+
 	return result;
 }
 
@@ -192,5 +187,128 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	*errno = 0;
 	*errstr = strdup(PQerrorMessage((PGconn *)driver->connection));
 	return 2;
+}
+
+/* CORE POSTGRESQL DATA FETCHING STUFF */
+
+void _translate_postgresql_type(unsigned int oid, unsigned short *type, unsigned int *attribs) {
+	unsigned int _type = 0;
+	unsigned int _attribs = 0;
+	
+	/* this could use some work... but postgresql's datatypes are so borked up!*@&?!! */
+	
+	switch (oid) {
+		case PG_TYPE_INT2:
+			type = DBI_TYPE_INTEGER;
+			attribs |= DBI_INTEGER_SIZE2;
+			break;
+		case PG_TYPE_INT4:
+			type = DBI_TYPE_INTEGER;
+			attribs |= DBI_INTEGER_SIZE4;
+			break;
+			
+		case PG_TYPE_FLOAT4:
+			type = DBI_TYPE_DECIMAL;
+			attribs |= DBI_DECIMAL_SIZE4;
+			break;
+		case PG_TYPE_MONEY:
+		case PG_TYPE_FLOAT8:
+			type = DBI_TYPE_DECIMAL;
+			attribs |= DBI_DECIMAL_SIZE8;
+			break;
+
+		case PG_TYPE_CHAR:
+		case PG_TYPE_NAME:
+		case PG_TYPE_CHAR16:
+		case PG_TYPE_TEXT:
+		case PG_TYPE_CHAR2:
+		case PG_TYPE_CHAR4:
+		case PG_TYPE_CHAR8:
+		case PG_TYPE_BPCHAR:
+		case PG_TYPE_VARCHAR:
+			type = DBI_TYPE_STRING;
+			break;
+
+		case PG_TYPE_BYTEA:
+			type = DBI_TYPE_BINARY;
+			break;
+			
+		default:
+			type = DBI_TYPE_STRING;
+			break;
+	}
+	
+	*type = _type;
+	*attribs = _attribs;
+}
+
+void _get_field_info(dbi_result_t *result) {
+	unsigned int idx = 0;
+	unsigned int pgOID = 0;
+	char *fieldname;
+	unsigned short fieldtype;
+	unsigned int fieldattribs;
+	
+	while (idx < result->numfields) {
+		pgOID = PQftype((PGresult *)result->result_handle, idx);
+		fieldname = PQfname((PGresult *)result->result_handle, idx);
+		_translate_postrgresql_type(pgOID, &fieldtype, &fieldattribs);
+		_dbd_result_add_field(result, idx, fieldname, fieldtype, fieldattribs);
+		idx++;
+	}
+}
+
+void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
+	int curfield = 0;
+	char *raw = NULL;
+	int strsize = 0;
+	dbi_data_t *data;
+
+	while (curfield < result->numrows_matched) {
+		raw = PQgetvalue((PGresult *)result->result_handle, rowidx, curfield);
+		strsize = PQfmod((PGresult *)result->result_handle, curfield);
+		data = &row->field_values[curfield];
+		switch (result->field_types[curfield]) {
+			case DBI_TYPE_INTEGER:
+				switch (result->field_attribs[curfield]) {
+					case DBI_INTEGER_SIZE1:
+						data.d_char = (char) atol(raw); break;
+					case DBI_INTEGER_SIZE2:
+						data.d_short = (short) atol(raw); break;
+					case DBI_INTEGER_SIZE3:
+					case DBI_INTEGER_SIZE4:
+						data.d_long = (long) atol(raw); break;
+					case DBI_INTEGER_SIZE8:
+						data.d_longlong = (long long) atoll(raw); break; /* hah, wonder if that'll work */
+					default:
+						break;
+				}
+				break;
+			case DBI_TYPE_DECIMAL:
+				switch (result->field_attribs[curfield]) {
+					case DBI_DECIMAL_SIZE4:
+						data.d_float = (float) strtod(raw, NULL); break;
+					case DBI_DECIMAL_SIZE8:
+						data.d_double = (double) strtod(raw, NULL); break;
+					default:
+						break;
+				}
+				break;
+			case DBI_TYPE_STRING:
+				data.d_string = strdup(raw);
+				if (row->field_sizes) row->field_sizes[curfield] = strsize;
+				break;
+			case DBI_TYPE_BINARY:
+				if (row->field_sizes) row->field_sizes[curfield] = strsize;
+				memcpy(data.d_string, raw, strsize);
+				break;
+				
+			case DBI_TYPE_ENUM:
+			case DBI_TYPE_SET:
+			default:
+				break;
+		}
+		curfield++;
+	}
 }
 
