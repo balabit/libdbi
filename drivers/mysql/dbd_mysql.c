@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * dbd_template.c: Template plugin for libdbi.
- * Copyright (C) 2001, Herbert Z. Bartholemew <hbz@bombdiggity.net>.
- * http://www.bombdiggity.net/~hzb/dbd_template/
+ * Copyright (C) 2001, Mark M. Tobenkin <mark@brentwoodradio.com>
+ * http://libdbi.sourceforge.net/plugins/lookup.php?name=mysql
  * 
  * $Id$
  */
@@ -30,6 +30,8 @@
 
 #include <dbi/dbi.h>
 /* any database library includes */
+
+#define DBD_CUSTOM_FUNCTIONS NULL
 
 dbi_info_t dbd_template_info = {
 	/* short name, used for loading drivers by name */
@@ -83,6 +85,7 @@ int dbd_connect(dbi_driver_t *myself) {
 	} else {
 		strcpy(driver->error_message, mysql_error(con));
 		driver->error_number = mysql_errno(con);
+		mysql_close(con);
 		return -1;
 	}
 
@@ -101,9 +104,31 @@ int dbd_disconnect(dbi_driver_t *myself)
 
 
 
-int dbd_fetch_field(dbi_result_t *result, const char *key, void *dest) {
+int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
 	/* grab the value in the field, convert it to the
 	 * appropriate C datatype, and stuff it into dest */
+	dbi_row_t *row;
+	int i, f = -1;	
+
+	row = result->rows;
+
+	if(!row){
+		dest = NULL;
+		return -1;
+	}
+
+	for(i = 0; i < row->numfields; i++){
+		if(!strcmp(key, row->column_names[i]))
+			break;
+	}
+
+	if(i == row->numfields){
+		dest = NULL;
+		return 0;
+	}
+
+	<F7><F5><F6><F4><F3><F2><F3><F2>
+	
 	return 0;
 }
 
@@ -227,17 +252,19 @@ int dbd_select_db(dbi_driver_t *myself, const char *db) {
 }
 
 const char *dbd_errstr(dbi_driver_t *myself) {
-	if(myself && myself->connection)
-		return mysql_error((MYSQL*)myself->connection);
-	else
-		return NULL;
+	if(myself){
+		strcpy(myself->error_string, mysql_error((MYSQL*)myself->connection));
+		return myself->error_string;
+	}else
+		return 0;
 }
 
 int dbd_errno(dbi_driver_t *myself) {
-	if(myself && myself->connection)
-		return mysql_errno((MYSQL*)myself->connection);
-	else
-		return NULL;
+	if(myself){
+		myself->error_number = mysql_error((MYSQL*)myself->connection);
+		return myself->error_number;
+	}else
+		return 0;
 }
 
 /**************************************

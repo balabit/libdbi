@@ -72,7 +72,7 @@ int dbd_connect(dbi_driver_t *myself) {
 	return 0;
 }
 
-int dbd_fetch_field(dbi_result_t *result, const char *key, void *dest) {
+int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
 	/* grab the value in the field, convert it to the
 	 * appropriate C datatype, and stuff it into dest */
 	return 0;
