@@ -1,0 +1,10 @@
+Document: libdbi-programmers-guide
+Title: Libdbi Programmer's Guide
+Author: David Parker
+Abstract: Documentation for the DBI library. Written for software
+ developers using libdbi in their projects.
+Section: Apps/Programming
+
+Format: HTML
+Index: /usr/share/doc/libdbi0-dev/programmers-guide/index.html
+Files: /usr/share/doc/libdbi0-dev/programmers-guide/*.html

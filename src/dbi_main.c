@@ -1,4 +1,245 @@
-dbi_driver_open(dbi_plugin Plugin) {
+/*
+ * libdbi - database independent abstraction layer for C.
+ * Copyright (C) 2001, David Parker and Mark Tobenkin.
+ * http://libdbi.sourceforge.net
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * $Id$
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <dlfcn.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+
+#include <math.h>
+#include <limits.h>
+
+#include <dbi/dbi.h>
+#include "dbi_main.h"
+
+#define LIBDBI_VERSION "0.5"
+
+#ifndef DBI_PLUGIN_DIR
+#define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this as the default */
+#endif
+
+/* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
+static dbi_plugin_t *_get_plugin(const char *filename);
+static void _free_custom_functions(dbi_plugin_t *plugin);
+static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key);
+void _error_handler(dbi_driver_t *driver); /* make static again but still work from dbi_result.c */
+static int _update_internal_driver_list(dbi_driver_t *driver, int operation);
+
+dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
+
+static const char *ERROR = "ERROR";
+static dbi_plugin_t *rootplugin;
+static dbi_driver_t *rootdriver;
+
+/* XXX DBI CORE FUNCTIONS XXX */
+
+int dbi_initialize(const char *plugindir) {
+	DIR *dir;
+	struct dirent *plugin_dirent = NULL;
+	struct stat statbuf;
+	char fullpath[FILENAME_MAX];
+	char *effective_plugindir;
+	
+	int num_loaded = 0;
+	dbi_plugin_t *plugin = NULL;
+	dbi_plugin_t *prevplugin = NULL;
+	
+	rootplugin = NULL;
+	effective_plugindir = (plugindir ? (char *)plugindir : DBI_PLUGIN_DIR);
+	dir = opendir(effective_plugindir);
+
+	if (dir == NULL) {
+		return -1;
+	}
+	else {
+		while ((plugin_dirent = readdir(dir)) != NULL) {
+			plugin = NULL;
+			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_plugindir, plugin_dirent->d_name);
+			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), ".so"))) {
+				/* file is a stat'able regular file that ends in .so */
+				plugin = _get_plugin(fullpath);
+				if (plugin && (plugin->functions->initialize(plugin) != -1)) {
+					if (!rootplugin) {
+						rootplugin = plugin;
+					}
+					if (prevplugin) {
+						prevplugin->next = plugin;
+					}
+					prevplugin = plugin;
+					num_loaded++;
+				}
+				else {
+					if (plugin && plugin->dlhandle) dlclose(plugin->dlhandle);
+					if (plugin && plugin->functions) free(plugin->functions);
+					if (plugin) free(plugin);
+					plugin = NULL; /* don't include in linked list */
+				}
+			}
+		}
+		closedir(dir);
+	}
+	
+	return num_loaded;
+}
+
+void dbi_shutdown() {
+	dbi_driver_t *curdriver = rootdriver;
+	dbi_driver_t *nextdriver;
+	
+	dbi_plugin_t *curplugin = rootplugin;
+	dbi_plugin_t *nextplugin;
+	
+	while (curdriver) {
+		nextdriver = curdriver->next;
+		dbi_driver_close((dbi_driver)curdriver);
+		curdriver = nextdriver;
+	}
+	
+	while (curplugin) {
+		nextplugin = curplugin->next;
+		dlclose(curplugin->dlhandle);
+		free(curplugin->functions);
+		_free_custom_functions(curplugin);
+		free(curplugin->filename);
+		free(curplugin);
+		curplugin = nextplugin;
+	}
+
+	rootplugin = NULL;
+}
+
+const char *dbi_version() {
+	return "libdbi v" LIBDBI_VERSION;
+}
+
+/* XXX PLUGIN FUNCTIONS XXX */
+
+dbi_plugin dbi_plugin_list(dbi_plugin Current) {
+	dbi_plugin_t *current = Current;
+
+	if (current == NULL) {
+		return (dbi_plugin)rootplugin;
+	}
+
+	return (dbi_plugin)current->next;
+}
+
+dbi_plugin dbi_plugin_open(const char *name) {
+	dbi_plugin_t *plugin = rootplugin;
+
+	while (plugin && strcasecmp(name, plugin->info->name)) {
+		plugin = plugin->next;
+	}
+
+	return plugin;
+}
+
+int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word) {
+	unsigned int idx = 0;
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return 0;
+	while (plugin->reserved_words[idx]) {
+		if (strcasecmp(word, plugin->reserved_words[idx]) == 0) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name) {
+	dbi_plugin_t *plugin = Plugin;
+	dbi_custom_function_t *custom;
+
+	if (!plugin) return NULL;
+	custom = plugin->custom_functions;
+	
+	while (custom && strcasecmp(name, custom->name)) {
+		custom = custom->next;
+	}
+
+	return custom ? custom->function_pointer : NULL;
+}
+
+/* PLUGIN: informational functions */
+
+const char *dbi_plugin_get_name(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->name;
+}
+
+const char *dbi_plugin_get_filename(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->filename;
+}
+
+const char *dbi_plugin_get_description(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->description;
+}
+
+const char *dbi_plugin_get_maintainer(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->maintainer;
+}
+
+const char *dbi_plugin_get_url(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->url;
+}
+
+const char *dbi_plugin_get_version(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->version;
+}
+
+const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin) {
+	dbi_plugin_t *plugin = Plugin;
+	if (!plugin) return ERROR;
+	return plugin->info->date_compiled;
+}
+
+/* XXX DRIVER FUNCTIONS XXX */
+
+dbi_driver dbi_driver_new(const char *name) {
+	dbi_plugin plugin;
+	dbi_driver driver;
+
+	plugin = dbi_plugin_open(name);
+	driver = dbi_driver_open(plugin);
+
+	return driver;
+}
+
+dbi_driver dbi_driver_open(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
 	dbi_driver_t *driver;
 	
@@ -21,16 +262,6 @@ dbi_driver_open(dbi_plugin Plugin) {
 	_update_internal_driver_list(driver, 1);
 
 	return (dbi_driver)driver;
-}
-
-dbi_driver dbi_driver_new(const char *name) {
-	dbi_plugin plugin;
-	dbi_driver driver;
-
-	plugin = dbi_plugin_open(name);
-	driver = dbi_driver_open(plugin);
-
-	return driver;
 }
 
 void dbi_driver_close(dbi_driver Driver) {
