@@ -65,6 +65,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc AUTHORS
 %doc COPYING
 %doc README
+%doc PLUGINS
 /usr/lib/libdbi.so.*
 
 %files devel
