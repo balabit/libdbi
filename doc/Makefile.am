@@ -23,5 +23,6 @@ distclean: clean
 	rm -rf programmers-guide/
 	rm -f programmers-guide.ps programmers-guide.pdf
 
-install:
-	test -d $(docdir)/programmers-guide || mkdir $(docdir)/programmers-guide || exit 1
+# this can't be kosher...
+install-exec-am: $(top_srcdir)/mkinstalldirs
+	$(top_srcdir)/mkinstalldirs $(docdir) $(docdir)/programmers-guide
