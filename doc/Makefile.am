@@ -25,4 +25,4 @@ distclean: clean
 
 # this can't be kosher...
 install-exec-am: $(top_srcdir)/mkinstalldirs
-	$(top_srcdir)/mkinstalldirs $(docdir) $(docdir)/programmers-guide
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(docdir) $(DESTDIR)$(docdir)/programmers-guide
