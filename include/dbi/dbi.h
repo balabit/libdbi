@@ -29,6 +29,7 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 
 /* opaque type definitions */
 typedef void * dbi_driver;

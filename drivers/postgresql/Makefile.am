@@ -20,5 +20,6 @@ libdir = $(plugindir)
 lib_LTLIBRARIES = $(pgsql_ltlibs)
 libpgsql_la_LDFLAGS = $(pgsql_ldflags) @PGSQL_LFLAGS@ @PGSQL_LIBS@
 libpgsql_la_SOURCES = $(pgsql_sources)
+libpgsql_la_DEPENDENCIES = $(top_srcdir)/include/dbi/dbd.h $(top_srcdir)/include/dbi/dbi-dev.h $(top_srcdir)/include/dbi/dbi.h pgsql-stuff.h
 
 EXTRA_DIST = dbd_pgsql.c pgsql-stuff.h

@@ -1,6 +1,6 @@
 
 libdbi - Database Independent Abstraction Layer for C
-Copyright (C) 2001, David Parker and Mark Tobenkin.
+Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
@@ -61,6 +61,22 @@ FEATURES:
    single-use, #define-abusing, less featureful database interface.
 
 
+SUPPORTED PLATFORMS:
+--------------------
+
+libdbi has been written with cross-platform availability in mind. To date, it
+has been successfully tested with:
+
+Linux: Debian, RedHat, Slackware
+Windows: 98, NT4, 2000 -- see README.win32
+FreeBSD: 4.3, 4.4
+SunOS: 2.8
+AIX: 4.2, 4.3 and 5.1
+
+If you are using libdbi on a platform not listed here, please notify the
+mailing list! (see below)
+
+
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
 ----------------------------------------
 
@@ -80,11 +96,11 @@ See the file COPYING or http://www.gnu.org for more details.
 DOCUMENTATION:
 --------------
 
-See the libdbi Programmer's Guide in the doc/ directory, provided in PDF and
+See the Libdbi Programmer's Guide in the doc/ directory, provided in PDF and
 HTML formats. This API reference also includes example source code and a
 quickstart guide to using libdbi. 
 
-(Soon, we will have a libdbi Plugin Author's Guide as well.)
+(There is also the beginnings of a Libdbi Plugin Author's Guide as well.)
 
 
 MAILING LISTS:

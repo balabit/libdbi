@@ -2,12 +2,12 @@
 The following people have been involved in libdbi development:
 
 Main developers:
-* David Parker <david at neongoat.com>
+* David A. Parker <david at neongoat.com>
 * Mark Tobenkin <mark at brentwoodradio.com>
 
 Plugin developers:
 * MySQL - Mark Tobenkin <mark at brentwoodradio.com>
-* PostgreSQL - David Parker <david at neongoat.com>
+* PostgreSQL - David A. Parker <david at neongoat.com>
 
 These people have also contributed to the project:
 
@@ -15,7 +15,10 @@ These people have also contributed to the project:
   - bugfixes
   
 * Markus Hoenicka <hoenicka_markus at compuserve.com>
-  - win32 port, atoll() portability, list_* tweaks
+  - win32 port, atoll() portability, list_* tweaks, assorted bugfixes
+
+* sad@spider.ru
+  - atoll.c bugfix
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.

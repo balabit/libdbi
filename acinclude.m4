@@ -48,9 +48,9 @@ AC_ARG_WITH(mysql-libdir,
 
 if test "$ac_mysql" = "YES"; then
 	if test "$ac_mysql_incdir" = "NO" || test "$ac_mysql_libs" = "NO"; then
-		mysql_incdirs="/usr/include /usr/local/include /usr/include/mysql /usr/local/include/mysql /usr/local/mysql/include /usr/local/mysql/include/mysql"
+		mysql_incdirs="/usr/include /usr/local/include /usr/include/mysql /usr/local/include/mysql /usr/local/mysql/include /usr/local/mysql/include/mysql /opt/mysql/include/mysql"
 		AC_FIND_FILE(mysql.h, $mysql_incdirs, ac_mysql_incdir)
-		mysql_libdirs="/usr/lib /usr/local/lib /usr/lib/mysql /usr/local/lib/mysql /usr/local/mysql/lib /usr/local/mysql/lib/mysql"
+		mysql_libdirs="/usr/lib /usr/local/lib /usr/lib/mysql /usr/local/lib/mysql /usr/local/mysql/lib /usr/local/mysql/lib/mysql /opt/mysql/lib/mysql"
 		mysql_libs="libmysqlclient.so libmysqlclient.a"
 		AC_FIND_FILE($mysql_libs, $mysql_libdirs, ac_mysql_libdir)
 		if test "$ac_mysql_incdir" = "NO"; then
@@ -108,9 +108,9 @@ AC_ARG_WITH(pgsql-libdir,
 
 if test "$ac_pgsql" = "YES"; then
 	if test "$ac_pgsql_incdir" = "NO" || test "$ac_pgsql_libs" = "NO"; then
-		pgsql_incdirs="/usr/include /usr/local/include /usr/include/pgsql /usr/local/include/pgsql /usr/local/pgsql/include /usr/include/postgresql /usr/local/postgresql/include"
+		pgsql_incdirs="/usr/include /usr/local/include /usr/include/pgsql /usr/local/include/pgsql /usr/local/pgsql/include /usr/include/postgresql /usr/local/postgresql/include /opt/pgsql/include"
 		AC_FIND_FILE(libpq-fe.h, $pgsql_incdirs, ac_pgsql_incdir)
-		pgsql_libdirs="/usr/lib /usr/local/lib /usr/lib/pgsql /usr/local/lib/pgsql /usr/local/pgsql/lib"
+		pgsql_libdirs="/usr/lib /usr/local/lib /usr/lib/pgsql /usr/local/lib/pgsql /usr/local/pgsql/lib /opt/pgsql/lib"
 		pgsql_libs="libpq.so libpq.a"
 		AC_FIND_FILE($pgsql_libs, $pgsql_libdirs, ac_pgsql_libdir)
 		if test "$ac_pgsql_incdir" = "NO"; then

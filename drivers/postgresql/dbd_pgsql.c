@@ -1,6 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, David Parker and Mark Tobenkin.
+ * Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@ int dbd_connect(dbi_conn_t *conn) {
 	const char *options = dbi_conn_get_option(conn, "pgsql_options");
 	const char *tty = dbi_conn_get_option(conn, "pgsql_tty");
 
-	PGconn *conn;
+	PGconn *pgconn;
 	char *port_str;
 	char *conninfo;
 	char *conninfo_kludge;
@@ -106,16 +106,16 @@ int dbd_connect(dbi_conn_t *conn) {
 		options ? options : "",
 		tty ? tty : "");
 
-	conn = PQconnectdb(conninfo);
-	if (!conn) return -1;
+	pgconn = PQconnectdb(conninfo);
+	if (!pgconn) return -1;
 
-	if (PQstatus(conn) == CONNECTION_BAD) {
+	if (PQstatus(pgconn) == CONNECTION_BAD) {
 		_error_handler(conn);
-		PQfinish(conn);
+		PQfinish(pgconn);
 		return -1;
 	}
 	else {
-		conn->connection = (void *)conn;
+		conn->connection = (void *)pgconn;
 	}
 	
 	return 0;
@@ -159,11 +159,11 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 
 int dbd_get_socket(dbi_conn_t *conn)
 {
-	PGconn *conn = (PGconn*) conn->connection;
+	PGconn *pgconn = (PGconn*) conn->connection;
 
-	if(!conn) return -1;
+	if(!pgconn) return -1;
 
-	return PQsocket(conn);
+	return PQsocket(pgconn);
 }
 
 dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {

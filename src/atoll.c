@@ -40,8 +40,6 @@
 #include <config.h>
 #endif
 
-#ifndef HAVE_STRTOLL /* this conditional encloses the rest of the file */
-
 /*  #include <global.h> */
 #include <limits.h> /* for LONG_LONG_MIN etc */
 #include <ctype.h> /* for isspace() etc, toupper() */
@@ -60,6 +58,9 @@
 #define TYPE_MAX LONG_LONG_MAX
 #define longtype long long
 #define ulongtype unsigned long long
+
+#ifndef HAVE_STRTOLL /* this conditional encloses the rest of the file */
+
 #ifdef UNSIGNED
 #	define function ulongtype strtoull
 #else
@@ -203,11 +204,11 @@ noconv:
   return 0L;
 }
 
+#endif /* !HAVE_STRTOLL */
+
 #ifndef HAVE_ATOLL
 longtype atoll(const char *str) {
   return strtoll(str, (char **)NULL, 10);
 }
 #endif
-
-#endif /* !HAVE_STRTOLL */
 
