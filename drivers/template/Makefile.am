@@ -1,19 +1,18 @@
 AUTOMAKE_OPTIONS = foreign
 
-#if HAVE_FOOBAR
+if HAVE_TEMPLATE
 
 template_ltlibs = libtemplate.la
 template_ldflags = -export-dynamic -avoid-version
 template_sources = dbd_template.c
 
-#else
-#
-#template_ltlibs =
-#template_ldflags =
-#template_sources =
-#
-#endif
+else
 
+template_ltlibs =
+template_ldflags =
+template_sources =
+
+endif
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include
 

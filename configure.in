@@ -73,11 +73,13 @@ dnl ==============================
 dnl Check for libraries
 dnl ==============================
 
+AC_MSG_CHECKING(for template support)
 AC_ARG_WITH(template,
-[  --with-template			Include template plugin support.],
+[  --with-template         Include template plugin support.],
 [
 if test "$withval" != "no"; then
-	AC_DEFINE(HAVE_TEMPLATE)
+	dnl AC_DEFINE(HAVE_TEMPLATE) dnl doesn't work for some reason....
+	AM_CONDITIONAL(HAVE_TEMPLATE, [test x"$withval" != "x"])
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -112,7 +114,8 @@ if test "$withval" != "no"; then
 	MYSQL_LFLAGS=-L$MYSQL_LIBDIR
 	MYSQL_LIBS=-lmysqlclient
 
-	AC_DEFINE(HAVE_MYSQL)
+	dnl AC_DEFINE(HAVE_MYSQL) dnl doesn't work for some reason....
+	AM_CONDITIONAL(HAVE_MYSQL, [test x"$withval" != "x"])
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -131,4 +134,4 @@ dnl ==============================
 
 CFLAGS="$CFLAGS -DDBI_PLUGIN_DIR=\\\"$plugindir\\\""
 
-AC_OUTPUT(Makefile src/Makefile debian/Makefile doc/Makefile include/Makefile include/dbi/Makefile plugins/Makefile plugins/template/Makefile)
+AC_OUTPUT(Makefile src/Makefile debian/Makefile doc/Makefile include/Makefile include/dbi/Makefile plugins/Makefile plugins/mysql/Makefile plugins/template/Makefile)
