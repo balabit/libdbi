@@ -789,20 +789,3 @@ unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, uns
 	return (attribs & attrib_mask);
 }
 
-#ifndef HAVE_ATOLL
-long long int atoll(const char *nptr) {
-	long long int tmp = 0;
-	int curpos;
-	int base10 = 0;
-	char fakestr[2];
-	
-	if (!str || strlen(nptr) < 1) return 0;
-	fakestr[1] = '\0';
-	for (curpos = strlen(nptr)-1; curpos >= 0; curpos--,base10++) {
-		fakestr[0] = nptr[curpos];
-		tmp += atol(fakestr) * (long)pow(10, base10);
-	}
-	return tmp;
-}
-#endif
-
