@@ -36,7 +36,32 @@ typedef void * dbi_driver;
 typedef void * dbi_conn;
 typedef void * dbi_result;
 
+/* other type definitions */
 typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM } dbi_error_flag;
+
+typedef struct {
+	unsigned char month;
+	unsigned char day;
+	signed short year; // may be negative (B.C.)
+} dbi_date;
+
+typedef struct {
+	// when used as an interval value, at most one of these values may be negative.
+	// when used as a counter, the hour may be greater than 23.
+	// when used as a time of day, everything is as you would expect.
+
+	signed long hour;
+	signed char minute;
+	signed char second;
+	signed short millisecond;
+	signed char utc_offset; // -8 means -0800
+} dbi_time;
+
+typedef struct {
+	dbi_date date;
+	dbi_time time;
+} dbi_datetime;
+
 
 /* function callback definitions */
 typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
@@ -51,18 +76,21 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 #define DBI_TYPE_DATETIME 7
 
 /* values for the bitmask in field_type_attributes[] */
-#define DBI_INTEGER_UNSIGNED 1
-#define DBI_INTEGER_SIZE1 2
-#define DBI_INTEGER_SIZE2 4
-#define DBI_INTEGER_SIZE3 8
-#define DBI_INTEGER_SIZE4 16
-#define DBI_INTEGER_SIZE8 32
-#define DBI_DECIMAL_UNSIGNED 1
-#define DBI_DECIMAL_SIZE4 2
-#define DBI_DECIMAL_SIZE8 4
-#define DBI_STRING_FIXEDSIZE 1 /* XXX unused as of now */
-#define DBI_DATETIME_DATE 1
-#define DBI_DATETIME_TIME 2
+#define DBI_INTEGER_UNSIGNED	(1 << 0)
+#define DBI_INTEGER_SIZE1		(1 << 1)
+#define DBI_INTEGER_SIZE2		(1 << 2)
+#define DBI_INTEGER_SIZE3		(1 << 3)
+#define DBI_INTEGER_SIZE4		(1 << 4)
+#define DBI_INTEGER_SIZE8		(1 << 5)
+
+#define DBI_DECIMAL_UNSIGNED	(1 << 0)
+#define DBI_DECIMAL_SIZE4		(1 << 1)
+#define DBI_DECIMAL_SIZE8		(1 << 2)
+
+#define DBI_STRING_FIXEDSIZE	(1 << 0) /* XXX unused as of now */
+
+#define DBI_DATETIME_DATE		(1 << 0)
+#define DBI_DATETIME_TIME		(1 << 1)
 
 int dbi_initialize(const char *driverdir);
 void dbi_shutdown();
