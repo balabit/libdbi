@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 	dbi_driver driver;
 	dbi_result result;
 
-	char *plugindir="/usr/local/lib/dbd";
+	char *plugindir="/home/mmt/code/CVS/libdbi/local/lib/dbd";
 
 	int sqlTAGID;
 	char *sqlFILENAME;
@@ -16,12 +16,14 @@ int main(int argc, char **argv) {
 	int curplugidx = 0;
 	int numplugins;
 
-	if(argc > 0){
+	if(argc > 1){
 		argv++;
 		printf("Looking in: %s", *argv);
 		dbi_initialize(*argv);
-	} else
+	} else {
+		printf("Looking in: %s", plugindir);
 		dbi_initialize(plugindir);
+	}
 	
 	printf("\nLibrary version: %s\n", dbi_version());
 	
@@ -62,9 +64,9 @@ int main(int argc, char **argv) {
 		
 		//dbi_driver_set_option(driver, "host", "localhost");
 		//dbi_driver_set_option_numeric(driver, "port", 12345);
-		dbi_driver_set_option(driver, "username", "wasabi");
-		dbi_driver_set_option(driver, "password", "wasabi!");
-		dbi_driver_set_option(driver, "dbname", "wasabi");
+		dbi_driver_set_option(driver, "username", "");
+		dbi_driver_set_option(driver, "password", "");
+		dbi_driver_set_option(driver, "dbname", "test");
 		//dbi_driver_set_option_numeric(driver, "efficient-queries", 0);
 
 		printf("Options set, about to connect...\n");
@@ -78,13 +80,13 @@ int main(int argc, char **argv) {
 		}
 		printf("Connected, about to query... ");
 
-		result = dbi_driver_query(driver, "SELECT tagid, filename, mediatypeid FROM songs");
+		result = dbi_driver_query(driver, "SELECT * FROM sample");
 		if (result) {
 			printf("OK\n");
-			dbi_result_bind_fields(result, "tagid.%l filename.%s mediatypeid.%h", &sqlTAGID, &sqlFILENAME, &sqlMEDIATYPEID);
-			printf("\nTag ID\tMedia ID\tFilename\n");
+			dbi_result_bind_fields(result, "key1.%l enum1.%s", &sqlTAGID, &sqlFILENAME);
+			printf("\nkey1\tstring1\tFilename\n");
 			while (dbi_result_next_row(result)) {
-				printf("%d. %i\t%s\n", sqlTAGID, sqlMEDIATYPEID, sqlFILENAME);
+				printf("%d %s\n", sqlTAGID, sqlFILENAME);
 			}
 			printf("Done fetching rows.\n");
 			dbi_result_free(result);
