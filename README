@@ -71,6 +71,7 @@ Linux: Debian, RedHat, Slackware
 Windows: 98, NT4, 2000 -- see README.win32
 FreeBSD: 4.3, 4.4
 SunOS: 2.8
+Solaris: 7
 AIX: 4.2, 4.3 and 5.1
 
 If you are using libdbi on a platform not listed here, please notify the

@@ -11,14 +11,30 @@ Driver developers:
 
 These people have also contributed to the project:
 
+* Markus Hoenicka <hoenicka_markus at compuserve.com>
+  - win32 port, atoll() portability, list_* tweaks, assorted bugfixes, error_flag scheme
+  
+* Christian M. Stamgren <christian at centiongroup.com>
+  - bugfixes, mysql tweaks, list_* tweaks, error tweaks
+
 * Ryan Eatmon <reatmon at jabber.org>
   - bugfixes
-  
-* Markus Hoenicka <hoenicka_markus at compuserve.com>
-  - win32 port, atoll() portability, list_* tweaks, assorted bugfixes
+
+* Andreas Johansson <andreas.johansson at cention.se>
+  - beginnings of sequencing
+
+* Ron Arts <raarts at netland.nl>
+  - caught large memory leak
 
 * sad@spider.ru
   - atoll.c bugfix
+
+* Christophe GIAUME <christophe at giaume.com>
+  - Solaris asprintf bugfix
+
+* jellifish <jellyfish at pisem.net>
+  - fixed wrong mysql INSERT query behavior
+
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
