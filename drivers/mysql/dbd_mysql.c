@@ -43,7 +43,7 @@ dbi_info_t dbd_template_info = {
 	/* URL of plugin, if maintained by a third party */
 	"http://libdbi.sourceforge.net/plugins/lookup.php?name=mysql",
 	/* plugin version */
-	"mysql v0.01",
+	"mysql v0.0.1",
 	/* compilation date */
 	__DATE__
 };
@@ -79,7 +79,7 @@ int dbd_connect(dbi_driver_t *myself) {
 		return -1;
 	}
 
-	if(mysql_real_connect(con, host, username, password, db, port, NULL, NULL)){
+	if(mysql_real_connect(con, host, username, password, database, port, NULL, NULL)){
 		driver->connection = (void*) con;
 		strcpy(driver->currentdb, db);
 	} else {
@@ -98,8 +98,11 @@ int dbd_disconnect(dbi_driver_t *myself)
 		mysql_close( (MYSQL*) myself->connection);
 		myself->connection = NULL;
 		return 0;
-	} else
+	} else {
+		if(myself)
+			strcpy(myself->error_string, "No Connection To Close");
 		return -1;
+	}
 }
 
 
@@ -165,22 +168,6 @@ int dbd_fetch_row(dbi_result_t *result) {
 	result->row->next = NULL;
 
 	
-	/*if(!trav){ /* If there are now rows already loaded, allocate a new one*/
-	/*	result->row = trav = (dbi_row_t *) malloc(sizeof(dbi_row_t));
-		trav->row_handle = (void *) row;
-		trav->next = NULL;
-	} else { /* otherwise, find the last row, and allocate it's next*/
-	/*	while(trav->next){
-			trav = trav->next;
-		}
-		trav->next = (dbi_row_t *) malloc(sizeof(dbi_row_t));
-		trav = trav->next;
-		trav->row_handle = (void *) row;
-		trav->next = NULL;
-	}*/
-
-	/* Here we will turn all the fields into a fully qualified row */
-
 	/*************************TODO***********************************/
 	/*                                                              *
 	 * As we don't know our mask/enum scheme yet for columns types, *
@@ -204,12 +191,36 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 
 const char **dbd_list_dbs(dbi_driver_t *myself) {
 	/* do whatever's necessary... */
-	return 0;
+	MYSQL_RES *res=NULL;
+	MYSQL_ROW *row=NULL;
+	MYSQL_FIELD *field=NULL;
+	char **ret=NULL;
+	char **trav=NULL;
+	int *length=NULL;
+	
+	res = mysql_list_dbs((MYSQL*)myself->connection, "%");
+
+	ret = (char**)malloc(sizeof(char*) * mysql_num_rows(res));
+	trav = ret;
+
+	while(row = mysql_fetch_row(res)){
+		/*field = mysql_fetch_field(row);*/
+		length = mysql_fetch_lengths(res);
+
+		*trav = (char *)malloc( sizeof(char) + *length + 1);
+
+		strncpy(*trav, row, *length);
+
+		trav++;
+	}
+	
+	mysql_free_result(res);
+
+	return trav;
 }
 
 const char **dbd_list_tables(dbi_driver_t *myself, const char *db) {
 	/* do whatever's necessary... */
-	return 0;
 }
 
 unsigned int dbd_num_rows(dbi_result_t *result) {
