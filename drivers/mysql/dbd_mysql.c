@@ -24,6 +24,10 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define _GNU_SOURCE /* we need asprintf */
 
 #include <stdio.h>
@@ -37,8 +41,6 @@
 
 #include <mysql/mysql.h>
 #include "mysql-stuff.h"
-
-#include "config.h"
 
 static const dbi_info_t plugin_info = {
 	"mysql",
@@ -140,8 +142,19 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 1;
 }
 
-dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	return dbd_query(driver, "SHOW DATABASES");
+dbi_result_t *dbd_list_dbs(dbi_driver_t *driver, const char *pattern) {
+	dbi_result_t *res;
+	char *sql_cmd;
+
+	if (pattern == NULL) {
+		return dbd_query(driver, "SHOW DATABASES");
+	}
+	else {
+		asprintf(&sql_cmd, "SHOW DATABASES LIKE '%s'", pattern);
+		res = dbd_query(driver, sql_cmd);
+		free(sql_cmd);
+		return res;
+	}
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {

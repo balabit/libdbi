@@ -22,6 +22,10 @@
  * (anything that has to do with row seeking or fetching fields goes in this file)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -32,8 +36,6 @@
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
-
-#include "config.h"
 
 extern void _error_handler(dbi_driver_t *driver);
 
@@ -176,7 +178,7 @@ int dbi_result_get_field_idx(dbi_result Result, const char *fieldname) {
 
 const char *dbi_result_get_field_name(dbi_result Result, unsigned int fieldnum) {
 	dbi_result_t *result = Result;
-	if (!result || (fieldnum >= result->numfields)) return NULL;
+	if (!result || (fieldnum > result->numfields)) return NULL;
 	return (const char *) result->field_names[fieldnum-1];
 }
 

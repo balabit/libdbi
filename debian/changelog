@@ -1,3 +1,11 @@
+libdbi (0.6.2-1) unstable; urgency=low
+
+  * New upstream release.
+  * Switched from x.y to x.y.z upstream versioning.
+  * Fixed incorrect packaging (shlibs, postinst, etc).
+
+ -- David Parker <david@neongoat.com>  Thu, 23 Aug 2001 13:16:48 -0700
+
 libdbi (0.6-1) unstable; urgency=low
 
   * New upstream release.

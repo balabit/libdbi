@@ -74,6 +74,7 @@ sub spit_out_docbook {
 
 	my $funcbasename = (($funcproto =~ /\w+ \**(\w+)\(.*\)/) && $1);
 	my $functoken = $funcbasename; $functoken =~ s/_/-/g;
+	$functoken =~ s/^-/internal-/;
 	my $tabs = "\t"x$extratab; #x2;
 
 	my $OUTPUT;

@@ -20,6 +20,10 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -30,8 +34,6 @@
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
-
-#include "config.h"
 
 dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));

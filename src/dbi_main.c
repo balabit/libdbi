@@ -20,6 +20,10 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define _GNU_SOURCE /* since we need the asprintf() prototype */
 
 #include <stdio.h>
@@ -36,8 +40,6 @@
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
-
-#include "config.h"
 
 #ifndef DBI_PLUGIN_DIR
 #define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this as the default */
@@ -79,8 +81,8 @@ int dbi_initialize(const char *plugindir) {
 		while ((plugin_dirent = readdir(dir)) != NULL) {
 			plugin = NULL;
 			snprintf(fullpath, FILENAME_MAX, "%s/%s", effective_plugindir, plugin_dirent->d_name);
-			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), ".so"))) {
-				/* file is a stat'able regular file that ends in .so */
+			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && (!strcmp(strrchr(plugin_dirent->d_name, '.'), PLUGIN_EXT))) {
+				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
 				plugin = _get_plugin(fullpath);
 				if (plugin && (plugin->functions->initialize(plugin) != -1)) {
 					if (!rootplugin) {
@@ -512,13 +514,13 @@ int dbi_driver_connect(dbi_driver Driver) {
 	return retval;
 }
 
-dbi_result dbi_driver_get_db_list(dbi_driver Driver) {
+dbi_result dbi_driver_get_db_list(dbi_driver Driver, const char *pattern) {
 	dbi_driver_t *driver = Driver;
 	dbi_result_t *result;
 	
 	if (!driver) return NULL;
 	
-	result = driver->plugin->functions->list_dbs(driver);
+	result = driver->plugin->functions->list_dbs(driver, pattern);
 	
 	if (result == NULL) {
 		_error_handler(driver);
@@ -786,4 +788,21 @@ unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, uns
 
 	return (attribs & attrib_mask);
 }
+
+#ifndef HAVE_ATOLL
+long long int atoll(const char *nptr) {
+	long long int tmp = 0;
+	int curpos;
+	int base10 = 0;
+	char fakestr[2];
+	
+	if (!str || strlen(nptr) < 1) return 0;
+	fakestr[1] = '\0';
+	for (curpos = strlen(nptr)-1; curpos >= 0; curpos--,base10++) {
+		fakestr[0] = nptr[curpos];
+		tmp += atol(fakestr) * (long)pow(10, base10);
+	}
+	return tmp;
+}
+#endif
 

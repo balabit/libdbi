@@ -15,7 +15,7 @@ These people have also contributed to the project:
   - bugfixes
   
 * Markus Hoenicka <hoenicka_markus at compuserve.com>
-  - win32 port
+  - win32 port, atoll() portability, list_* tweaks
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.

@@ -77,10 +77,25 @@ AC_CHECK_MYSQL
 AC_CHECK_PGSQL
 
 dnl ==============================
+dnl Check for functions
+dnl ==============================
+
+case $host in
+	*-*-win32*)
+		shlib_ext=.dll ;;
+	*)
+		shlib_ext=.so ;;
+esac
+
+AC_CHECK_FUNCS(strtoll)
+AC_REPLACE_FUNCS(atoll)
+AC_DEFINE_UNQUOTED(PLUGIN_EXT, "$shlib_ext", [ ])
+
+dnl ==============================
 dnl Checks for header files
 dnl ==============================
 
-CFLAGS="$CFLAGS -DDBI_PLUGIN_DIR=\\\"$plugindir\\\""
+AC_CHECK_HEADERS(string.h strings.h)
 
 AC_OUTPUT([
 	libdbi.spec

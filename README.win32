@@ -1,0 +1,37 @@
+
+libdbi - Database Independent Abstraction Layer for C
+Copyright (C) 2001, David Parker and Mark Tobenkin.
+http://libdbi.sourceforge.net
+
+
+WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS:
+-------------------------------------------
+
+Thanks to Markus Hoenicka, libdbi can be compiled into DLL files on Win32 with
+the Cygwin package, available at http://sources.redhat.com/cygwin/
+
+./configure --with-mysql --with-pgsql
+make
+make install
+make -f Makefile.w32
+make -f Makefile.w32 install
+
+
+MODIFICATIONS AND REDISTRIBUTION (LGPL):
+----------------------------------------
+
+This library is free software; you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option) any
+later version.
+
+This library is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+details.
+
+See the file COPYING or http://www.gnu.org for more details.
+
+
+$Id$
+

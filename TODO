@@ -9,5 +9,5 @@ $Id$
 	* oracle
 	* ODBC ?
 	* others?
-- write plugin author's guide, update template plugin
-- create a config.h and use it to determine datatype information (how many bits an 'int' is, etc. mainly for portability to non-lintel systems)
+- finish plugin author's guide
+- determine datatype information (how many bits an 'int' is, etc. mainly for portability to non-lintel systems)

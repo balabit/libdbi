@@ -92,7 +92,7 @@ int dbi_driver_error(dbi_driver Driver, char **errmsg_dest);
 void dbi_driver_error_handler(dbi_driver Driver, void *function, void *user_argument);
 
 int dbi_driver_connect(dbi_driver Driver);
-dbi_result dbi_driver_get_db_list(dbi_driver Driver);
+dbi_result dbi_driver_get_db_list(dbi_driver Driver, const char *pattern);
 dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db);
 dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...); 
 int dbi_driver_select_db(dbi_driver Driver, const char *db);

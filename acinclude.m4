@@ -63,7 +63,7 @@ if test "$ac_mysql" = "YES"; then
 		fi
 	fi
 	AC_MSG_RESULT([yes: libs in $ac_mysql_libdir, headers in $ac_mysql_incdir])
-	AM_CONDITIONAL(HAVE_MYSQL, test 1)
+	AM_CONDITIONAL(HAVE_MYSQL, true)
 	
 	MYSQL_LIBS=-lmysqlclient
 	MYSQL_INCLUDE=-I$ac_mysql_incdir
@@ -123,7 +123,7 @@ if test "$ac_pgsql" = "YES"; then
 		fi
 	fi
 	AC_MSG_RESULT([yes: libs in $ac_pgsql_libdir, headers in $ac_pgsql_incdir])
-	AM_CONDITIONAL(HAVE_PGSQL, test 1)
+	AM_CONDITIONAL(HAVE_PGSQL, true)
 	
 	PGSQL_LIBS=-lpq
 	PGSQL_INCLUDE=-I$ac_pgsql_incdir
