@@ -14,7 +14,7 @@ Description: Database independent abstraction layer for C (development files)
 Package: libdbi0
 Architecture: any
 Depends: ${shlibs:Depends}
-Suggests: libdbd-template
+Suggests: libdbd-mysql | libdbd-template
 Description: Database independent abstraction layer for C
  libdbi provides developers with a database independent abstraction layer for C,
  allowing for multiple simultaneous connections to different types of servers.
@@ -26,5 +26,13 @@ Architecture: any
 Depends: libdbi0 (= ${Source-Version})
 Description: template database server plugin for libdbi
  This plugin provides connectivity to template database servers through the
+ libdbi database independent abstraction layer. Switching a program's plugin
+ does not require recompilation or rewriting source code.
+ 
+Package: libdbd-mysql
+Architecture: any
+Depends: libdbi0 (= ${Source-Version})
+Description: MySQL database server plugin for libdbi
+ This plugin provides connectivity to MySQL database servers through the
  libdbi database independent abstraction layer. Switching a program's plugin
  does not require recompilation or rewriting source code.

@@ -2,7 +2,7 @@ $Id$
 
 - a better way of handling query() vs. efficient_query()
 - sanity-check arguments, don't call dbd functions if an invalid plugin/driver was specified
-- prepare precompiled debian and redhat packages
+- prepare precompiled redhat packages (and test/fix debian packages)
 - plugins:
 	* mysql (finish plugin and run stress tests)
 	* msql
