@@ -54,7 +54,7 @@ typedef struct {
 	signed char minute;
 	signed char second;
 	signed short millisecond;
-	signed char utc_offset; // -8 means -0800
+	signed long utc_offset; // seconds east of UTC
 } dbi_time;
 
 typedef struct {
