@@ -336,7 +336,7 @@ dbi_driver dbi_conn_get_driver(dbi_conn Conn) {
 	return conn->driver;
 }
 
-int dbi_conn_error(dbi_conn Conn, char **errmsg_dest) {
+int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest) {
 	dbi_conn_t *conn = Conn;
 	char number_portion[20];
 	char *errmsg;
@@ -770,7 +770,6 @@ static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key)
 void _error_handler(dbi_conn_t *conn) {
 	int errno = 0;
 	char *errmsg = NULL;
-	void (*errfunc)(dbi_conn_t *, void *);
 	int errstatus;
 	
 	errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
@@ -780,16 +779,14 @@ void _error_handler(dbi_conn_t *conn) {
 		return;
 	}
 
-	if (errno) {
-		conn->error_number = errno;
-	}
-	if (errmsg) {
-		conn->error_message = errmsg;
-	}
+	if (conn->error_message) free(conn->error_message);
+
+	conn->error_number = errno;
+	conn->error_message = errmsg;
+	
 	if (conn->error_handler != NULL) {
 		/* trigger the external callback function */
-		errfunc = conn->error_handler;
-		errfunc(conn, conn->error_handler_argument);
+		conn->error_handler(conn, conn->error_handler_argument);
 	}
 }
 

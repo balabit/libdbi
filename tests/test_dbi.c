@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	char password[64];
 	char dbname[64];
 
-	char *errmsg;
+	const char *errmsg;
 	int numdrivers;
 
 	printf("\nlibdbi test program: $Id$\nLibrary version: %s\n\n", dbi_version());
@@ -94,8 +94,7 @@ int main(int argc, char **argv) {
 
 	if (dbi_conn_connect(conn) < 0) {
 		dbi_conn_error(conn, &errmsg);
-		printf("Unable to connect! Error message: %s\n", errmsg);
-		free(errmsg);
+		printf("\nUnable to connect! Error message: %s\n", errmsg);
 		dbi_shutdown();
 		return 1;
 	}
@@ -105,7 +104,6 @@ int main(int argc, char **argv) {
 	if ((result = dbi_conn_get_table_list(conn, dbname)) == NULL) {
 		dbi_conn_error(conn, &errmsg);
 		printf("AAH! Can't get table list! Error message: %s\n", errmsg);
-		free(errmsg);
 		dbi_conn_close(conn);
 		dbi_shutdown();
 		return 1;

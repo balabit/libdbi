@@ -89,7 +89,7 @@ void dbi_conn_clear_option(dbi_conn Conn, const char *key);
 void dbi_conn_clear_options(dbi_conn Conn);
 void dbi_conn_close(dbi_conn Conn);
 
-int dbi_conn_error(dbi_conn Conn, char **errmsg_dest);
+int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest);
 void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument);
 
 int dbi_conn_connect(dbi_conn Conn);

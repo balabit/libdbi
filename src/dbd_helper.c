@@ -105,3 +105,15 @@ int _dbd_quote_chars(const char *toescape, const char *quotes, const char *orig,
 
 	return strlen(dest);
 }
+
+void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno) {
+	if (conn->error_message) free(conn->error_message);
+	
+	conn->error_number = errno;
+	conn->error_message = strdup(errmsg);
+
+	if (conn->error_handler != NULL) {
+		conn->error_handler(conn, conn->error_handler_argument);
+	}
+}
+

@@ -23,9 +23,9 @@
 		</Affiliation>
 	</Author>
 	<Edition>Document revision: $Id$</Edition>
-	<PubDate>June 11, 2001</PubDate>
+	<PubDate>$Date$</PubDate>
 	<Copyright>
-		<Year>2001</Year>
+		<Year>2001-2002</Year>
 		<Holder>David Parker, Neon Goat Productions</Holder>
 	</Copyright>
 	<LegalNotice>
@@ -77,7 +77,7 @@
 	</Section>
 	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
 		<Para>
-			libdbi is Copyright &copy; 2001, David Parker and Mark Tobenkin.
+			libdbi is Copyright &copy; 2001-2002, David Parker and Mark Tobenkin.
 		</Para>
 		<Para>			
 			libdbi is free software; you can redistribute it and/or

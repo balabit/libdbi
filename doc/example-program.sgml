@@ -38,7 +38,7 @@ int main() {
 ]]>
 </ProgramListing>
 <Para>
-	Compile with: gcc -ldl -ldbi -o foo foo.c
+	Compile with: gcc -lm -ldl -ldbi -o foo foo.c
 </Para>
 <Para>
 	Of course, a complete program should be checking for errors. This example

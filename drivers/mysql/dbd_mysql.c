@@ -54,7 +54,6 @@ static const dbi_info_t driver_info = {
 static const char *custom_functions[] = {NULL}; // TODO
 static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 
-void _internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno);
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
@@ -94,7 +93,7 @@ int dbd_connect(dbi_conn_t *conn) {
 
 	mycon = mysql_init(NULL);
 	if (!mycon || !mysql_real_connect(mycon , host, username, password, dbname, port, unix_socket, _compression)) {
-		_internal_error_handler(conn, "Unable to connect to database server", 0);
+		_dbd_internal_error_handler(conn, "Unable to connect to database server", 0);
 		mysql_close(mycon);
 		return -1;
 	}
@@ -224,7 +223,7 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	}
 	
 	if (!conn->connection) {
-		_internal_error_handler(conn, "No connection found", 0);
+		_dbd_internal_error_handler(conn, "No connection found", 0);
 		return 2;
 	}
 	
@@ -232,21 +231,6 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 	*errstr = strdup(mysql_error((MYSQL *)conn->connection));
 	return 3;
 }
-
-
-void _internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno)
-{
-	void (*errfunc)(dbi_conn_t *, void *);
-	/* set the values*/
-	conn->error_number = errno;
-	conn->error_message = strdup(errmsg);
-
-	if(conn->error_handler != NULL){
-		errfunc = conn->error_handler;
-		errfunc(conn, conn->error_handler_argument);
-	}
-}
-
 
 /* CORE MYSQL DATA FETCHING STUFF */
 
@@ -381,7 +365,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 					case DBI_INTEGER_SIZE4:
 						data->d_long = (long) atol(raw); break;
 					case DBI_INTEGER_SIZE8:
-						data->d_longlong = (long long) atoll(raw); break; /* hah, wonder if that'll work */
+						data->d_longlong = (long long) atoll(raw); break;
 					default:
 						break;
 				}

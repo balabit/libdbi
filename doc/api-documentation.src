@@ -270,12 +270,12 @@ NAME dbi_conn_close
 *
 
 NAME dbi_conn_error
-	PROTO int dbi_conn_error(dbi_conn Conn, char **errmsg_dest)
+	PROTO int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest)
 	DESC
 	Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.
 	ENDDESC
 	ARG Conn The target connection.
-	ARG errmsg_dest The target string pointer, which will point to the error message. If NULL, no error message will be created, but the error number will still be returned.
+	ARG errmsg_dest The target string pointer, which will point to the error message. If NULL, no error message will be created, but the error number will still be returned. This string is managed by libdbi, so it must not be modified or freed.
 	RET The error number of the most recent database operation if it resulted in an error. If not, this will return -1.
 
 *
