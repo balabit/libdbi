@@ -67,7 +67,7 @@ typedef struct dbi_result_s {
 	unsigned short *field_types;
 	unsigned long *field_attribs;
 
-	enum { NOTHING_RETURNED, ROWS_RETURNED, GETTING_ROWS } result_state; /* nothing_returned: wasn't a SELECT query. returns_rows: select, but no rows fetched yet. getting_rows: select, at least one row has been fetched */
+	enum { NOTHING_RETURNED, ROWS_RETURNED } result_state;
 	dbi_row_t **rows; /* array of filled rows, elements set to NULL if not fetched yet */
 	unsigned long long currowidx;
 } dbi_result_t;

@@ -119,16 +119,11 @@ int dbd_fetch_row(dbi_result_t *result, unsigned long long rownum) {
 	if (result->result_state == NOTHING_RETURNED) return -1;
 	
 	if (result->result_state == ROWS_RETURNED) {
-		/* this is the first time we've been here */
-		_dbd_result_set_numfields(result, mysql_num_fields((MYSQL_RES *)result->result_handle));
-		_get_field_info(result);
-		result->result_state = GETTING_ROWS;
+		/* get row here */
+		row = _dbd_row_allocate(result->numfields);
+		_get_row_data(result, row, rownum);
+		_dbd_row_finalize(result, row, rownum);
 	}
-
-	/* get row here */
-	row = _dbd_row_allocate(result->numfields);
-	_get_row_data(result, row, rownum);
-	_dbd_row_finalize(result, row, rownum);
 	
 	return 1; /* 0 on error, 1 on successful fetchrow */
 }
@@ -218,6 +213,9 @@ dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	
 	/* if res is null, the query was something that doesn't return rows (like an INSERT) */
 	result = _dbd_result_create(conn, (void *)res, (res ? mysql_num_rows(res) : 0), mysql_affected_rows((MYSQL *)conn->connection));
+
+	_dbd_result_set_numfields(result, mysql_num_fields((MYSQL_RES *)result->result_handle));
+	_get_field_info(result);
 
 	return result;
 }
