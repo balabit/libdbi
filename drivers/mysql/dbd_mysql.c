@@ -173,13 +173,13 @@ dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *patt
 	}
 
 	if (pattern == NULL) {
-		asprintf(&sql_cmd, "SHOW TABLES FROM '%s'", db);
+		asprintf(&sql_cmd, "SHOW TABLES FROM %s", db);
 		res = dbd_query(conn, sql_cmd);
 		free(sql_cmd);
 		return res;
 	}
 	else {
-		asprintf(&sql_cmd, "SHOW TABLES FROM '%s' LIKE '%s'", db, pattern);
+		asprintf(&sql_cmd, "SHOW TABLES FROM %s LIKE '%s'", db, pattern);
 		res = dbd_query(conn, sql_cmd);
 		free(sql_cmd);
 		return res;

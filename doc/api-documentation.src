@@ -363,7 +363,7 @@ NAME dbi_conn_query_null
 	ENDDESC
 	ARG Conn The target connection.
 	ARG statement The SQL statement, which may contain binary data.
-	ARG st_len The number of characters in the non-null-terminated statement string.
+	ARG st_length The number of characters in the non-null-terminated statement string.
 	RET A query result object, or NULL if there was an error.
 
 *
