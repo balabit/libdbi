@@ -34,7 +34,7 @@ dbi_info_t dbd_template_info = {
 /* STRCPY_SAFE                                                               */
 /*****************************************************************************/
 /*
- * Precondtion: str2 != NULL, str1 passed by reference
+ * Precondtion: str2 != NULL
  * Postcondition: str1 == str2, any memory is allocated
  * Returns: new string
  */
@@ -49,6 +49,24 @@ char *strcpy_safe(char *str1, char *str2)
 	strcpy(final, str2);
 
 	return final;
+}
+
+/*****************************************************************************/
+/* FREE_ROW                                                                  */
+/*****************************************************************************/
+/*
+ * Precondition: row != NULL
+ * Postcondition: free's all memory for fields_*, and frees row
+ * Returns: none.
+ */
+
+void free_row( dbi_row_t *row)
+{
+	free(row->field_values);
+	free(row->field_names);
+	free(row->field_types);
+
+	free(row);
 }
 
 /*****************************************************************************/
@@ -90,8 +108,6 @@ int dbd_connect( dbi_driver_t *driver )
         char *database = dbi_get_option(myself, "database");
         int port = dbi_get_option_numeric(myself, "port");
 
-	char *error; /* Temporary Storage For mysql_error()  */
-	
 	/* Initialize Connection */
 	con = mysql_init(NULL);
 
@@ -109,9 +125,7 @@ int dbd_connect( dbi_driver_t *driver )
 
 		return 0;
 	} else {
-		error = mysql_error(con);
-
-		driver->error_string = strcpy_safe(driver->error_string, error);
+		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
 
 		driver->error_number = mysql_errno(con);
 
@@ -149,6 +163,30 @@ int dbd_disconnect( dbi_driver_t *driver )
 }
 
 /*****************************************************************************/
+/* DBD_LIST_DBS                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: none.
+ * Returns: list of db names
+ */
+
+char **dbd_list_dbs( dbi_driver_t *driver )
+{
+	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
+	MYSQL_RES *res = NULL;
+	MYSQL_ROW *myrow = NULL;
+
+	res = mysql_list_dbs(con, "%");
+
+	if(res == NULL){
+		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+		driver->error_number = mysql_errno(con);
+		return -1;
+	}
+}
+
+/*****************************************************************************/
 /* DBD_SELECT_DB                                                             */
 /*****************************************************************************/
 /*
@@ -161,12 +199,9 @@ int dbd_disconnect( dbi_driver_t *driver )
 int dbd_select_db( dbi_driver_t *driver, char *database)
 {
 	MYSQL *con = (MYSQL*) driver->connection; /* Our Connection */
-	char *error; /* Temporary Storage For mysql_error() */
 
 	if(mysql_select_db(con, database)){ /* In Case Of Error */
-		error = mysql_error(con);
-
-		driver->error_string = strcpy_safe(driver->error_string, error);
+		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
 
 		driver->error_number = mysql_errno(con);
 
@@ -195,14 +230,10 @@ dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
 	MYSQL_RES *myres; /* MySQL's internal result type */
 	dbi_result_t *dbires; /* DBI's internal result type*/
 
-	char *error; /* Temporary Storage For mysql_error() */
-
 	/* Query, On Failure Return NULL */
 	if(mysql_query(con, statement)){
 
-		error = mysql_error(con); 
-
-		driver->error_string = strcpy_safe(driver->error_string, error);
+		driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
 	
 		driver->error_number = mysql_errno(con);
 	
@@ -253,7 +284,6 @@ int dbd_fetch_row( dbi_result_t *result )
 	MYSQL_ROW *myrow = NULL; /* Will Become row->row_handle */
 
 	/* Temporary Storage For Errors */
-	char *error=NULL;
 	int errno=0;
 
 	/* Grab Row */
@@ -264,9 +294,7 @@ int dbd_fetch_row( dbi_result_t *result )
 	if(*myrow == NULL){
 
 		if( errno = mysql_errno(con) ){ /* In Case Of Error */
-			error = mysql_error(con);
-
-			driver->error_string = strcpy_safe(driver->error_string, error);
+			driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
 
 			driver->error_number = errno;
 
@@ -288,10 +316,137 @@ int dbd_fetch_row( dbi_result_t *result )
 	*         (just as tedious, if not more so :)                         *
 	\*********************************************************************/
 	
-	/*********************************************************************\
-	* NOTE: Should we really have field_values? Why not use a combination *
-	*         of row_handle and fetch_field()?                            *
-	\*********************************************************************/
 }
 
+/*****************************************************************************/
+/* DBD_FETCH_FIELD                                                           */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL, result->row != NULL
+ * Postcondition: dest = fetched field
+ * Returns: 0 on success, -1 on failure
+ */
 
+int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
+	
+	dbi_driver_t *driver = result->driver; /* Our Driver */
+	dbi_row_t *row = result->row; /* Our Row */
+	
+	int i;
+
+	for(i = 0; i < row->numfields; i++){
+		if(!strcmp(row->field_names[i], key))
+			break;
+	}
+
+	if(i == row->numfields){
+		driver->error_string = strcpy_safe(driver->error_string, "Field Does Not Exist");
+
+		return -1;
+	}
+
+	/*********************************************************************\
+	* TODO: Interpret field_types[i] to cast field_values[i] to correct   *
+	*         type, then stor in dest                                     *
+	\*********************************************************************/
+
+	switch(row->field_types[i]){
+		case DBI_INTEGER_UNSIGNED:
+			*dest = (void *)malloc(sizeof(unsigned int));
+			**dest = (unsigned int) *(driver->field_values[i]);
+		break;
+
+		case 
+	}
+}
+
+/*****************************************************************************/
+/* DBD_FREE_QUERY                                                            */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL, result->result_handle != NULL
+ * Postcondition: result free()'ed
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_free_query( dbi_result_t *result)
+{
+	dbi_row_t *dbirow = result->row;
+	
+	/* Free All Result Rows  */
+	while(dbirow){
+		result->row = result->row->next;
+		free_row(dbirow);
+		dbirow = result->row;
+	}
+
+	if(result->result_handle) free(result->result_handle);
+
+	free(result);
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* DBD_NUM_ROWS                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL
+ * Postcondition: none.
+ * Returns: returns result->num_rows_matched
+ */
+
+unsigned int dbd_num_rows( dbi_result_t *result )
+{
+	return result->num_rows_matched;
+}
+
+/*****************************************************************************/
+/* DBD_NUM_ROWS_AFFECTED                                                     */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL
+ * Postcondition: none.
+ * Returns: result->num_rows_changed
+ */
+
+unsigned int dbd_num_rows_affected( dbi_result_t *result )
+{
+	return result->num_rows_changed;
+}
+
+/*****************************************************************************/
+/* DBD_ERRSTR                                                                */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: updates driver->error_string
+ * Returns: driver->error_string
+ */
+
+char *dbd_errstr( dbi_driver_t *driver )
+{
+	MYSQL *con = (MYSQL*)driver->connection;
+	
+	driver->error_string = strcpy_safe(driver->error_string, mysql_error(con));
+
+	return driver->error_string;
+}
+
+/*****************************************************************************/
+/* DBD_ERRNO                                                                 */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: updates driver->error_number
+ * Returns: driver->error_number
+ */
+
+int dbd_errno( dbi_driver_t *driver )
+{
+	MYSQL *con = (MYSQL*)driver->connection;
+	
+	driver->error_number = mysql_errno(con);
+
+	return driver->error_number;
+}
