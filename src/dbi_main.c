@@ -57,7 +57,7 @@ static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 extern int _disjoin_from_conn(dbi_result_t *result);
 
-dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
+dbi_result dbi_conn_queryf(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __attribute__ ((format (printf, 3, 4)));
 
 static const char *ERROR = "ERROR";
@@ -690,7 +690,22 @@ dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pa
 	return (dbi_result)result;
 }
 
-dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) {
+dbi_result dbi_conn_query(dbi_conn Conn, const char *statement) {
+	dbi_conn_t *conn = Conn;
+	dbi_result_t *result;
+
+	if (!conn) return NULL;
+	
+	result = conn->driver->functions->query(conn, statement);
+
+	if (result == NULL) {
+		_error_handler(conn, DBI_ERROR_DBD);
+	}
+
+	return (dbi_result)result;
+}
+
+dbi_result dbi_conn_queryf(dbi_conn Conn, const char *formatstr, ...) {
 	dbi_conn_t *conn = Conn;
 	char *statement;
 	dbi_result_t *result;
