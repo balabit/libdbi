@@ -614,7 +614,7 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 	dbi_custom_function_t *custom = NULL;
 	char function_name[256];
 
-	dlhandle = dlopen(filename, RTLD_NOW);
+	dlhandle = dlopen(filename, DLOPEN_FLAG); /* DLOPEN_FLAG defined by autoconf */
 
 	if (dlhandle == NULL) {
 		return NULL;
@@ -775,9 +775,11 @@ void _error_handler(dbi_driver_t *driver) {
 	
 	errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
 
-	if(errstatus == -1){
+	if (errstatus == -1) {
+		/* not _really_ an error */
 		return;
 	}
+
 	if (errno) {
 		driver->error_number = errno;
 	}
@@ -799,7 +801,7 @@ unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, uns
 	int x;
 	
 	for (x = startbit; x <= endbit; x++)
-		attrib_mask |= (unsigned long) pow(2, x);
+		attrib_mask |= (1 << x);
 
 	return (attribs & attrib_mask);
 }
