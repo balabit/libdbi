@@ -44,7 +44,7 @@ typedef struct dbi_driver_s *dbi_driver_t_pointer;
 typedef struct dbi_row_s {
 	void *row_handle; /* will be typecast into driver-specific type */
 	unsigned int numfields;
-	const char **field_names;
+	char **field_names;
 	int *field_types;
 	unsigned int *field_type_attributes;
 	void **field_values;
