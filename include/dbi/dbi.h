@@ -122,7 +122,7 @@ int dbi_fetch_row(dbi_result_t *result);
 int dbi_free_query(dbi_result_t *result);
 int dbi_goto_row(dbi_result_t *result, unsigned int row);
 const char **dbi_list_dbs(dbi_driver_t *driver);
-const char **dbi_list_tables(dbi_driver_t *driver);
+const char **dbi_list_tables(dbi_driver_t *driver, const char *db);
 unsigned int dbi_num_rows(dbi_result_t *result); /* number of rows in result set */
 unsigned int dbi_num_rows_affected(dbi_result_t *result); /* only the rows in the result set that were actually modified */
 dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...); /* dynamic num of arguments, a la printf */
