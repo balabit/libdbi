@@ -61,7 +61,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc README
 %doc TODO
 %doc doc/programmers-guide.pdf
-%doc doc/programmers-guide/*
+%doc doc/programmers-guide/
 /usr/include/dbi/dbi.h
 /usr/include/dbi/dbi-dev.h
 /usr/lib/libdbi.a
