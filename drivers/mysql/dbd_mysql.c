@@ -213,12 +213,8 @@ dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	
 	res = mysql_store_result((MYSQL *)conn->connection);
 	
-	if (!res) {
-		_error_handler(conn);
-		return NULL;
-	}
-
-	result = _dbd_result_create(conn, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)conn->connection));
+	/* if res is null, the query was something that doesn't return rows (like an INSERT) */
+	result = _dbd_result_create(conn, (void *)res, (res ? mysql_num_rows(res) : 0), mysql_affected_rows((MYSQL *)conn->connection));
 
 	return result;
 }
@@ -234,12 +230,8 @@ dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, u
 	
 	res = mysql_store_result((MYSQL *)conn->connection);
 	
-	if (!res) {
-		_error_handler(conn);
-		return NULL;
-	}
-
-	result = _dbd_result_create(conn, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)conn->connection));
+	/* if res is null, the query was something that doesn't return rows (like an INSERT) */
+	result = _dbd_result_create(conn, (void *)res, (res ? mysql_num_rows(res) : 0), mysql_affected_rows((MYSQL *)conn->connection));
 
 	return result;
 }
