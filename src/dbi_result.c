@@ -75,7 +75,7 @@ int dbi_result_seek_row(dbi_result Result, unsigned long long row) {
 	dbi_result_t *result = Result;
 	int retval;
 
-	if (!result || (result->result_state == NOTHING_RETURNED) || (row > result->numrows_matched)) return 0;
+	if (!result || (result->result_state == NOTHING_RETURNED) || (row <= 0) || (row > result->numrows_matched)) return 0;
 
 	if (_is_row_fetched(result, row) == 1) {
 		/* jump right to it */
@@ -1033,7 +1033,11 @@ char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return strdup(ERROR);
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return NULL;
+	if ((result->rows[result->currowidx]->field_sizes[idx] == 0) && (result->rows[result->currowidx]->field_values[idx].d_string == NULL)) {
+		// mysql returns 0 for the field size of an empty string, so size==0
+		// doesn't necessarily mean NULL
+		return NULL;
+	}
 
 	newstring = strdup(result->rows[result->currowidx]->field_values[idx].d_string);
 

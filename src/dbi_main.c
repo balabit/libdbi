@@ -466,7 +466,7 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) {
 
 /* DRIVER: option manipulation */
 
-int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value) {
+int dbi_conn_set_option(dbi_conn Conn, const char *key, const char *value) {
 	dbi_conn_t *conn = Conn;
 	dbi_option_t *option;
 	

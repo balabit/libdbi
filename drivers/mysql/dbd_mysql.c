@@ -377,7 +377,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned long long rowi
 		row->field_sizes[curfield] = 0;
 		/* this will be set to the string size later on if the field is indeed a string */
 
-		if (strsizes[curfield] == 0) {
+		if ((strsizes[curfield] == 0) && (raw == NULL)) {
 			curfield++;
 			continue;
 		}

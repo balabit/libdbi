@@ -86,7 +86,7 @@ const char *dbi_driver_get_date_compiled(dbi_driver Driver);
 dbi_conn dbi_conn_new(const char *name); /* shortcut for dbi_conn_open(dbi_driver_open("foo")) */
 dbi_conn dbi_conn_open(dbi_driver Driver); /* returns an actual instance of the conn */
 dbi_driver dbi_conn_get_driver(dbi_conn Conn);
-int dbi_conn_set_option(dbi_conn Conn, const char *key, char *value); /* if value is NULL, remove option from list */
+int dbi_conn_set_option(dbi_conn Conn, const char *key, const char *value); /* if value is NULL, remove option from list */
 int dbi_conn_set_option_numeric(dbi_conn Conn, const char *key, int value);
 const char *dbi_conn_get_option(dbi_conn Conn, const char *key);
 int dbi_conn_get_option_numeric(dbi_conn Conn, const char *key);
