@@ -59,7 +59,7 @@
 #define longtype long long
 #define ulongtype unsigned long long
 
-#ifndef HAVE_STRTOLL /* this conditional encloses the rest of the file */
+#ifndef HAVE_STRTOLL /* this conditional encloses the rest of the file (except atoll) */
 
 #ifdef UNSIGNED
 #	define function ulongtype strtoull
@@ -210,5 +210,5 @@ noconv:
 longtype atoll(const char *str) {
   return strtoll(str, (char **)NULL, 10);
 }
-#endif
+#endif /* !HAVE_ATOLL */
 

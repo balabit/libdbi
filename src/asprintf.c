@@ -1,5 +1,6 @@
 /*
- *
+ * ripped from gcc
+ * $Id$
  */
 
 #ifdef HAVE_CONFIG_H

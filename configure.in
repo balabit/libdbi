@@ -98,6 +98,8 @@ esac
 
 AC_CHECK_FUNCS(strtoll)
 AC_REPLACE_FUNCS(atoll)
+AC_CHECK_FUNCS(vasprintf)
+AC_REPLACE_FUNCS(asprintf)
 AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ ])
 
 dnl ==============================
