@@ -87,6 +87,7 @@ char *strcpy_safe(char *str1, char *str2)
 
 void free_row( dbi_row_t *row)
 {
+	/* Needs to loop for each row, and loop for each field_* */
 	free(row->field_values);
 	free(row->field_names);
 	free(row->field_types);
@@ -376,10 +377,14 @@ int dbd_fetch_row( dbi_result_t *result )
 
 	/* Incrementor */
 	int i;
+	char *string=NULL;
+	long *len=NULL;
 
 	/* Grab Row */
 	myrow = (MYSQL_ROW*) malloc(sizeof(MYSQL_ROW));
 	*myrow = mysql_fetch_row(myres);
+
+	len = mysql_fetch_lengths(myres);
 
 	return NULL;
 	
@@ -471,12 +476,64 @@ int dbd_fetch_row( dbi_result_t *result )
 				row->field_types[i] = DBI_TYPE_STRING;
 			break;
 		}
+		/* In all code, replace len with myfield->length */
+
+		string = (char*) malloc(sizeof(char) * (len[i] + 1));
+		if(!string) return -1;
+
+		string[len[i]] = '\0';
+		memcpy((void*)string, (void*)myrow,len[i][i]);
+		myrow += len[i];
+
+		if(row->field_types[i] == DBI_TYPE_INTEGER){
+			if(row->field_type_attributes[i] & DBI_INTEGER_SIZE4){
+				row->field_values[i] = malloc(sizeof(short));
+
+				if(row->field_type_attributes[i] & DBI_INTEGER_UNSIGNED)
+					*(row->field_values[i]) = (unsigned short) atoi(string);
+				else
+					*(row->field_values[i]) = (short) atoi(string);
+			} else {
+				row->field_values[i] = malloc(sizeof(long));
+				*(row->field_values[i]) = (long) atol(string);
+			}
+		}else if(row->field_types[i] == DBI_TYPE_DECIMAL){
+			
+			row->field_values[i] = malloc(sizeof(double));
+			*(row->field_values[i]) = (double) atof(string);
+			
+		} else if(row->field_types[i] == DBI_TYPE_STRING){
+			
+			if(index(string, (int)'\0') != string[len[i]]){/* beware of OBOEs */
+				
+				field_types[i] = DBI_TYPE_BINARY;
+				field_values[i] = malloc(sizeof(char*))
+				
+				*(field_values[i]) = malloc(sizeof(char) * len[i]);
+				
+				memcpy((void*)*(field_values[i]), (void*)string, len[i]);
+				field_type_attributes[i] = len[i];
+			} else {
+				field_values[i] = malloc(sizeof(char*));
+				*(field_values[i]) = malloc(sizeof(char) *(len[i]+1));
+				strcpy((char*)*(field_values[i]), string);
+			}
+		}
+		free(string);
+
 	}
+	/* am i supposed to free the rows??*/
 
 	row->field_names[i] = NULL;
 	row->field_types[i] = NULL;
 	row->field_type_attributes[i] = NULL;
 	row->field_values[i] = NULL;
+
+	free_row(result->row);
+
+	result->row = row;
+
+	return 0;
 }
 
 /*****************************************************************************/
