@@ -577,6 +577,21 @@ dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) {
 	return (dbi_result)result;
 }
 
+dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, unsigned long st_length) {
+	dbi_conn_t *conn = Conn;
+	dbi_result_t *result;
+
+	if (!conn) return NULL;
+
+	result = conn->driver->functions->query_null(conn, statement, st_length);
+
+	if (result == NULL) {
+		_error_handler(conn);
+	}
+	
+	return (dbi_result)result;
+}
+
 int dbi_conn_select_db(dbi_conn Conn, const char *db) {
 	dbi_conn_t *conn = Conn;
 	char *retval;
@@ -640,6 +655,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
 			((driver->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
 			((driver->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
+			((driver->functions->query_null = dlsym(dlhandle, "dbd_query_null")) == NULL) || dlerror() ||
 			((driver->functions->quote_string = dlsym(dlhandle, "dbd_quote_string")) == NULL) || dlerror() ||
 			((driver->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
 			((driver->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
@@ -791,7 +807,7 @@ void _error_handler(dbi_conn_t *conn) {
 }
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax) {
-	/* hahaha! who woulda ever thunk strawberry's code would come in handy? --David */
+	/* hahaha! who woulda ever thunk strawberry's code would come in handy? */
 	unsigned short startbit = log(rangemin)/log(2);
 	unsigned short endbit = log(rangemax)/log(2);
 	unsigned long attrib_mask = 0;

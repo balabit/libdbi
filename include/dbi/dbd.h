@@ -41,6 +41,7 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row);
 dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern);
 dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db);
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
+dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length);
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 char *dbd_select_db(dbi_conn_t *conn, const char *db);
 int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);

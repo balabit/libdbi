@@ -47,7 +47,7 @@ static const dbi_info_t driver_info = {
 	"MySQL database support (using libmysqlclient6)",
 	"Mark M. Tobenkin <mark@brentwoodradio.com>",
 	"http://libdbi.sourceforge.net",
-	"dbd_mysql v0.02",
+	"dbd_mysql v" VERSION,
 	__DATE__
 };
 
@@ -200,6 +200,27 @@ dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {
 	MYSQL_RES *res;
 	
 	if (mysql_query((MYSQL *)conn->connection, statement)) {
+		_error_handler(conn);
+		return NULL;
+	}
+	
+	res = mysql_store_result((MYSQL *)conn->connection);
+	
+	if (!res) {
+		_error_handler(conn);
+		return NULL;
+	}
+
+	result = _dbd_result_create(conn, (void *)res, mysql_num_rows(res), mysql_affected_rows((MYSQL *)conn->connection));
+
+	return result;
+}
+
+dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length) {
+	dbi_result_t *result;
+	MYSQL_RES *res;
+	
+	if (mysql_real_query((MYSQL *)conn->connection, statement, st_length)) {
 		_error_handler(conn);
 		return NULL;
 	}
