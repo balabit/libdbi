@@ -210,6 +210,10 @@ char *dbd_select_db(dbi_driver_t *driver, const char *db) {
 int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	/* put error number into errno, error string into errstr
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
+
+	if (strcmp("",mysql_error((MYSQL *)driver->connection)) == 0) {
+		return -1;
+	}
 	
 	if (!driver->connection) {
 		_internal_error_handler(driver, "No connection found", 0);
