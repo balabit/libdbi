@@ -70,7 +70,7 @@
 			initiallization and made available to the programmer. Once a plugin is
 			<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
 			called a <Quote>driver</Quote>. Multiple drivers may exist for a single plugin, and
-			all will function independantly of each other.
+			all will function independently of each other.
 		</Para>
 	</Section>
 	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>

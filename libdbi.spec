@@ -6,7 +6,7 @@ Summary:	Database Independent Abstraction Layer for C
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
-Group:		Libraries/Multimedia
+Group:		Development/Libraries
 Copyright:	LGPL
 URL:		http://libdbi.sourceforge.net/
 Vendor:		Neon Goat Productions
@@ -21,7 +21,7 @@ The plugin architecture allows for new database drivers to be easily added by a
 third party.
 
 %package devel
-Summary: Database Independent Abstraction Layer development
+Summary: Development files for libdbi (Database Independent Abstraction Layer for C)
 Group: Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
