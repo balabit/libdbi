@@ -14,7 +14,7 @@
 	* support for queries with NULL characters
 	* additional helper functions for driver authors
 	* pattern matching ability for listing dbs/tables
-	* minor changes to option handling 
+	* minor changes to option handling
 
 2002-02-10  David A. Parker  <david at neongoat dot com>
 	

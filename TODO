@@ -1,5 +1,8 @@
 $Id$
 
+- ability to completely disjoin result sets
+- prepared statements!
+- table introspection
 - add binding by index, mass-field functions by index
 - more sanity checking in get and get_idx functions
 - revamp error handling

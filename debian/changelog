@@ -1,3 +1,9 @@
+libdbi (0.6.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- David Parker <david@neongoat.com>  Fri, 14 Jun 2002 17:02:25 -0700
+
 libdbi (0.6.4-1) unstable; urgency=low
 
   * Initial Release.
