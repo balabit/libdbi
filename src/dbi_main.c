@@ -354,7 +354,7 @@ int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest) {
 	return conn->error_number;
 }
 
-void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument) {
+void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function, void *user_argument) {
 	dbi_conn_t *conn = Conn;
 	conn->error_handler = function;
 	if (function == NULL) {
@@ -802,7 +802,7 @@ void _error_handler(dbi_conn_t *conn) {
 	
 	if (conn->error_handler != NULL) {
 		/* trigger the external callback function */
-		conn->error_handler(conn, conn->error_handler_argument);
+		conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
 	}
 }
 

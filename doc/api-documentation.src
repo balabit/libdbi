@@ -281,13 +281,13 @@ NAME dbi_conn_error
 *
 
 NAME dbi_conn_error_handler
-	PROTO void dbi_conn_error_handler(dbi_conn Conn, void *function, void *user_argument)
+	PROTO void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function, void *user_argument)
 	DESC-VERBATIM
 	<Para>
-		Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters:
+		Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters (and return nothing):
 	</Para>
 	<ItemizedList>
-		<ListItem><Para>dbi_conn_t *connection: a pointer to the connection that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
+		<ListItem><Para>dbi_conn Conn: the connection object that triggered the error, from which dbi_conn_error() can be called, and</Para></ListItem>
 		<ListItem><Para>void *user_argument: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
 	</ItemizedList>
 	<Para>

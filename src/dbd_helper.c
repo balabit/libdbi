@@ -113,7 +113,7 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 	conn->error_message = strdup(errmsg);
 
 	if (conn->error_handler != NULL) {
-		conn->error_handler(conn, conn->error_handler_argument);
+		conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
 	}
 }
 

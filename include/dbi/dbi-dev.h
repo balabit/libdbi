@@ -27,6 +27,8 @@
 extern "C" {
 #endif
 
+#include <dbi/dbi.h> /* for dbi_conn_error_handler_func */
+
 /*********************
  * SQL RELATED TYPES *
  *********************/
@@ -138,7 +140,7 @@ typedef struct dbi_conn_s {
 	char *current_db;
 	int error_number; /*XXX*/
 	char *error_message; /*XXX*/
-	void *error_handler;
+	dbi_conn_error_handler_func error_handler;
 	void *error_handler_argument;
 	struct dbi_conn_s *next; /* so libdbi can unload all conns at exit */
 } dbi_conn_t;
