@@ -1,0 +1,42 @@
+Source: libdbi
+Priority: optional
+Maintainer: David Parker <david@neongoat.com>
+Build-Depends: debhelper (>> 3.0.0), libmysqlclient10, zlib1g (>= 1:1.1.4), libpgsql2 (>= 7.2)
+Standards-Version: 3.5.2
+
+Package: libdbi-dev
+Section: devel
+Architecture: any
+Depends: libdbi0 (= ${Source-Version})
+Description: Database Independent Abstraction Layer for C (dev files)
+ The libdbi-dev package contains the header files, static libraries,
+ and documentation needed to develop applications with libdbi.
+
+Package: libdbi0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: libdbd-mysql | libdbd-pgsql
+Description: Database Independent Abstraction Layer for C
+ libdbi implements a database-independent abstraction layer in C, similar to the
+ DBI/DBD layer in Perl. Writing one generic set of code, programmers can
+ leverage the power of multiple databases and multiple simultaneous database
+ connections by using this framework.
+
+Package: libdbd-mysql
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: MySQL database server driver for libdbi
+ This driver provides connectivity to MySQL database servers through the
+ libdbi Database Independent Abstraction Layer. Switching a program's driver
+ does not require recompilation or rewriting source code.
+
+Package: libdbd-pgsql
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: PostgreSQL database server driver for libdbi
+ This driver provides connectivity to PostgreSQL database servers through the
+ libdbi Database Independent Abstraction Layer. Switching a program's driver
+ does not require recompilation or rewriting source code.
