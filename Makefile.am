@@ -5,9 +5,9 @@ AUTOMAKE_OPTIONS = foreign dist-zip
 SUBDIRS = src include doc plugins debian
 
 #m4datadir = $(datadir)/aclocal
-#m4data_DATA = ao.m4
+#m4data_DATA = dbi.m4
 
-EXTRA_DIST = 
+EXTRA_DIST = AUTHORS COPYING INSTALL README TODO libdbi.spec
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

@@ -1,1 +1,2 @@
-usr/lib/dbd/libtemplate.*
+usr/lib/dbd/libtemplate.la
+usr/lib/dbd/libtemplate.so
