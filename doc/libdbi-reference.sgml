@@ -1,300 +1,299 @@
 <!--
 $Id$
 Copyright (C) 2001, David Parker, Neon Goat Productions.
-This document is licensed under the GNU Free Documentation License.
+This document is licensed under the GNU Free Documentation License, version 1.1 or later, as
+published by the Free Software Foundation.
 -->
 <Chapter id="reference"><Title>Libdbi API Reference</Title>
 	<Section id="reference-infra"><Title>Plugin Infrastructure</Title>
-		<Section id="reference-infra-maintain"><Title>Plugin Maintainance</Title>
-			<Section id="dbi-initialize"><Title>dbi_initialize</Title>
-				<Para><ProgramListing>int dbi_initialize(const char *plugindir)</ProgramListing></Para>
-				<Para>Locates all available shared modules (plugins) and loads them into memory.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugindir</Literal>: The directory to search for plugins. If NULL, DBI_PLUGIN_DIR will be used instead.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>The number of plugins successfully loaded, or -1 if there was an error.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-list-plugins"><Title>dbi_list_plugins</Title>
-				<Para><ProgramListing>dbi_plugin_t *dbi_list_plugins()</ProgramListing></Para>
-				<Para>Allows the program to traverse the linked list of plugins, querying the name of each one.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A pointer to the first plugin, or NULL if none were found. The last item in the list will point to a NULL.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-open-plugin"><Title>dbi_open_plugin</Title>
-				<Para><ProgramListing>dbi_plugin_t *dbi_open_plugin(const char *name)</ProgramListing></Para>
-				<Para>Goes through the linked list until it finds the correct plugin.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>name</Literal>: The short name of the desired plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A pointer to the target plugin. NULL if plugin is not found.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-load-driver"><Title>dbi_load_driver</Title>
-				<Para><ProgramListing>dbi_driver_t *dbi_load_driver(const char *name)</ProgramListing></Para>
-				<Para>Creates an actual driver instance from the plugin. This is just a shortcut for calling dbi_open_plugin() and then dbi_start_driver().</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>name</Literal>: The short name of the desired plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>An initialized driver instance, ready to be filled with options and connected. NULL on failure.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-start-driver"><Title>dbi_start_driver</Title>
-				<Para><ProgramListing>dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Creates an actual driver instance from the plugin.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: A pointer to the plugin to instantiate.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>An initialized driver instance, ready to be filled with options and connected. NULL on failure.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-set-option"><Title>dbi_set_option</Title>
-				<Para><ProgramListing>void dbi_set_option(dbi_driver_t *driver, const char *key, char *value)</ProgramListing></Para>
-				<Para>Sets the specified driver option to a string value. If the value is set to NULL, the entire option entry will be erased.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-							<Para><Literal>key</Literal>: The name of the target setting. Must only contain [A-Za-z1-9] and _.</Para>
-							<Para><Literal>value</Literal>: The string value of the target setting.</Para>
-						</ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-set-option-numeric"><Title>dbi_set_option_numeric</Title>
-				<Para><ProgramListing>void dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value)</ProgramListing></Para>
-				<Para>Sets the specified driver option to a numeric value.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-							<Para><Literal>key</Literal>: The name of the target setting. Must only contain [A-Za-z1-9] and _.</Para>
-							<Para><Literal>value</Literal>: The numeric value of the target setting.</Para>
-						</ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-clear-options"><Title>dbi_clear_options</Title>
-				<Para><ProgramListing>void dbi_clear_options(dbi_driver_t *driver)</ProgramListing></Para>
-				<Para>Clears the entire list of options for the specified driver.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-						</ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-custom-function"><Title>dbi_custom_function</Title>
-				<Para><ProgramListing>void *dbi_custom_function(dbi_plugin_t *plugin, const char *name)</ProgramListing></Para>
-				<Para>Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but its syntax is not elegant and will restrict your code to one particular database, lessening the benefits of using libdbi.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-							<Para><Literal>name</Literal>: The name of the custom function.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>If the custom function is found, a pointer to that function. If not, returns NULL.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-is-reserved-word"><Title>dbi_is_reserved_word</Title>
-				<Para><ProgramListing>int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word)</ProgramListing></Para>
-				<Para>Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-							<Para><Literal>word</Literal>: The word to check against the reserved word list.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>-1 if an error occurs, 0 if the word is not reserved, 1 otherwise.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-close-driver"><Title>dbi_close_driver</Title>
-				<Para><ProgramListing>void dbi_close_driver(dbi_driver_t *driver)</ProgramListing></Para>
-				<Para>Disconnects the specified driver connection from the database and cleans up the driver session.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-						</ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-shutdown"><Title>dbi_shutdown</Title>
-				<Para><ProgramListing>void dbi_shutdown()</ProgramListing></Para>
-				<Para>Frees all loaded plugins and terminates the DBI system. You should close each driver before shutting down, or else shit will fly.</Para>
-			</Section>
-		</Section>
-		<Section id="reference-infra-info"><Title>Plugin Information</Title>
-			<Section id="dbi-plugin-name"><Title>dbi_plugin_name</Title>
-				<Para><ProgramListing>const char *dbi_plugin_name(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the name of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin's name.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-filename"><Title>dbi_plugin_filename</Title>
-				<Para><ProgramListing>const char *dbi_plugin_filename(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the filename of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin's full path and file name.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-description"><Title>dbi_plugin_description</Title>
-				<Para><ProgramListing>const char *dbi_plugin_description(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests a description of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin's description. It will be one or two short sentences with no newlines.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-maintainer"><Title>dbi_plugin_maintainer</Title>
-				<Para><ProgramListing>const char *dbi_plugin_maintainer(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the maintainer of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin maintainer's full name and email address.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-url"><Title>dbi_plugin_url</Title>
-				<Para><ProgramListing>const char *dbi_plugin_url(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin's URL.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-version"><Title>dbi_plugin_version</Title>
-				<Para><ProgramListing>const char *dbi_plugin_version(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the version of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the plugin's version.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-plugin-date-compiled"><Title>dbi_plugin_date_compiled</Title>
-				<Para><ProgramListing>const char *dbi_plugin_date_compiled(dbi_plugin_t *plugin)</ProgramListing></Para>
-				<Para>Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>plugin</Literal>: The target plugin.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the date the plugin was compiled.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-version"><Title>dbi_version</Title>
-				<Para><ProgramListing>const char *dbi_version()</ProgramListing></Para>
-				<Para>Requests the version of libdbi. The calling program must not attempt to free the returned string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>A string containing the library's name and version.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-		</Section>
+		 <Section id="dbi-initialize"><Title>dbi_initialize</Title>
+			 <Para><ProgramListing>int dbi_initialize(const char *plugindir)</ProgramListing></Para>
+			 <Para>Locates all available shared modules (plugins) and loads them into memory.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugindir</Literal>: The directory to search for plugins. If NULL, DBI_PLUGIN_DIR will be used instead.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>The number of plugins successfully loaded, or -1 if there was an error.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-list-plugins"><Title>dbi_list_plugins</Title>
+			 <Para><ProgramListing>dbi_plugin_t *dbi_list_plugins()</ProgramListing></Para>
+			 <Para>Allows the program to traverse the linked list of plugins, querying the name of each one.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A pointer to the first plugin, or NULL if none were found. The last item in the list will point to a NULL.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-open-plugin"><Title>dbi_open_plugin</Title>
+			 <Para><ProgramListing>dbi_plugin_t *dbi_open_plugin(const char *name)</ProgramListing></Para>
+			 <Para>Goes through the linked list until it finds the correct plugin.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>name</Literal>: The short name of the desired plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A pointer to the target plugin. NULL if plugin is not found.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-load-driver"><Title>dbi_load_driver</Title>
+			 <Para><ProgramListing>dbi_driver_t *dbi_load_driver(const char *name)</ProgramListing></Para>
+			 <Para>Creates an actual driver instance from the plugin. This is just a shortcut for calling dbi_open_plugin() and then dbi_start_driver().</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>name</Literal>: The short name of the desired plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>An initialized driver instance, ready to be filled with options and connected. NULL on failure.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-start-driver"><Title>dbi_start_driver</Title>
+			 <Para><ProgramListing>dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Creates an actual driver instance from the plugin.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: A pointer to the plugin to instantiate.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>An initialized driver instance, ready to be filled with options and connected. NULL on failure.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-set-option"><Title>dbi_set_option</Title>
+			 <Para><ProgramListing>void dbi_set_option(dbi_driver_t *driver, const char *key, char *value)</ProgramListing></Para>
+			 <Para>Sets the specified driver option to a string value. If the value is set to NULL, the entire option entry will be erased.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
+						 <Para><Literal>key</Literal>: The name of the target setting. Must only contain [A-Za-z1-9] and _.</Para>
+						 <Para><Literal>value</Literal>: The string value of the target setting.</Para>
+					 </ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-set-option-numeric"><Title>dbi_set_option_numeric</Title>
+			 <Para><ProgramListing>void dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value)</ProgramListing></Para>
+			 <Para>Sets the specified driver option to a numeric value.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
+						 <Para><Literal>key</Literal>: The name of the target setting. Must only contain [A-Za-z1-9] and _.</Para>
+						 <Para><Literal>value</Literal>: The numeric value of the target setting.</Para>
+					 </ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-clear-options"><Title>dbi_clear_options</Title>
+			 <Para><ProgramListing>void dbi_clear_options(dbi_driver_t *driver)</ProgramListing></Para>
+			 <Para>Clears the entire list of options for the specified driver.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
+					 </ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-custom-function"><Title>dbi_custom_function</Title>
+			 <Para><ProgramListing>void *dbi_custom_function(dbi_plugin_t *plugin, const char *name)</ProgramListing></Para>
+			 <Para>Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but its syntax is not elegant and will restrict your code to one particular database, lessening the benefits of using libdbi.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+						 <Para><Literal>name</Literal>: The name of the custom function.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>If the custom function is found, a pointer to that function. If not, returns NULL.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-is-reserved-word"><Title>dbi_is_reserved_word</Title>
+			 <Para><ProgramListing>int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word)</ProgramListing></Para>
+			 <Para>Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+						 <Para><Literal>word</Literal>: The word to check against the reserved word list.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>-1 if an error occurs, 0 if the word is not reserved, 1 otherwise.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-close-driver"><Title>dbi_close_driver</Title>
+			 <Para><ProgramListing>void dbi_close_driver(dbi_driver_t *driver)</ProgramListing></Para>
+			 <Para>Disconnects the specified driver connection from the database and cleans up the driver session.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
+					 </ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-shutdown"><Title>dbi_shutdown</Title>
+			 <Para><ProgramListing>void dbi_shutdown()</ProgramListing></Para>
+			 <Para>Frees all loaded plugins and terminates the DBI system. You should close each driver before shutting down, or else shit will fly.</Para>
+		 </Section>
+	 </Section>
+	 <Section id="reference-infra-info"><Title>Plugin Information</Title>
+		 <Section id="dbi-plugin-name"><Title>dbi_plugin_name</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_name(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the name of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin's name.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-filename"><Title>dbi_plugin_filename</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_filename(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the filename of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin's full path and file name.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-description"><Title>dbi_plugin_description</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_description(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests a description of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin's description. It will be one or two short sentences with no newlines.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-maintainer"><Title>dbi_plugin_maintainer</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_maintainer(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the maintainer of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin maintainer's full name and email address.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-url"><Title>dbi_plugin_url</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_url(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin's URL.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-version"><Title>dbi_plugin_version</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_version(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the version of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the plugin's version.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-plugin-date-compiled"><Title>dbi_plugin_date_compiled</Title>
+			 <Para><ProgramListing>const char *dbi_plugin_date_compiled(dbi_plugin_t *plugin)</ProgramListing></Para>
+			 <Para>Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>plugin</Literal>: The target plugin.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the date the plugin was compiled.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-version"><Title>dbi_version</Title>
+			 <Para><ProgramListing>const char *dbi_version()</ProgramListing></Para>
+			 <Para>Requests the version of libdbi. The calling program must not attempt to free the returned string.</Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para>A string containing the library's name and version.</Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
 	</Section>
 	<Section id="reference-database"><Title>SQL and Database Layer</Title>
 		<Section id="dbi-connect"><Title>dbi_connect</Title>

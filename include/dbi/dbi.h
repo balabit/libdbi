@@ -1,7 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE).
- * Copyright (C) David Parker and Mark Tobenkin.
+ * Copyright (C) 2001, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -41,13 +40,34 @@ extern "C" {
 typedef struct dbi_plugin_s *dbi_plugin_t_pointer;
 typedef struct dbi_driver_s *dbi_driver_t_pointer;
 
+typedef union dbi_data_s {
+	char d_char;
+	short d_short;
+	long d_long;
+	long long d_longlong;
+	float d_float;
+	double d_double;
+	char *d_string;
+} dbi_data_t;
+
+typedef struct dbi_field_s {
+	char *name;
+	short type;
+	unsigned int attributes;
+	unsigned int size;
+	dbi_data_t data;
+	struct dbi_field_s *next;
+} dbi_field_t;
+
 typedef struct dbi_row_s {
 	void *row_handle; /* will be typecast into driver-specific type */
 	unsigned int numfields;
-	char **field_names;
+/*	char **field_names;
 	unsigned short *field_types;
-	unsigned short *field_type_attributes;
+	unsigned int *field_type_attributes;
 	void **field_values;
+	unsigned int *field_sizes; */
+	dbi_field_t *fields;
 	struct dbi_row_s *next; /* NULL, unless we slurp all available rows at once */
 } dbi_row_t;
 
@@ -57,6 +77,7 @@ typedef struct dbi_result_s {
 	unsigned long numrows_matched;
 	unsigned long numrows_affected; /* not all servers differentiate rows changed from rows matched, so this may be zero */
 	dbi_row_t *row;
+	void *field_bindings; /* keep it as a neutral pointer so that changes to the internal binding structure won't affect programs in any way */
 } dbi_result_t; 
 
 
@@ -65,6 +86,8 @@ typedef struct dbi_result_s {
 #define DBI_TYPE_DECIMAL 2
 #define DBI_TYPE_STRING 3
 #define DBI_TYPE_BINARY 4
+#define DBI_TYPE_ENUM 5
+#define DBI_TYPE_SET 6
 
 /* values for the bitmask in field_type_attributes[] */
 #define DBI_INTEGER_UNSIGNED 1
@@ -105,8 +128,7 @@ typedef struct dbi_functions_s {
 	int (*initialize)(dbi_plugin_t_pointer);
 	int (*connect)(dbi_driver_t_pointer);
 	int (*disconnect)(dbi_driver_t_pointer);
-	int (*fetch_field)(dbi_result_t *, const char *, void **);
-	int (*fetch_field_raw)(dbi_result_t *, const char *, unsigned char **);
+	/* int (*fetch_field)(dbi_result_t *, const char *, void **); --- not sure if we'll need this again */
 	int (*fetch_row)(dbi_result_t *);
 	int (*free_query)(dbi_result_t *);
 	const char **(*get_custom_functions_list)();
@@ -147,11 +169,12 @@ typedef struct dbi_driver_s {
 	dbi_option_t *options;
 	void *connection; /* will be typecast into driver-specific type */
 	char *current_db;
-	int status; /* unused, as of now */
-	int error_number;
-	char *error_message;
+	int status; /* XXX unused, as of now */
+	int error_number; /*XXX*/
+	char *error_message; /*XXX*/
 	void *error_handler;
 	void *error_handler_argument;
+	struct dbi_driver_s *next; /* so libdbi can unload all drivers at exit */
 } dbi_driver_t;
 
 
@@ -169,6 +192,7 @@ int dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value);
 const char *dbi_get_option(dbi_driver_t *driver, const char *key);
 int dbi_get_option_numeric(dbi_driver_t *driver, const char *key);
 void dbi_clear_options(dbi_driver_t *driver);
+dbi_option_t *dbi_list_options(dbi_driver_t *driver);
 void *dbi_custom_function(dbi_plugin_t *plugin, const char *name);
 int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word);
 void dbi_close_driver(dbi_driver_t *driver); /* disconnects database link and cleans up the driver's session */
@@ -189,8 +213,6 @@ const char *dbi_version();
  ***********************/
 
 int dbi_connect(dbi_driver_t *driver); /* host and login info already stored in driver's info table */
-int dbi_fetch_field(dbi_result_t *result, const char *key, void **dest);
-int dbi_fetch_field_raw(dbi_result_t *result, const char *key, unsigned char **binary_dest); /* doesn't autodetect field types. should this stay here? */
 int dbi_fetch_row(dbi_result_t *result);
 int dbi_free_query(dbi_result_t *result);
 int dbi_goto_row(dbi_result_t *result, unsigned int row);
@@ -199,8 +221,55 @@ dbi_result_t *dbi_list_tables(dbi_driver_t *driver, const char *db);
 unsigned int dbi_num_rows(dbi_result_t *result); /* number of rows in result set */
 unsigned int dbi_num_rows_affected(dbi_result_t *result);
 dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...); 
-dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...); /* better name instead of efficient_query? this will only request one row at a time, but has the downside that other queries can't be made until this one is closed. at least that's how it works in mysql, so it has to be the common denominator */
 int dbi_select_db(dbi_driver_t *driver, const char *db);
+
+/* dbi_get functions */
+
+signed char dbi_get_char(dbi_result_t *result, const char *fieldname);
+unsigned char dbi_get_uchar(dbi_result_t *result, const char *fieldname);
+short dbi_get_short(dbi_result_t *result, const char *fieldname);
+unsigned short dbi_get_ushort(dbi_result_t *result, const char *fieldname);
+long dbi_get_long(dbi_result_t *result, const char *fieldname);
+unsigned long dbi_get_ulong(dbi_result_t *result, const char *fieldname);
+long long dbi_get_longlong(dbi_result_t *result, const char *fieldname);
+unsigned long long dbi_get_ulonglong(dbi_result_t *result, const char *fieldname);
+
+float dbi_get_float(dbi_result_t *result, const char *fieldname);
+double dbi_get_double(dbi_result_t *result, const char *fieldname);
+
+const char *dbi_get_string(dbi_result_t *result, const char *fieldname);
+const unsigned char *dbi_get_binary(dbi_result_t *result, const char *fieldname);
+
+char *dbi_get_string_copy(dbi_result_t *result, const char *fieldname);
+unsigned char *dbi_get_binary_copy(dbi_result_t *result, const char *fieldname);
+
+const char *dbi_get_enum(dbi_result_t *result, const char *fieldname);
+const char *dbi_get_set(dbi_result_t *result, const char *fieldname);
+
+/* dbi_bind functions */
+
+int dbi_bind_char(dbi_result_t *result, const char *field, char *bindto);
+int dbi_bind_uchar(dbi_result_t *result, const char *field, unsigned char *bindto);
+int dbi_bind_short(dbi_result_t *result, const char *field, short *bindto);
+int dbi_bind_ushort(dbi_result_t *result, const char *field, unsigned short *bindto);
+int dbi_bind_long(dbi_result_t *result, const char *field, long *bindto);
+int dbi_bind_ulong(dbi_result_t *result, const char *field, unsigned long *bindto);
+int dbi_bind_longlong(dbi_result_t *result, const char *field, long long *bindto);
+int dbi_bind_ulonglong(dbi_result_t *result, const char *field, unsigned long long *bindto);
+
+int dbi_bind_float(dbi_result_t *result, const char *field, float *bindto);
+int dbi_bind_double(dbi_result_t *result, const char *field, double *bindto);
+
+int dbi_bind_string(dbi_result_t *result, const char *field, const char *bindto);
+int dbi_bind_binary(dbi_result_t *result, const char *field, const unsigned char *bindto);
+
+int dbi_bind_string_copy(dbi_result_t *result, const char *field, char **bindto);
+int dbi_bind_binary_copy(dbi_result_t *result, const char *field, unsigned char **bindto);
+
+int dbi_bind_enum(dbi_result_t *result, const char *field, const char *bindto);
+int dbi_bind_set(dbi_result_t *result, const char *field, const char *bindto);
+
+/* error handling */
 
 int dbi_error(dbi_driver_t *driver, char *errmsg_dest);
 void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument); /* registers a callback that's activated when the database encounters an error (this could be dangerous!) */

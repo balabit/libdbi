@@ -1,7 +1,6 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE).
- * Copyright (C) David Parker and Mark Tobenkin.
+ * Copyright (C) 2001, David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
