@@ -49,10 +49,13 @@ int main() {
 	//dbi_result_bind_long(result, "id", &id);
 	//dbi_result_bind_string(result, "name", &name);
 	//dbi_result_bind_double(result, "weight", &weight);
-	dbi_result_bind_fields(result, "%d.weight %l.id %s.name", &weight, &id, &name);
+	dbi_result_bind_fields(result, "weight.%d id.%l name.%s", &weight, &id, &name);
 	
 	while (result && dbi_result_next_row(result)) {
-		//dbi_result_get_fields(result, "%d.weight %l.id %s.name", &weight, &id, &name);
+		//id = dbi_result_get_long(result, "id");
+		//weight = dbi_result_get_double(result, "weight");
+		//name = dbi_result_get_string("name");
+		//dbi_result_get_fields(result, "weight.%d id.%l name.%s", &weight, &id, &name);
 		printf("%i. %s\t\t\t%0.4f\n", id, name, weight);
 	}
 	printf("\nDone fetching available rows...\n");

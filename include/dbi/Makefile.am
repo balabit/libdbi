@@ -4,4 +4,4 @@ AUTOMAKE_OPTIONS = foreign
 
 includedir = $(prefix)/include/dbi
 
-include_HEADERS = dbi.h
+include_HEADERS = dbi.h dbi-dev.h

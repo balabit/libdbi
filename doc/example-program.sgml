@@ -22,7 +22,7 @@ int main() {
 
     dbi_driver_connect(driver);
     result = dbi_driver_query(driver, "SELECT id, name FROM coders"
-	                                  "WHERE hours_of_sleep > %0.2f", threshold);
+                                      "WHERE hours_of_sleep > %0.2f", threshold);
     
     while (dbi_result_next_row(result)) {
         idnumber = dbi_result_get_long(result, "id");

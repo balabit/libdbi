@@ -20,8 +20,8 @@
  * $Id$
  */
 
-#ifndef __DBI_MAIN_H__
-#define __DBI_MAIN_H__
+#ifndef __DBI_DEV_H__
+#define __DBI_DEV_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,4 +145,4 @@ typedef struct dbi_driver_s {
 }
 #endif /* __cplusplus */
 
-#endif	/* __DBI_MAIN_H__ */
+#endif	/* __DBI_DEV_H__ */

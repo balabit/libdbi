@@ -33,7 +33,7 @@
 #include <limits.h>
 
 #include <dbi/dbi.h>
-#include "dbi_main.h"
+#include <dbi/dbi-dev.h>
 
 #define LIBDBI_VERSION "0.5"
 

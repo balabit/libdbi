@@ -29,8 +29,7 @@
 #include <string.h>
 
 #include <dbi/dbi.h>
-#include "../../src/dbi_main.h"
-/* any database library includes */
+#include <dbi/dbi-dev.h>
 
 
 /*******************************

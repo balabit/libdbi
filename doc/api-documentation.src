@@ -440,7 +440,7 @@ NAME dbi_result_get_field_length
 NAME dbi_result_get_fields
 	PROTO int dbi_result_get_fields(dbi_result Result, const char *format, ...)
 	DESC-VERBATIM
-	<Para>Fetch multiple fields from the current result set, using a printf-like syntax. The formatter string specified field names and types, and each field's associated destination variable is passed as an argument following the format string. Fields in the formatter string are separated by spaces, and follow the format "%a.b", where "a" is the field type specifier, and "b" is the name of the field. Make sure you pass the destination variables' memory addresses by prepending the &amp; operator to each variable's name.</Para>
+	<Para>Fetch multiple fields from the current result set, using a printf-like syntax. The formatter string specified field names and types, and each field's associated destination variable is passed as an argument following the format string. Fields in the formatter string are separated by spaces, and follow the format <Literal>"a.%b"</Literal>, where "a" is the name of the field, and "b" is the field type specifier. Make sure you pass the destination variables' memory addresses by prepending the &amp; operator to each variable's name.</Para>
 	<Para><Emphasis>Field type specifiers:</Emphasis></Para>
 	<ItemizedList>
 		<ListItem><Para><Literal>%c / %uc</Literal>: A signed/unsigned character</Para></ListItem>
@@ -457,7 +457,7 @@ NAME dbi_result_get_fields
 		<ListItem><Para><Literal>%t</Literal>: A read-only string representing a SET</Para></ListItem>
 		<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
 	</ItemizedList>
-	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "%ul.idnum %s.lastname", &id_number, &name)</Literal></Para>
+	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &id_number, &name)</Literal></Para>
 	ENDDESC
 	ARG Result The target query result.
 	ARG format The field format string as described above.
