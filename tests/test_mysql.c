@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <dbi/dbi.h>
+#include <dbi/dbi-dev.h>
 
 int main (int argc, char **argv)
 {
 	dbi_driver_t *driver=NULL;
 	dbi_result_t *result=NULL;
 	dbi_row_t *row=NULL;
-	char *plugdir = NULL;
+	char *plugdir = "/home/mmt/libdbi/lib/lib/dbd";
+	char *query;
+	long example;
 
 	int numplugins;
 
-	if(argc > 0) plugdir = argv[1];
-	
 	
 	numplugins = dbi_initialize(plugdir);
 
@@ -23,7 +24,7 @@ int main (int argc, char **argv)
 	}
 
 
-	driver = dbi_load_driver("mysql");
+	driver = dbi_driver_open("mysql");
 
 	if(driver == NULL){
 		fprintf(stderr, "Can't load mysql driver.\nTest failed.\n");
@@ -31,14 +32,14 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	dbi_set_option(driver, "host", "localhost");
-	dbi_set_option(driver, "username", "");
-	dbi_set_option(driver, "password", "");
-	dbi_set_option(driver, "database", "test");
+	dbi_driver_set_option(driver, "host", "localhost");
+	dbi_driver_set_option(driver, "username", "");
+	dbi_driver_set_option(driver, "password", "");
+	dbi_driver_set_option(driver, "database", "test");
 
 	fprintf(stderr, "Options Set! Connecting...");
 
-	if( dbi_connect(driver) == -1 ){
+	if( dbi_driver_connect(driver) == -1 ){
 		fprintf(stderr, "Connection failed!\nTest failed.\n");
 		dbi_shutdown();
 		return 1;
@@ -50,7 +51,7 @@ int main (int argc, char **argv)
 
 	fprintf(stderr, "Sending Query <%s>...", query);
 
-	result = dbi_query(driver, query);
+	result = dbi_driver_query(driver, query);
 
 	if(result == NULL){
 		fprintf(stderr, "Query failed!\nTest failed.\n");
@@ -62,26 +63,19 @@ int main (int argc, char **argv)
 		result->numrows_matched);
 
 	/* Each Row */
-	while(dbi_fetch_row(result)) {
-		if( dbi_fetch_field(result, "_year", (void**) &p_sshort) == -1 ){
-			fprintf(stderr, "Field fetching failed.\n");
-			break;
-		}
-
-		fprintf(stderr, "Field 'number' Value [%d]\n", sshort);
-
-		precision = -1;
+	while(dbi_result_next_row(result)) {
+		example = dbi_result_get_long(result, "id");
 	}
 
 	fprintf(stderr, "Finished Processing Rows.\n");
 
 	fprintf(stderr, "Freeing result...");
 
-	dbi_free_query(result);
+	dbi_result_free(result);
 
 	fprintf(stderr, "done.\nClosing driver...");
 
-	dbi_close_driver(driver);
+	dbi_driver_close(driver);
 	
 	fprintf(stderr, "done.\nShutting down DBI...");
 
