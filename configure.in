@@ -82,6 +82,8 @@ dnl ==============================
 dnl Check for libraries
 dnl ==============================
 
+dnl functions to load dynamic libraries
+AC_SEARCH_LIBS(dlopen, dl,,)
 
 dnl ==============================
 dnl Check for functions
