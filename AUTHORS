@@ -1,0 +1,18 @@
+
+The following people have been involved in libdbi development:
+
+Main developers:
+* David Parker		<david@neongoat.com>
+* Mark Tobenkin		<mark@brentwoodradio.com>
+
+Plugin developers:
+* MySQL			Mark Tobenkin <mark@brentwoodradio.com>
+
+These people have also contributed patches or ideas, or have done testing:
+
+Thanks:
+* Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
+* The authors of libao, which clued me in to dynamic libraries.
+* Randy Jay Yarger, George Reese, and Tim King (authors of MySQL & mSQL by O'Reilly)
+
+$Id$

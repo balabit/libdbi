@@ -166,12 +166,12 @@ int dbd_goto_row(dbi_result_t *result, unsigned int row) {
 	return 0;
 }
 
-const char **dbd_list_dbs(dbi_driver_t *myself) {
+dbi_result_t *dbd_list_dbs(dbi_driver_t *myself) {
 	/* do whatever's necessary... */
 	return NULL;
 }
 
-const char **dbd_list_tables(dbi_driver_t *myself, const char *db) {
+dbi_result_t *dbd_list_tables(dbi_driver_t *myself, const char *db) {
 	/* do whatever's necessary... */
 	return NULL;
 }

@@ -113,8 +113,8 @@ typedef struct dbi_functions_s {
 	const dbi_info_t *(*get_info)();
 	const char **(*get_reserved_words_list)();
 	int (*goto_row)(dbi_result_t *, unsigned int);
-	const char **(*list_dbs)(dbi_driver_t_pointer);
-	const char **(*list_tables)(dbi_driver_t_pointer, const char *);
+	dbi_result_t *(*list_dbs)(dbi_driver_t_pointer);
+	dbi_result_t *(*list_tables)(dbi_driver_t_pointer, const char *);
 	unsigned int (*num_rows)(dbi_result_t *);
 	unsigned int (*num_rows_affected)(dbi_result_t *);
 	dbi_result_t *(*query)(dbi_driver_t_pointer, const char *);
@@ -145,7 +145,6 @@ typedef struct dbi_driver_s {
 	/* specific instance of a driver -- we can initialize and simultaneously use multiple connections from the same database driver (on different tables or hosts, unless you wanna fubar your data) */
 	dbi_plugin_t *plugin; /* generic unchanging attributes shared by all instances of this driver */
 	dbi_option_t *options;
-	/* dbi_result_t *result; ---- this should be stored by the host program, not the driver. there can be more than one valid result handle at a time */
 	void *connection; /* will be typecast into driver-specific type */
 	char *current_db;
 	int status; /* unused, as of now */
@@ -190,22 +189,21 @@ const char *dbi_version();
  ***********************/
 
 int dbi_connect(dbi_driver_t *driver); /* host and login info already stored in driver's info table */
-/* int dbi_disconnect(dbi_driver_t *driver); ---- this will be done automatically by dbi_close_driver() */
 int dbi_fetch_field(dbi_result_t *result, const char *key, void **dest);
 int dbi_fetch_field_raw(dbi_result_t *result, const char *key, unsigned char **binary_dest); /* doesn't autodetect field types. should this stay here? */
 int dbi_fetch_row(dbi_result_t *result);
 int dbi_free_query(dbi_result_t *result);
 int dbi_goto_row(dbi_result_t *result, unsigned int row);
-const char **dbi_list_dbs(dbi_driver_t *driver);
-const char **dbi_list_tables(dbi_driver_t *driver, const char *db);
+dbi_result_t *dbi_list_dbs(dbi_driver_t *driver);
+dbi_result_t *dbi_list_tables(dbi_driver_t *driver, const char *db);
 unsigned int dbi_num_rows(dbi_result_t *result); /* number of rows in result set */
-unsigned int dbi_num_rows_affected(dbi_result_t *result); /* only the rows in the result set that were actually modified */
-dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...); /* dynamic num of arguments, a la printf */
+unsigned int dbi_num_rows_affected(dbi_result_t *result);
+dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...); 
 dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...); /* better name instead of efficient_query? this will only request one row at a time, but has the downside that other queries can't be made until this one is closed. at least that's how it works in mysql, so it has to be the common denominator */
 int dbi_select_db(dbi_driver_t *driver, const char *db);
 
-int dbi_error(dbi_driver_t *driver, char *errmsg_dest); /* returns formatted message with the error number and string */
-void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument); /* registers a callback that's activated when the database encounters an error */
+int dbi_error(dbi_driver_t *driver, char *errmsg_dest);
+void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument); /* registers a callback that's activated when the database encounters an error (this could be dangerous!) */
 
 #ifdef __cplusplus
 }
