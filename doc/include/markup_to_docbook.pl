@@ -91,7 +91,7 @@ sub spit_out_docbook {
 		}
 	}
 	# apparently perl doesn't like defined(@arguments) anymore...
-	if (scalar(@arguments) > 0) || (defined($returns) && ($returns ne ""))) {
+	if (scalar(@arguments) > 0 || (defined($returns) && ($returns ne ""))) {
 		$OUTPUT .= "\n$tabs\t<VariableList>";
 		if (scalar(@arguments) > 0) {
 			$OUTPUT .= "\n$tabs\t\t<VarListEntry>";
