@@ -196,32 +196,13 @@ dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *patt
 
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {
 	/* foo's -> 'foo\'s' */
-	const char *escaped = "'\"\\"; // XXX TODO check if this is right
-	char *curdest = dest;
-	const char *curorig = orig;
-	const char *curescaped;
-	
+        int len;
+
 	strcpy(dest, "'");
-	strcat(dest, orig);
-
-	while (curorig) {
-		curescaped = escaped;
-		while (curescaped) {
-			if (*curorig == *curescaped) {
-				memmove(curdest+1, curorig, strlen(curorig)+1);
-				*curdest = '\\';
-				curdest++;
-				continue;
-			}
-			curescaped++;
-		}
-		curorig++;
-		curdest++;
-	}
-
+	len = PQescapeString(dest+1, orig, strlen(orig));
 	strcat(dest, "'");
 	
-	return strlen(dest);
+	return len+2;
 }
 
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement) {

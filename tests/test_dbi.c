@@ -50,9 +50,9 @@ int main(int argc, char **argv) {
 	}
 	drivername[strlen(drivername)-1] = '\0';
 
-	printf("database hostname? [localhost] ");
+	printf("database hostname? [(blank for local socket if possible)] ");
 	fgets(hostname, 64, stdin);
-	if (hostname[0] == '\n') strncpy(hostname, "localhost", 63), hostname[63] = '\0';
+	if (hostname[0] == '\n') strncpy(hostname, "", 63), hostname[63] = '\0';
 	else hostname[strlen(hostname)-1] = '\0';
 	
 	printf("database username? [none] ");
