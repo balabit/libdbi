@@ -87,7 +87,7 @@ int dbd_connect(dbi_driver_t *driver) {
 
 	conn = mysql_init(NULL);
 	if (!conn || !mysql_real_connect(conn, host, username, password, dbname, port, unix_socket, _compression)) {
-		_error_handler(driver);
+		/*_error_handler(driver); Need to add support for internal errors, and cleaning up after self :) */
 		mysql_close(conn);
 		return -1;
 	}
