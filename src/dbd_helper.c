@@ -259,7 +259,9 @@ time_t _dbd_parse_datetime(const char *raw, unsigned long attribs) {
 	int check_time = 1;
 
 	unixtime.tm_sec = unixtime.tm_min = unixtime.tm_hour = 0;
-	unixtime.tm_mday = unixtime.tm_mon = unixtime.tm_year = 0;
+	unixtime.tm_mday = 1; /* days are 1 through 31 */
+	unixtime.tm_mon = 0;
+	unixtime.tm_year = 70; /* can't start before Unix epoch */
 	unixtime.tm_isdst = -1;
 	
 	if (raw && (unparsed = strdup(raw)) != NULL) {
