@@ -99,7 +99,8 @@ dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if curre
 dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
 int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
 void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
-int dbi_driver_quote_string(dbi_driver Driver, char **orig);
+int dbi_driver_quote_string(dbi_driver Driver, const char *orig, char **newstr);
+int dbi_driver_quote_string_in_place(dbi_driver Driver, char **orig);
 int dbi_driver_cap_get(dbi_driver Driver, const char *capname);
 
 const char *dbi_driver_get_name(dbi_driver Driver);

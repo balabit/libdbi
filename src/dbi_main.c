@@ -334,26 +334,40 @@ const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
 	return driver->info->date_compiled;
 }
 
-int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
+int dbi_driver_quote_string(dbi_driver Driver, const char *orig, char **newquoted) {
 	dbi_driver_t *driver = Driver;
-	char *temp;
 	char *newstr;
 	int newlen;
 	
-	if (!driver || !orig || !*orig) return -1;
+	if (!driver || !orig || !newquoted) return -1;
 
-	newstr = malloc((strlen(*orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
+	newstr = malloc((strlen(orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 
 	if (!newstr) {
 		return -1;
 	}
 	
-	newlen = driver->functions->quote_string(driver, *orig, newstr);
+	newlen = driver->functions->quote_string(driver, orig, newstr);
 	if (newlen < 0) {
 		free(newstr);
 		return -1;
 	}
+
+	*newquoted = newstr;
+
+	return newlen;
+}
+
+int dbi_driver_quote_string_in_place(dbi_driver Driver, char **orig) {
+	char *temp = NULL;
+	char *newstr = NULL;
+	int newlen;
+
+	if (!orig || !*orig) {
+		return -1;
+	}
 	
+	newlen = dbi_driver_quote_string(Driver, *orig, &newstr);
 	temp = *orig;
 	*orig = newstr;
 	free(temp); /* original unescaped string */
