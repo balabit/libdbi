@@ -35,9 +35,9 @@ plugin-guide/*:
 
 distclean: clean
 	rm -f programmers-guide.ps
-	if [ -f programmers-guide.tmpl ]; then rm -f programmers-guide/ programmers-guide.pdf; fi
+	if [ -f programmers-guide.tmpl ]; then rm -rf programmers-guide/ programmers-guide.pdf; fi
 	rm -f plugin-guide.ps
-	if [ -f plugin-guide.tmpl ]; then rm -f plugin-guide/ plugin-guide.pdf; fi
+	if [ -f plugin-guide.tmpl ]; then rm -rf plugin-guide/ plugin-guide.pdf; fi
 
 # this can't be kosher...
 install-exec-am: $(top_srcdir)/mkinstalldirs

@@ -37,6 +37,8 @@
 #include <libpq-fe.h>
 #include "pgsql-stuff.h"
 
+#include "config.h"
+
 static const dbi_info_t plugin_info = {
 	"pgsql",
 	"PostgreSQL database support (using libpq)",

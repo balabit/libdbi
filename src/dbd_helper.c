@@ -31,6 +31,8 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
+#include "config.h"
+
 dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
@@ -57,7 +59,7 @@ void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields) {
 }
 
 void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs) {
-	result->field_names[idx] = strdup(name);
+	if (name) result->field_names[idx] = strdup(name);
 	result->field_types[idx] = type;
 	result->field_attribs[idx] = attribs;
 }

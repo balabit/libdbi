@@ -38,6 +38,8 @@
 #include <mysql/mysql.h>
 #include "mysql-stuff.h"
 
+#include "config.h"
+
 static const dbi_info_t plugin_info = {
 	"mysql",
 	"MySQL database support (using libmysqlclient6)",

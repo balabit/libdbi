@@ -33,6 +33,8 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
+#include "config.h"
+
 extern void _error_handler(dbi_driver_t *driver);
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */

@@ -37,7 +37,7 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-#define LIBDBI_VERSION "0.6"
+#include "config.h"
 
 #ifndef DBI_PLUGIN_DIR
 #define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this as the default */
@@ -133,7 +133,7 @@ void dbi_shutdown() {
 }
 
 const char *dbi_version() {
-	return "libdbi v" LIBDBI_VERSION;
+	return "libdbi v" VERSION;
 }
 
 /* XXX PLUGIN FUNCTIONS XXX */

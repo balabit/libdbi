@@ -37,7 +37,7 @@ NAME dbd_disconnect
 	DESC
 	Disconnects from the database server.
 	ENDDESC
-	ARG driver 
+	ARG driver The target driver instance of the plugin.
 	RET -1 on error, 0 on success.
 
 *
@@ -45,64 +45,64 @@ NAME dbd_disconnect
 NAME dbd_fetch_row
 	PROTO int dbd_fetch_row(dbi_result_t *result, unsigned int rownum)
 	DESC
-	
+	Fetches the target row, retrieving one-time field information if necessary. Also see the _dbd_row_allocate and _dbd_row_finalize helper functions.
 	ENDDESC
-	ARG result 
-	ARG rownum 
-	RET 
+	ARG result The target result object.
+	ARG rownum The row number to fetch.
+	RET 0 on error, 1 on successful fetch.
 
 *
 
 NAME dbd_free_query
 	PROTO int dbd_free_query(dbi_result_t *result)
 	DESC
-	
+	Frees the target result handle.
 	ENDDESC
-	ARG result 
-	RET 
+	ARG result The target result handle.
+	RET 0 on success (this should be changed)
 
 *
 
 NAME dbd_goto_row
 	PROTO int dbd_goto_row(dbi_result_t *result, unsigned int row)
 	DESC
-	
+	Jumps to the specifed row in the result set.
 	ENDDESC
-	ARG result 
-	ARG row 
-	RET 
+	ARG result The target result handle.
+	ARG row The target row number.
+	RET 1 on success, 0 on error.
 
 *
 
 NAME dbd_list_dbs
 	PROTO dbi_result_t *dbd_list_dbs(dbi_driver_t *driver)
 	DESC
-	
+	Performs a query that retrieves the list of databases, with the database name as the first column in the result set.
 	ENDDESC
-	ARG driver 
-	RET 
+	ARG driver The target driver.
+	RET A DBI result object.
 
 *
 
 NAME dbd_list_tables
 	PROTO dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db)
 	DESC
-	
+	Performs a query that retrieves the list of tables in the specified database, with the table name as the first column in the result set.
 	ENDDESC
-	ARG driver 
-	ARG db 
-	RET 
+	ARG driver The target driver.
+	ARG db The name of the database where tables should be looked for.
+	RET A DBI result object.
 
 *
 
 NAME dbd_query
 	PROTO dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement)
 	DESC
-	
+	Performs a query and keeps track of meta-information about the query. Also see the _dbd_result_create helper function.
 	ENDDESC
-	ARG driver 
-	ARG statement 
-	RET 
+	ARG driver The target driver.
+	ARG statement The query string to execute.
+	RET A DBI result object, or NULL on error.
 
 *
 
@@ -114,18 +114,18 @@ NAME dbd_quote_string
 	ARG plugin A pointer to the plugin itself, which may be useful in weird cases.
 	ARG orig The string to quote and escape.
 	ARG dest The destination for the new string, which is already allocated as (strlen(orig)*2)+4+1. In the worst case, each character will need to be escaped, with two quote characters at both the beginning and end of the string, plus one for the terminating NULL.
-	RET 
+	RET The length of the new string.
 
 *
 
 NAME dbd_select_db
 	PROTO char *dbd_select_db(dbi_driver_t *driver, const char *db)
 	DESC
-	
+	Selects a new database on the server.
 	ENDDESC
-	ARG driver 
-	ARG db 
-	RET 
+	ARG driver The target driver.
+	ARG db The name of the database to switch to.
+	RET The database name on success, "" on error, or NULL if the operation is not supported by the database server.
 
 *
 
@@ -144,23 +144,23 @@ NAME dbd_geterror
 NAME _dbd_result_create
 	PROTO dbi_result_t *_dbd_result_create(dbi_driver_t *driver, void *handle, unsigned int numrows_matched, unsigned int numrows_affected)
 	DESC
-	
+	Allocates a new dbi_result_t, filling the number of rows matched and affected, storing the database-specific result handle, and allocating room for rows to be stored.
 	ENDDESC
-	ARG driver 
-	ARG handle 
-	ARG numrows_matched 
-	ARG numrows_affected 
-	RET 
+	ARG driver The target driver.
+	ARG handle The database-specific result handle used internally by the plugin.
+	ARG numrows_matched The number of rows matched by the query.
+	ARG numrows_affected The number of rows affected by the query.
+	RET A new DBI result object.
 
 *
 
 NAME _dbd_result_set_numfields
 	PROTO void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields)
 	DESC
-	
+	Sets a result's number of fields and allocates room for field information to be stored.
 	ENDDESC
-	ARG result 
-	ARG numfields 
+	ARG result The target result.
+	ARG numfields The number of fields in the result set.
 	RET 
 
 *
@@ -168,13 +168,13 @@ NAME _dbd_result_set_numfields
 NAME _dbd_result_add_field
 	PROTO void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs)
 	DESC
-	
+	Stores information about the target field into the result set.
 	ENDDESC
-	ARG result 
-	ARG idx 
-	ARG name 
-	ARG type 
-	ARG attribs 
+	ARG result The target result.
+	ARG idx The numeric field index.
+	ARG name The name of the field.
+	ARG type The datatype of the field.
+	ARG attribs The attributes of the field.
 	RET 
 
 *
@@ -182,20 +182,20 @@ NAME _dbd_result_add_field
 NAME _dbd_row_allocate
 	PROTO dbi_row_t *_dbd_row_allocate(unsigned int numfields)
 	DESC
-	
+	Allocates a new row, ready to be filled with data.
 	ENDDESC
-	ARG numfields 
-	RET 
+	ARG numfields The number of fields in the result set.
+	RET A new DBI row, or NULL on error.
 
 *
 
 NAME _dbd_row_finalize
 	PROTO void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned int idx)
 	DESC
-	
+	Associates and stores the row with the result set, once the row's data has been filled.
 	ENDDESC
-	ARG result 
-	ARG row 
-	ARG idx 
+	ARG result The target result set.
+	ARG row The target row object.
+	ARG idx The index of the row.
 	RET 
 
