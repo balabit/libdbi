@@ -511,13 +511,23 @@ dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) {
 
 int dbi_driver_select_db(dbi_driver Driver, const char *db) {
 	dbi_driver_t *driver = Driver;
-	int retval;
+	char *retval;
 	if (!driver) return -1;
+	free(driver->current_db);
+	driver->current_db = NULL;
 	retval = driver->plugin->functions->select_db(driver, db);
-	if (retval == -1) {
+	if (retval == NULL) {
 		_error_handler(driver);
 	}
-	return retval;
+	if (retval[0] == '\0') {
+		/* if "" was returned, driver doesn't support switching databases */
+		return 0;
+	}
+	else {
+		driver->current_db = strdup(retval);
+	}
+	
+	return 1;
 }
 
 /* XXX INTERNAL PRIVATE IMPLEMENTATION FUNCTIONS XXX */
@@ -546,30 +556,25 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 		plugin->functions = (dbi_functions_t *) malloc(sizeof(dbi_functions_t));
 
 		if ( /* nasty looking if block... is there a better way to do it? */
+			((plugin->functions->register_plugin = dlsym(dlhandle, "dbd_register_plugin")) == NULL) || dlerror() ||
 			((plugin->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
 			((plugin->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
 			((plugin->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
 			((plugin->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
-			((plugin->functions->get_custom_functions_list = dlsym(dlhandle, "dbd_get_custom_functions_list")) == NULL) || dlerror() ||
-			((plugin->functions->get_info = dlsym(dlhandle, "dbd_get_info")) == NULL) || dlerror() ||
-			((plugin->functions->get_reserved_words_list = dlsym(dlhandle, "dbd_get_reserved_words_list")) == NULL) || dlerror() ||
 			((plugin->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
 			((plugin->functions->list_dbs = dlsym(dlhandle, "dbd_list_dbs")) == NULL) || dlerror() ||
 			((plugin->functions->list_tables = dlsym(dlhandle, "dbd_list_tables")) == NULL) || dlerror() ||
 			((plugin->functions->query = dlsym(dlhandle, "dbd_query")) == NULL) || dlerror() ||
 			((plugin->functions->select_db = dlsym(dlhandle, "dbd_select_db")) == NULL) || dlerror() ||
-			((plugin->functions->errstr = dlsym(dlhandle, "dbd_errstr")) == NULL) || dlerror() ||
-			((plugin->functions->errno = dlsym(dlhandle, "dbd_errno")) == NULL) || dlerror()
+			((plugin->functions->geterror = dlsym(dlhandle, "dbd_geterror")) == NULL) || dlerror()
 			)
 		{
 			free(plugin->functions);
 			free(plugin);
 			return NULL;
 		}
-		plugin->info = plugin->functions->get_info();
-		plugin->reserved_words = plugin->functions->get_reserved_words_list();
-		custom_functions_list = plugin->functions->get_custom_functions_list();
+		dbd_register_plugin(plugin->info, &custom_functions_list, &plugin->reserved_words);
 		plugin->custom_functions = NULL; /* in case no custom functions are available */
 		while (custom_functions_list[idx] != NULL) {
 			custom = (dbi_custom_function_t *) malloc(sizeof(dbi_custom_function_t));
@@ -656,7 +661,6 @@ static int _update_internal_driver_list(dbi_driver_t *driver, const int operatio
 	return -1;
 }
 
-
 static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key) {
 	dbi_option_t *prevoption = NULL;
 	dbi_driver_t *driver = Driver;
@@ -684,9 +688,10 @@ static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *
 }
 
 void _error_handler(dbi_driver_t *driver) {
-	int errno = driver->plugin->functions->errno(driver);
-	const char *errmsg = driver->plugin->functions->errstr(driver);
+	int errno = 0;
+	const char *errmsg = NULL;
 	void (*errfunc)(dbi_driver_t *, void *);
+	int errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
 
 	if (errno) {
 		driver->error_number = errno;

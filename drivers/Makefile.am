@@ -1,2 +1,2 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = mysql template
+SUBDIRS = mysql postgresql template

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+# XXX TODO skips any blocks with DESC-VERBATIM XXX
+
 local *DOCBOOK;
 
 parse_markup($ARGV[0]);

@@ -67,10 +67,12 @@
 			interchangably, since the target audience is the software developer using libdbi in
 			his program. The libdbi architecture provides serveral <Quote>plugins</Quote>, one
 			for each type of database server. All plugins are loaded into memory upon libdbi
-			initiallization and made available to the programmer. Once a plugin is
+			initiallization and are made available to the programmer. Once a plugin is
 			<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
 			called a <Quote>driver</Quote>. Multiple drivers may exist for a single plugin, and
-			all will function independently of each other.
+			all will function independently of each other. A star character (*) represents a
+			wildcard matching any letters. For example, <Quote>dbi_driver_*</Quote> would
+			represent all functions beginning with <Quote>dbi_driver_</Quote>.
 		</Para>
 	</Section>
 	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>

@@ -84,7 +84,6 @@ int dbi_result_seek_row(dbi_result Result, unsigned int row) {
 		/* jump right to it */
 		result->currowidx = row;
 		_activate_bindings(result);
-		/* REPLAY BINDINGS */
 		return 1;
 	}
 	
@@ -92,7 +91,7 @@ int dbi_result_seek_row(dbi_result Result, unsigned int row) {
 	if (retval == -1) {
 		_error_handler(result->driver);
 	}
-	retval = result->driver->plugin->functions->fetch_row(result);
+	retval = result->driver->plugin->functions->fetch_row(result, row);
 	if (retval == -1) {
 		retval = 0;
 		_error_handler(result->driver);

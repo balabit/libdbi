@@ -96,21 +96,18 @@ typedef struct dbi_option_s {
 } dbi_option_t;
 
 typedef struct dbi_functions_s {
+	void (*register_plugin)(const dbi_info_t *, const char ***, const char ***);
 	int (*initialize)(dbi_plugin_t_pointer);
 	int (*connect)(dbi_driver_t_pointer);
 	int (*disconnect)(dbi_driver_t_pointer);
-	int (*fetch_row)(dbi_result_t *);
+	int (*fetch_row)(dbi_result_t *, unsigned int);
 	int (*free_query)(dbi_result_t *);
-	const char **(*get_custom_functions_list)();
-	const dbi_info_t *(*get_info)();
-	const char **(*get_reserved_words_list)();
 	int (*goto_row)(dbi_result_t *, unsigned int);
 	dbi_result_t *(*list_dbs)(dbi_driver_t_pointer);
 	dbi_result_t *(*list_tables)(dbi_driver_t_pointer, const char *);
 	dbi_result_t *(*query)(dbi_driver_t_pointer, const char *);
-	int (*select_db)(dbi_driver_t_pointer, const char *);
-	const char *(*errstr)(dbi_driver_t_pointer);
-	int (*errno)(dbi_driver_t_pointer);
+	char *(*select_db)(dbi_driver_t_pointer, const char *);
+	int (*geterror)(dbi_driver_t_pointer, int *, char **);
 } dbi_functions_t;
 
 typedef struct dbi_custom_function_s {

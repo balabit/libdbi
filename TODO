@@ -1,6 +1,12 @@
 $Id$
 
-- prepare precompiled redhat packages (and test debian packages)
+** PRE-RELEASE TODO: **
+- review reference section of docs
+- add packaging for postgresql plugin
+- make noted changes to debian packaging
+- finish libdbi website
+- dbi_driver_get_plugin(), dbi_result_get_driver(), other accessors?
+
 - revamp error handling
 - _dbd_* plugin authors' convenience library
 - add more accessor/convenience functinos (think gui)
@@ -8,7 +14,8 @@ $Id$
 - plugins:
 	* mysql (finish plugin and run stress tests)
 	* msql
-	* postgresql
+	* postgresql (finish and test)
 	* oracle
+	* ODBC ?
 	* others?
 - create a config.h and use it to determine datatype information (how many bits an 'int' is, etc. mainly for portability to non-lintel systems)
