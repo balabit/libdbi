@@ -1,0 +1,64 @@
+
+libdbi - Database Independent Abstraction Layer for C
+Copyright (C) 2001, David Parker and Mark Tobenkin.
+http://libdbi.sourceforge.net
+
+
+INCLUDED PLUGINS:
+-----------------
+
+ * mysql
+   (maintained by Mark M. Tobenkin)
+   MySQL Database Plugin (using libmysqlclient6)
+   
+ * pgsql
+   (maintained by David A. Parker)
+   PostgreSQL Database Plugin (using libpq)
+   
+ * template
+   (maintained by David A. Parker)
+   Example plugin template for plugin authors
+
+
+OVERALL NOTES:
+--------------
+
+These common options are recognized by all plugins:
+ * host
+ * port
+ * username
+ * password
+ * dbname
+
+All plugin-specific options are prefixed by the plugin's name, e.g.
+"mysql_compression" or "pgsql_tty".
+
+
+MYSQL NOTES:
+------------
+
+Fields passed through the UNIX_TIMESTAMP() function are returned as unsigned
+long long, not as unsigned long. When using the SUM() aggregate function, the
+resulting value is returned as a double. All unrecognized datatypes are
+preserved as strings.
+
+
+POSTGRESQL NOTES:
+-----------------
+
+PostgreSQL has no intrinsic concept of unsigned fields (although you can still
+use the "OID" type as an unsigned long, or define your own user-defined
+unsigned types).  User-defined types are not handled specially. All
+unrecognized datatypes are preserved as strings.
+
+
+CONTACT INFO:
+-------------
+
+libdbi-plugins@lists.sourceforge.net
+http://libdbi.sourceforge.net
+David A. Parker <david@neongoat.com>
+Mark M. Tobenkin <mark@brentwoodradio.com>
+
+$Id$
+

@@ -10,15 +10,15 @@ Group:		Development/Libraries
 Copyright:	LGPL
 URL:		http://libdbi.sourceforge.net/
 Vendor:		Neon Goat Productions
-Packager:	David Parker <david@neongoat.com>
+Packager:	David A. Parker <david@neongoat.com>
 Source:		%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-root
 
 %description
-libdbi provides developers with a database independent abstraction layer for C,
-allowing for multiple simultaneous connections to different types of servers.
-The plugin architecture allows for new database drivers to be easily added by a
-third party.
+libdbi implements a database-independent abstraction layer in C, similar to the
+DBI/DBD layer in Perl. Writing one generic set of code, programmers can
+leverage the power of multiple databases and multiple simultaneous database
+connections by using this framework.
 
 %package devel
 Summary: Development files for libdbi (Database Independent Abstraction Layer for C)
@@ -53,7 +53,7 @@ does not require recompilation or rewriting source code.
 %setup -q -n %{name}-%{version}
 
 %build
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --with-mysql=/usr/lib/mysql --with-postgresql=/usr/lib/postgresql
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --with-mysql --with-pgsql
 make
 
 %install
@@ -74,6 +74,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 %doc doc/programmers-guide/
 /usr/include/dbi/dbi.h
 /usr/include/dbi/dbi-dev.h
+/usr/include/dbi/dbd.h
 /usr/lib/libdbi.a
 /usr/lib/libdbi.la
 /usr/lib/libdbi.so
@@ -96,5 +97,5 @@ make DESTDIR=$RPM_BUILD_ROOT install
 /sbin/ldconfig
 
 %changelog
-* Wed Jul 18 2001 David Parker <david@neongoat.com>
+* Sat Aug 4 2001 David Parker <david@neongoat.com>
 - initial spec file created

@@ -7,10 +7,58 @@ http://libdbi.sourceforge.net
 INTRODUCTION:
 -------------
 
-libdbi provides developers with a database independent abstraction layer for C,
-allowing for multiple simultaneous connections to different types of servers.
+libdbi implements a database-independent abstraction layer in C, similar to the
+DBI/DBD layer in Perl. Writing one generic set of code, programmers can
+leverage the power of multiple databases and multiple simultaneous database
+connections by using this framework.
+
 The plugin architecture allows for new database drivers to be easily added by a
-third party.
+third party with flexbile licensing.
+
+
+FEATURES:
+---------
+
+ * Database-level abstraction:
+   Your programs don't need to deal with the arbitrary interfaces and oddities
+   of each database library. libdbi handles all the details for you, you just
+   tell it what you want the database to do.
+   
+ * Modularity:
+   Since database code written with libdbi is not tied to one specific database
+   server, you can effortlessly switch databases or give your users the option
+   to specify their own database settings.
+   
+ * Clean interface:
+   With ample documentation describing libdbi and its well thought out
+   object-oriented design, programming with libdbi should be less painful than
+   programming with native database libraries. And you only need to learn it
+   once instead of learning each database library's syntax.
+   
+ * Accommodates coder apathy:
+   libdbi is written to do The Right Thing(tm), not just some quick hack that
+   does the job in a half-assed fashion. This saves tons of your $100/hour time
+   from debugging, so that you can mess around having fun during the hours that
+   clients are paying you to debug.  It also strives to reduce the worldwide
+   crisis of carpal tunnel syndrome, so it uses constructs such as this one to
+   pack multiple function calls into one line, saving you the bother of typing
+   more than you have to: 
+   dbi_result_get_fields(result, "id.%i firstname.%s lastname.%s fractional_value.%f", &id, &firstname, &lastname, &floatval);
+   
+ * Plugin interface:
+   The dynamic linking used by libdbi allows for plugin authors to license
+   their plugins however they please - they are not restricted to the GPL or
+   LGPL. Plugins are easy to write, and require no special installation.
+   
+ * Error handling:
+   Instead of checking every single database call for errors, libdbi gives
+   programmers the option of registering an error handler callback, similar to
+   a signal handler. Because we know you'll "forget" to check for errors
+   otherwise :)
+   
+ * Convenience:
+   Spend your time writing clever code, not reinventing the wheel with your own
+   single-use, #define-abusing, less featureful database interface.
 
 
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
@@ -32,17 +80,26 @@ See the file COPYING or http://www.gnu.org for more details.
 DOCUMENTATION:
 --------------
 
-See doc/plugin_authors_guide.txt and doc/programmers_reference.txt for complete
-documentation and example source code. Complete example programs can be found
-in the tests/ subdirectory.
+See the libdbi Programmer's Guide in the doc/ directory, provided in PDF and
+HTML formats. This API reference also includes example source code and a
+quickstart guide to using libdbi. 
+
+(Soon, we will have a libdbi Plugin Author's Guide as well.)
+
+
+MAILING LISTS:
+--------------
+
+ * libdbi users/developers: libdbi-users@lists.sourceforge.net
+ * libdbi plugin authors: libdbi-plugins@lists.sourceforge.net
 
 
 CONTACT INFO:
 -------------
 
 http://libdbi.sourceforge.net
-David Parker <david@neongoat.com>
-Mark Tobenkin <mark@brentwoodradio.com>
+David A. Parker <david@neongoat.com>
+Mark M. Tobenkin <mark@brentwoodradio.com>
 
 $Id$
 

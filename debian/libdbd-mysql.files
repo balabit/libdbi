@@ -1,1 +1,2 @@
-usr/lib/dbd/libmysql.*
+usr/lib/dbd/libmysql.la
+usr/lib/dbd/libmysql.so

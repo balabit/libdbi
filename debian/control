@@ -17,10 +17,10 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: libdbd-mysql | libdbd-pgsql
 Description: Database independent abstraction layer for C
- libdbi provides developers with a database independent abstraction layer for C,
- allowing for multiple simultaneous connections to different types of servers.
- The plugin architecture allows for new database drivers to be easily added by a
- third party.
+ libdbi implements a database-independent abstraction layer in C, similar to the
+ DBI/DBD layer in Perl. Writing one generic set of code, programmers can
+ leverage the power of multiple databases and multiple simultaneous database
+ connections by using this framework.
 
 Package: libdbd-mysql
 Architecture: any

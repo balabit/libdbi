@@ -193,12 +193,12 @@ void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type
 	unsigned int _attribs = 0;
 
 	switch (fieldtype) {
-		case FIELD_TYPE_YEAR:
-			_attribs |= DBI_INTEGER_UNSIGNED;
 		case FIELD_TYPE_TINY:
 			_type = DBI_TYPE_INTEGER;
 			_attribs |= DBI_INTEGER_SIZE1;
 			break;
+		case FIELD_TYPE_YEAR:
+			_attribs |= DBI_INTEGER_UNSIGNED;
 		case FIELD_TYPE_SHORT:
 			_type = DBI_TYPE_INTEGER;
 			_attribs |= DBI_INTEGER_SIZE2;
