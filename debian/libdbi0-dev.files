@@ -1,6 +1,0 @@
-usr/lib/*.a
-usr/lib/*.so
-usr/lib/*.la
-usr/include/dbi/dbi.h
-usr/include/dbi/dbi-dev.h
-usr/include/dbi/dbd.h

@@ -112,7 +112,6 @@ AC_OUTPUT([
 	libdbi.spec
 	Makefile
 	src/Makefile
-	debian/Makefile
 	doc/Makefile
 	include/Makefile
 	include/dbi/Makefile
