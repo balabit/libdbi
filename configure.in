@@ -23,8 +23,9 @@ dnl Check for programs
 dnl ====================================
 
 AC_PROG_CC
-AC_LIBTOOL_DLOPEN
-AC_SUBST(LIBADD_DL)
+AC_PROG_CPP
+AC_PROG_LD
+AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
 dnl ====================================
@@ -84,8 +85,24 @@ dnl Check for libraries
 dnl ==============================
 
 dnl functions to load dynamic libraries
-AC_SEARCH_LIBS(dlopen, dl,,)
-
+use_ltdl=no
+AC_ARG_WITH(ltdl,
+	[ --with-ltdl	          Use libtool's libltdl to load runtime modules (no)],
+	[ use_ltdl=$withval ])
+	
+if test "x$use_ltdl" = xyes; then
+AC_CHECK_HEADERS([ltdl.h], [AC_CHECK_LIB([ltdl],[lt_dlopen],[LIBADD_DL=-lltdl])])
+else
+AC_CHECK_HEADERS([mach-o/dyld.h],[AC_CHECK_FUNCS([NSLinkModule], [
+       LIBADD_DL=""
+       dlsym_prefix=_
+       ])],
+[
+AC_CHECK_HEADERS([dlfcn.h])
+AC_CHECK_FUNCS([dlopen],[LIBADD_DL=],
+		[AC_CHECK_LIB([dl],[dlopen],[LIBADD_DL=-ldl],[])])])
+fi
+AC_SUBST(LIBADD_DL)
 dnl ==============================
 dnl Check for functions
 dnl ==============================
@@ -94,8 +111,7 @@ case $host in
 	*-*-win32*)
 		shlib_ext=.dll ;;
 	*-*-darwin*)
-		shlib_ext=.so
-		dlsym_prefix=_ ;;
+		shlib_ext=.so ;;
 	*)
 		shlib_ext=.so ;;
 esac
@@ -109,6 +125,7 @@ AC_ARG_WITH(dlsym-prefix,
 
 AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ Specifies the filename extension of loadable modules ])
 AC_DEFINE_UNQUOTED(DLSYM_PREFIX, "$dlsym_prefix", [ Specifies a required prefix for symbol names of dynamically loaded modules ])
+
 
 AC_CHECK_FUNCS(strtoll)
 AC_REPLACE_FUNCS(atoll)
