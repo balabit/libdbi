@@ -409,7 +409,7 @@ int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest) {
 		number_portion[0] = '\0';
 	}
 
-	asprintf(&errmsg, "%s%s", number_portion, conn->error_message);
+	asprintf(&errmsg, "%s%s", number_portion, conn->error_message ? conn->error_message : "");
 	*errmsg_dest = errmsg;
 
 	return conn->error_number;

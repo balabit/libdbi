@@ -275,12 +275,14 @@ unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence) {
 	if (!sql_cmd) return 0;
 	result = dbd_query(conn, sql_cmd);
 	free(sql_cmd);
-	
-	rawdata = PQgetvalue((PGresult *)result->result_handle, 0, 0);
-	if (rawdata) {
-		seq_last = atoll(rawdata);
+
+	if (result) {
+		rawdata = PQgetvalue((PGresult *)result->result_handle, 0, 0);
+		if (rawdata) {
+			seq_last = atoll(rawdata);
+		}
+		dbi_result_free((dbi_result)result);
 	}
-	dbi_result_free((dbi_result)result);
 
 	return seq_last;
 }
@@ -295,12 +297,14 @@ unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
 	if (!sql_cmd) return 0;
 	result = dbd_query(conn, sql_cmd);
 	free(sql_cmd);
-	
-	rawdata = PQgetvalue((PGresult *)result->result_handle, 0, 0);
-	if (rawdata) {
-		seq_next = atoll(rawdata);
+
+	if (result) {	
+		rawdata = PQgetvalue((PGresult *)result->result_handle, 0, 0);
+		if (rawdata) {
+			seq_next = atoll(rawdata);
+		}
+		dbi_result_free((dbi_result)result);
 	}
-	dbi_result_free((dbi_result)result);
 
 	return seq_next;
 }
