@@ -1,0 +1,35 @@
+libdbi - database independent abstraction layer for C.
+Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE), David Parker, Mark Tobenkin.
+http://libdbi.sourceforge.net
+
+$Id$
+
+INTRODUCTION:
+-------------
+
+libdbi provides application developers with a database independent abstraction layer for C. It handles the database-specific implementations for each type of database, so that you can use the same exact code with any type of database server that libdbi supports. You can initiate and use multiple database connections simultaneously, regardless of the types of database you are connecting to. The plugin architecture allows for new database drivers to be easily added dynamically by a third party.
+
+MODIFICATIONS AND REDISTRIBUTION:
+---------------------------------
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+CONTACT INFO:
+-------------
+
+http://libdbi.sourceforge.net
+Mark Tobenkin <mark@brentwoodradio.com>
+David Parker <david@neongoat.com>
+
