@@ -6,7 +6,7 @@ published by the Free Software Foundation.
 -->
 <Chapter id="reference"><Title>Libdbi API Reference</Title>
 	<Section id="reference-infra"><Title>Plugin Infrastructure</Title>
-		 <Section id="dbi-initialize"><Title>dbi_initialize</Title>
+		 <Section id="dbi-initialize" XRefLabel="dbi_initialize"><Title>dbi_initialize</Title>
 			 <Para><ProgramListing>int dbi_initialize(const char *plugindir)</ProgramListing></Para>
 			 <Para>Locates all available shared modules (plugins) and loads them into memory.</Para>
 			 <VariableList>
@@ -22,7 +22,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-list-plugins"><Title>dbi_list_plugins</Title>
+		 <Section id="dbi-list-plugins" XRefLabel="dbi_list_plugins"><Title>dbi_list_plugins</Title>
 			 <Para><ProgramListing>dbi_plugin_t *dbi_list_plugins()</ProgramListing></Para>
 			 <Para>Allows the program to traverse the linked list of plugins, querying the name of each one.</Para>
 			 <VariableList>
@@ -32,7 +32,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-open-plugin"><Title>dbi_open_plugin</Title>
+		 <Section id="dbi-open-plugin" XRefLabel="dbi_open_plugin"><Title>dbi_open_plugin</Title>
 			 <Para><ProgramListing>dbi_plugin_t *dbi_open_plugin(const char *name)</ProgramListing></Para>
 			 <Para>Goes through the linked list until it finds the correct plugin.</Para>
 			 <VariableList>
@@ -48,7 +48,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-load-driver"><Title>dbi_load_driver</Title>
+		 <Section id="dbi-load-driver" XRefLabel="dbi_load_driver"><Title>dbi_load_driver</Title>
 			 <Para><ProgramListing>dbi_driver_t *dbi_load_driver(const char *name)</ProgramListing></Para>
 			 <Para>Creates an actual driver instance from the plugin. This is just a shortcut for calling dbi_open_plugin() and then dbi_start_driver().</Para>
 			 <VariableList>
@@ -64,7 +64,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-start-driver"><Title>dbi_start_driver</Title>
+		 <Section id="dbi-start-driver" XRefLabel="dbi_start_driver"><Title>dbi_start_driver</Title>
 			 <Para><ProgramListing>dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Creates an actual driver instance from the plugin.</Para>
 			 <VariableList>
@@ -80,7 +80,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-set-option"><Title>dbi_set_option</Title>
+		 <Section id="dbi-set-option" XRefLabel="dbi_set_option"><Title>dbi_set_option</Title>
 			 <Para><ProgramListing>void dbi_set_option(dbi_driver_t *driver, const char *key, char *value)</ProgramListing></Para>
 			 <Para>Sets the specified driver option to a string value. If the value is set to NULL, the entire option entry will be erased.</Para>
 			 <VariableList>
@@ -94,7 +94,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-set-option-numeric"><Title>dbi_set_option_numeric</Title>
+		 <Section id="dbi-set-option-numeric" XRefLabel="dbi_set_option_numeric"><Title>dbi_set_option_numeric</Title>
 			 <Para><ProgramListing>void dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value)</ProgramListing></Para>
 			 <Para>Sets the specified driver option to a numeric value.</Para>
 			 <VariableList>
@@ -108,7 +108,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-clear-options"><Title>dbi_clear_options</Title>
+		 <Section id="dbi-clear-options" XRefLabel="dbi_clear_options"><Title>dbi_clear_options</Title>
 			 <Para><ProgramListing>void dbi_clear_options(dbi_driver_t *driver)</ProgramListing></Para>
 			 <Para>Clears the entire list of options for the specified driver.</Para>
 			 <VariableList>
@@ -120,7 +120,23 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-custom-function"><Title>dbi_custom_function</Title>
+		 <Section id="dbi-list-options" XRefLabel="dbi_list_options"><Title>dbi_list_options</Title>
+			 <Para><ProgramListing>dbi_option_t *dbi_list_options(dbi_driver_t *driver)</ProgramListing></Para>
+			 <Para> WOOT! </Para>
+			 <VariableList>
+				 <VarListEntry>
+					 <Term><Emphasis>Arguments</Emphasis></Term>
+					 <ListItem>
+						 <Para><Literal>driver</Literal>: The target driver.</Para>
+					 </ListItem>
+				 </VarListEntry>
+				 <VarListEntry>
+					 <Term><Emphasis>Returns</Emphasis></Term>
+					 <ListItem><Para> WOOT! </Para></ListItem>
+				 </VarListEntry>
+			 </VariableList>
+		 </Section>
+		 <Section id="dbi-custom-function" XRefLabel="dbi_custom_function"><Title>dbi_custom_function</Title>
 			 <Para><ProgramListing>void *dbi_custom_function(dbi_plugin_t *plugin, const char *name)</ProgramListing></Para>
 			 <Para>Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but its syntax is not elegant and will restrict your code to one particular database, lessening the benefits of using libdbi.</Para>
 			 <VariableList>
@@ -137,7 +153,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-is-reserved-word"><Title>dbi_is_reserved_word</Title>
+		 <Section id="dbi-is-reserved-word" XRefLabel="dbi_is_reserved_word"><Title>dbi_is_reserved_word</Title>
 			 <Para><ProgramListing>int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word)</ProgramListing></Para>
 			 <Para>Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.</Para>
 			 <VariableList>
@@ -154,7 +170,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-close-driver"><Title>dbi_close_driver</Title>
+		 <Section id="dbi-close-driver" XRefLabel="dbi_close_driver"><Title>dbi_close_driver</Title>
 			 <Para><ProgramListing>void dbi_close_driver(dbi_driver_t *driver)</ProgramListing></Para>
 			 <Para>Disconnects the specified driver connection from the database and cleans up the driver session.</Para>
 			 <VariableList>
@@ -166,13 +182,13 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-shutdown"><Title>dbi_shutdown</Title>
+		 <Section id="dbi-shutdown" XRefLabel="dbi_shutdown"><Title>dbi_shutdown</Title>
 			 <Para><ProgramListing>void dbi_shutdown()</ProgramListing></Para>
-			 <Para>Frees all loaded plugins and terminates the DBI system. You should close each driver before shutting down, or else shit will fly.</Para>
+			 <Para>Frees all loaded plugins and terminates the DBI system. You should close each driver you opened before shutting down, but libdbi will clean up after you if you don't.</Para>
 		 </Section>
 	 </Section>
 	 <Section id="reference-infra-info"><Title>Plugin Information</Title>
-		 <Section id="dbi-plugin-name"><Title>dbi_plugin_name</Title>
+		 <Section id="dbi-plugin-name" XRefLabel="dbi_plugin_name"><Title>dbi_plugin_name</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_name(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the name of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -188,7 +204,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-filename"><Title>dbi_plugin_filename</Title>
+		 <Section id="dbi-plugin-filename" XRefLabel="dbi_plugin_filename"><Title>dbi_plugin_filename</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_filename(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the filename of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -204,7 +220,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-description"><Title>dbi_plugin_description</Title>
+		 <Section id="dbi-plugin-description" XRefLabel="dbi_plugin_description"><Title>dbi_plugin_description</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_description(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests a description of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -220,7 +236,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-maintainer"><Title>dbi_plugin_maintainer</Title>
+		 <Section id="dbi-plugin-maintainer" XRefLabel="dbi_plugin_maintainer"><Title>dbi_plugin_maintainer</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_maintainer(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the maintainer of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -236,7 +252,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-url"><Title>dbi_plugin_url</Title>
+		 <Section id="dbi-plugin-url" XRefLabel="dbi_plugin_url"><Title>dbi_plugin_url</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_url(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -252,7 +268,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-version"><Title>dbi_plugin_version</Title>
+		 <Section id="dbi-plugin-version" XRefLabel="dbi_plugin_version"><Title>dbi_plugin_version</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_version(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the version of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -268,7 +284,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-plugin-date-compiled"><Title>dbi_plugin_date_compiled</Title>
+		 <Section id="dbi-plugin-date-compiled" XRefLabel="dbi_plugin_date_compiled"><Title>dbi_plugin_date_compiled</Title>
 			 <Para><ProgramListing>const char *dbi_plugin_date_compiled(dbi_plugin_t *plugin)</ProgramListing></Para>
 			 <Para>Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -284,7 +300,7 @@ published by the Free Software Foundation.
 				 </VarListEntry>
 			 </VariableList>
 		 </Section>
-		 <Section id="dbi-version"><Title>dbi_version</Title>
+		 <Section id="dbi-version" XRefLabel="dbi_version"><Title>dbi_version</Title>
 			 <Para><ProgramListing>const char *dbi_version()</ProgramListing></Para>
 			 <Para>Requests the version of libdbi. The calling program must not attempt to free the returned string.</Para>
 			 <VariableList>
@@ -296,7 +312,7 @@ published by the Free Software Foundation.
 		 </Section>
 	</Section>
 	<Section id="reference-database"><Title>SQL and Database Layer</Title>
-		<Section id="dbi-connect"><Title>dbi_connect</Title>
+		<Section id="dbi-connect" XRefLabel="dbi_connect"><Title>dbi_connect</Title>
 			<Para><ProgramListing>int dbi_connect(dbi_driver_t *driver)</ProgramListing></Para>
 			<Para>Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric(). See the documentation for each specific database plugin for the options it recognizes and requires.</Para>
 			<VariableList>
@@ -312,44 +328,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-fetch-field"><Title>dbi_fetch_field</Title>
-			<Para><ProgramListing>int dbi_fetch_field(dbi_result_t *result, const char *key, void *to)</ProgramListing></Para>
-			<Para>Retrieves the value of the specified field and stores it in the "to" variable. libdbi detects the type of each field (INT, VARCHAR, etc), and will convert the retrieved value into the correct type. The programmer must make sure that the destination variable is also of the correct type, or else weird things will happen. See the documentation for each specific database plugin for the SQL datatypes it recognizes and the equivalent variable types in C.</Para>
-			<VariableList>
-				<VarListEntry>
-					<Term><Emphasis>Arguments</Emphasis></Term>
-					<ListItem>
-						<Para><Literal>result</Literal>: The result handle from a successful SELECT query.</Para>
-						<Para><Literal>key</Literal>: The name of the column to retrieve the value from.</Para>
-						<Para><Literal>to</Literal>: A pointer to the destination variable of the field's value.</Para>
-					</ListItem>
-				</VarListEntry>
-				<VarListEntry>
-					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
-				</VarListEntry>
-			</VariableList>
-		</Section>
-		<Section id="dbi-fetch-field-raw"><Title>dbi_fetch_field_raw</Title>
-			<Para><ProgramListing>int dbi_fetch_field_raw(dbi_result_t *result, const char *key, void *to)</ProgramListing></Para>
-			<Para>Retrieves the value of the specified field and stores it in the "to" variable. libdbi will store the value as whatever type the database provided, which will vary between databases. The programmer must make sure that the destination variable is of the same type that the database expects, or else weird things will happen. See the documentation for each specific database plugin for the SQL datatypes it recognizes and the equivalent variable types in C.</Para>
-			<Para>[NOTE: THIS FUNCTION MAY BE REMOVED]</Para>
-			<VariableList>
-				<VarListEntry>
-					<Term><Emphasis>Arguments</Emphasis></Term>
-					<ListItem>
-						<Para><Literal>result</Literal>: The result handle from a successful SELECT query.</Para>
-						<Para><Literal>key</Literal>: The name of the column to retrieve the value from.</Para>
-						<Para><Literal>to</Literal>: A pointer to the destination variable of the field's value.</Para>
-					</ListItem>
-				</VarListEntry>
-				<VarListEntry>
-					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
-				</VarListEntry>
-			</VariableList>
-		</Section>
-		<Section id="dbi-fetch-row"><Title>dbi_fetch_row</Title>
+		<Section id="dbi-fetch-row" XRefLabel="dbi_fetch_row"><Title>dbi_fetch_row</Title>
 			<Para><ProgramListing>int dbi_fetch_row(dbi_result_t *result)</ProgramListing></Para>
 			<Para>Retrieves the next row in the result set. With most queries, this will simply increase a memory pointer where all the results are stored. However, if the query was executed with dbi_efficient_query(), this function will actually retrive the next row from the database server, minimizing the memory used by libdbi.</Para>
 			<VariableList>
@@ -365,7 +344,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-free-query"><Title>dbi_free_query</Title>
+		<Section id="dbi-free-query" XRefLabel="dbi_free_query"><Title>dbi_free_query</Title>
 			<Para><ProgramListing>int dbi_free_query(dbi_result_t *result)</ProgramListing></Para>
 			<Para>Ends the query associated with the specified result handle and cleans up any temporary variables. In databases that require it (such as mysql), any unread rows in a result set will be read and then discarded so that the query can be safely freed.</Para>
 			<VariableList>
@@ -381,7 +360,41 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-goto-row"><Title>dbi_goto_row</Title>
+		<Section id="dbi-get-length" XRefLabel="dbi_get_length"><Title>dbi_get_length</Title>
+			<Para><ProgramListing>unsigned int dbi_get_length(dbi_result_t *result, const char *field)</ProgramListing></Para>
+			<Para> WOOT! </Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: The result handle from a successful SELECT query.</Para>
+						<Para><Literal>field</Literal>: The name of the field to check.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para> WOOT!-1 </Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-size" XRefLabel="dbi_get_size"><Title>dbi_get_size</Title>
+			<Para><ProgramListing>unsigned int dbi_get_size(dbi_result_t *result, const char *field)</ProgramListing></Para>
+			<Para> WOOT! </Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: The result handle from a successful SELECT query.</Para>
+						<Para><Literal>field</Literal>: The name of the field to check.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para> WOOT! </Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-goto-row" XRefLabel="dbi_goto_row"><Title>dbi_goto_row</Title>
 			<Para><ProgramListing>int dbi_goto_row(dbi_result_t *result, unsigned int row)</ProgramListing></Para>
 			<Para>Jumps to a specific row in a result set.</Para>
 			<VariableList>
@@ -398,7 +411,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-list-dbs"><Title>dbi_list_dbs</Title>
+		<Section id="dbi-list-dbs" XRefLabel="dbi_list_dbs"><Title>dbi_list_dbs</Title>
 			<Para><ProgramListing>const char **dbi_list_dbs(dbi_driver_t *driver)</ProgramListing></Para>
 			<Para>Requests a list of the available databases on the server. The calling program must free the returned array and each individual string.</Para>
 			<VariableList>
@@ -414,7 +427,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-list-tables"><Title>dbi_list_tables</Title>
+		<Section id="dbi-list-tables" XRefLabel="dbi_list_tables"><Title>dbi_list_tables</Title>
 			<Para><ProgramListing>const char **dbi_list_tables(dbi_driver_t *driver, const char *db)</ProgramListing></Para>
 			<Para>Requests a list of the available tables in a particular database. The calling program must free the returned array and each individual string.</Para>
 			<VariableList>
@@ -431,7 +444,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-num-rows"><Title>dbi_num_rows</Title>
+		<Section id="dbi-num-rows" XRefLabel="dbi_num_rows"><Title>dbi_num_rows</Title>
 			<Para><ProgramListing>unsigned int dbi_num_rows(dbi_result_t *result)</ProgramListing></Para>
 			<Para>Returns the number of rows in the specified result set.</Para>
 			<VariableList>
@@ -447,7 +460,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-num-rows-affected"><Title>dbi_num_rows_affected</Title>
+		<Section id="dbi-num-rows-affected" XRefLabel="dbi_num_rows_affected"><Title>dbi_num_rows_affected</Title>
 			<Para><ProgramListing>unsigned int dbi_num_rows_affected(dbi_result_t *result)</ProgramListing></Para>
 			<Para>Returns the number of rows in the specified result set that were actually modified. Not all database servers support this, so it may always be zero. See the documentation for each specific plugin for details.</Para>
 			<VariableList>
@@ -463,9 +476,9 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-query"><Title>dbi_query</Title>
+		<Section id="dbi-query" XRefLabel="dbi_query"><Title>dbi_query</Title>
 			<Para><ProgramListing>dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...)</ProgramListing></Para>
-			<Para>Executes the specified SQL query statement.</Para>
+			<Para>Executes the specified SQL query statement. (talk about "efficient-queries" option here).</Para>
 			<VariableList>
 				<VarListEntry>
 					<Term><Emphasis>Arguments</Emphasis></Term>
@@ -480,24 +493,7 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-efficient-query"><Title>dbi_efficient_query</Title>
-			<Para><ProgramListing>dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...)</ProgramListing></Para>
-			<Para>Executes the specified SQL query statement in an efficient manner, retrieving only one row of results at a time. This uses less memory, but has the downside that other queries can't be made until this one is closed (in some database servers - see the specific plugin documentation).</Para>
-			<VariableList>
-				<VarListEntry>
-					<Term><Emphasis>Arguments</Emphasis></Term>
-					<ListItem>
-						<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-						<Para><Literal>formatstr</Literal>: The format string for the SQL statement. It uses the same format as printf().</Para>
-					</ListItem>
-				</VarListEntry>
-				<VarListEntry>
-					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>A handle to a result set if successful, NULL if not.</Para></ListItem>
-				</VarListEntry>
-			</VariableList>
-		</Section>
-		<Section id="dbi-select-db"><Title>dbi_select_db</Title>
+		<Section id="dbi-select-db" XRefLabel="dbi_select_db"><Title>dbi_select_db</Title>
 			<Para><ProgramListing>int dbi_select_db(dbi_driver_t *driver, const char *db)</ProgramListing></Para>
 			<Para>Switches to a different database on the server.</Para>
 			<VariableList>
@@ -514,42 +510,604 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="reference-database-error"><Title>Database Error Handling</Title>
-			<Section id="dbi-error"><Title>dbi_error</Title>
-				<Para><ProgramListing>int *dbi_error(dbi_driver_t *driver, char *errmsg_dest)</ProgramListing></Para>
-				<Para>Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
-							<Para><Literal>errmsg_dest</Literal>: The target string variable to copy the error message into. If NULL, no error message will be created, but the error number will still be returned.</Para>
-						</ListItem>
-					</VarListEntry>
-					<VarListEntry>
-						<Term><Emphasis>Returns</Emphasis></Term>
-						<ListItem><Para>The error number of the most recent database operation if it resulted in an error. If not, this will return -1.</Para></ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
-			<Section id="dbi-error-handler"><Title>dbi_error_handler</Title>
-				<Para><ProgramListing>void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument)</ProgramListing></Para>
-				<Para>Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters:</Para>
-				<ItemizedList>
-					<ListItem><Para><Literal>dbi_driver_t *driver</Literal>: a pointer to the driver that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
-					<ListItem><Para><Literal>void *user_argument</Literal>: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
-				</ItemizedList>
-				<Para>To remove the error handler callback, specify NULL as the function and user_argument.</Para>
-				<VariableList>
-					<VarListEntry>
-						<Term><Emphasis>Arguments</Emphasis></Term>
-						<ListItem>
-							<Para><Literal>function</Literal>: A pointer to the function to call when the error handler should be triggered.</Para>
-							<Para><Literal>user_argument</Literal>: Any data to pass along to the function when it is triggered. Set to NULL if unused.</Para>
-						</ListItem>
-					</VarListEntry>
-				</VariableList>
-			</Section>
+	</Section>
+	<Section id="reference-database-retrieve"><Title>Retrieving Data in Fields</Title>
+		<Section id="dbi-get-char" XRefLabel="dbi_get_char"><Title>dbi_get_char</Title>
+			<Para><ProgramListing>signed char dbi_get_char(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-short" XRefLabel="dbi_get_short"><Title>dbi_get_short</Title>
+			<Para><ProgramListing>short dbi_get_short(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-long" XRefLabel="dbi_get_long"><Title>dbi_get_long</Title>
+			<Para><ProgramListing>long dbi_get_long(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-longlong" XRefLabel="dbi_get_longlong"><Title>dbi_get_longlong</Title>
+			<Para><ProgramListing>long long dbi_get_longlong(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-uchar" XRefLabel="dbi_get_uchar"><Title>dbi_get_uchar</Title>
+			<Para><ProgramListing>unsigned char dbi_get_uchar(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-ushort" XRefLabel="dbi_get_ushort"><Title>dbi_get_ushort</Title>
+			<Para><ProgramListing>unsigned short dbi_get_ushort(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-ulong" XRefLabel="dbi_get_ulong"><Title>dbi_get_ulong</Title>
+			<Para><ProgramListing>unsigned long dbi_get_ulong(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-ulonglong" XRefLabel="dbi_get_ulonglong"><Title>dbi_get_ulonglong</Title>
+			<Para><ProgramListing>unsigned long long dbi_get_ulonglong(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-float" XRefLabel="dbi_get_float"><Title>dbi_get_float</Title>
+			<Para><ProgramListing>float dbi_get_float(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-double" XRefLabel="dbi_get_double"><Title>dbi_get_double</Title>
+			<Para><ProgramListing>double dbi_get_double(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-string" XRefLabel="dbi_get_string"><Title>dbi_get_string</Title>
+			<Para><ProgramListing>const char *dbi_get_string(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-binary" XRefLabel="dbi_get_binary"><Title>dbi_get_binary</Title>
+			<Para><ProgramListing>const unsigned char *dbi_get_binary(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-string-copy" XRefLabel="dbi_get_string_copy"><Title>dbi_get_string_copy</Title>
+			<Para><ProgramListing>char *dbi_get_string_copy(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-binary-copy" XRefLabel="dbi_get_binary_copy"><Title>dbi_get_binary_copy</Title>
+			<Para><ProgramListing>unsigned char *dbi_get_binary_copy(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-enum" XRefLabel="dbi_get_enum"><Title>dbi_get_enum</Title>
+			<Para><ProgramListing>const char *dbi_get_enum(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-get-set" XRefLabel="dbi_get_set"><Title>dbi_get_set</Title>
+			<Para><ProgramListing>const char *dbi_get_set(dbi_result_t *result, const char *fieldname)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>fieldname</Literal>: figure it out smarty</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>a spoonful of sugar. mmm.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-char" XRefLabel="dbi_bind_char"><Title>dbi_bind_char</Title>
+			<Para><ProgramListing>int dbi_bind_char(dbi_result_t *result, const char *field, char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-uchar" XRefLabel="dbi_bind_uchar"><Title>dbi_bind_uchar</Title>
+			<Para><ProgramListing>int dbi_bind_uchar(dbi_result_t *result, const char *field, unsigned char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-short" XRefLabel="dbi_bind_short"><Title>dbi_bind_short</Title>
+			<Para><ProgramListing>int dbi_bind_short(dbi_result_t *result, const char *field, short *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-ushort" XRefLabel="dbi_bind_ushort"><Title>dbi_bind_ushort</Title>
+			<Para><ProgramListing>int dbi_bind_ushort(dbi_result_t *result, const char *field, unsigned short *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-long" XRefLabel="dbi_bind_long"><Title>dbi_bind_long</Title>
+			<Para><ProgramListing>int dbi_bind_long(dbi_result_t *result, const char *field, long *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-ulong" XRefLabel="dbi_bind_ulong"><Title>dbi_bind_ulong</Title>
+			<Para><ProgramListing>int dbi_bind_ulong(dbi_result_t *result, const char *field, unsigned long *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-longlong" XRefLabel="dbi_bind_longlong"><Title>dbi_bind_longlong</Title>
+			<Para><ProgramListing>int dbi_bind_longlong(dbi_result_t *result, const char *field, long long *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-ulonglong" XRefLabel="dbi_bind_ulonglong"><Title>dbi_bind_ulonglong</Title>
+			<Para><ProgramListing>int dbi_bind_ulonglong(dbi_result_t *result, const char *field, unsigned long long *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-float" XRefLabel="dbi_bind_float"><Title>dbi_bind_float</Title>
+			<Para><ProgramListing>int dbi_bind_float(dbi_result_t *result, const char *field, float *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-double" XRefLabel="dbi_bind_double"><Title>dbi_bind_double</Title>
+			<Para><ProgramListing>int dbi_bind_double(dbi_result_t *result, const char *field, double *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-string" XRefLabel="dbi_bind_string"><Title>dbi_bind_string</Title>
+			<Para><ProgramListing>int dbi_bind_string(dbi_result_t *result, const char *field, const char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-binary" XRefLabel="dbi_bind_binary"><Title>dbi_bind_binary</Title>
+			<Para><ProgramListing>int dbi_bind_binary(dbi_result_t *result, const char *field, const unsigned char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-string-copy" XRefLabel="dbi_bind_string_copy"><Title>dbi_bind_string_copy</Title>
+			<Para><ProgramListing>int dbi_bind_string_copy(dbi_result_t *result, const char *field, char **bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-binary-copy" XRefLabel="dbi_bind_binary_copy"><Title>dbi_bind_binary_copy</Title>
+			<Para><ProgramListing>int dbi_bind_binary_copy(dbi_result_t *result, const char *field, unsigned char **bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-enum" XRefLabel="dbi_bind_enum"><Title>dbi_bind_enum</Title>
+			<Para><ProgramListing>int dbi_bind_enum(dbi_result_t *result, const char *field, const char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-bind-set" XRefLabel="dbi_bind_set"><Title>dbi_bind_set</Title>
+			<Para><ProgramListing>int dbi_bind_set(dbi_result_t *result, const char *field, const char *bindto)</ProgramListing></Para>
+			<Para>too tired to write at the moment :(</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>result</Literal>: bleh</Para>
+						<Para><Literal>field</Literal>: figure it out smarty</Para>
+						<Para><Literal>bindto</Literal>: err, eh?</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>jo mamma!</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+	</Section>
+	<Section id="reference-database-error"><Title>Database Error Handling</Title>
+		<Section id="dbi-error" XRefLabel="dbi_error"><Title>dbi_error</Title>
+			<Para><ProgramListing>int *dbi_error(dbi_driver_t *driver, char *errmsg_dest)</ProgramListing></Para>
+			<Para>Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>driver</Literal>: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().</Para>
+						<Para><Literal>errmsg_dest</Literal>: The target string variable to copy the error message into. If NULL, no error message will be created, but the error number will still be returned.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The error number of the most recent database operation if it resulted in an error. If not, this will return -1.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-error-handler" XRefLabel="dbi_error_handler"><Title>dbi_error_handler</Title>
+			<Para><ProgramListing>void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument)</ProgramListing></Para>
+			<Para>Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters:</Para>
+			<ItemizedList>
+				<ListItem><Para><Literal>dbi_driver_t *driver</Literal>: a pointer to the driver that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
+				<ListItem><Para><Literal>void *user_argument</Literal>: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
+			</ItemizedList>
+			<Para>To remove the error handler callback, specify NULL as the function and user_argument.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>function</Literal>: A pointer to the function to call when the error handler should be triggered.</Para>
+						<Para><Literal>user_argument</Literal>: Any data to pass along to the function when it is triggered. Set to NULL if unused.</Para>
+					</ListItem>
+				</VarListEntry>
+			</VariableList>
 		</Section>
 	</Section>
 </Chapter>

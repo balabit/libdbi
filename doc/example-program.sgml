@@ -1,37 +1,39 @@
 <ProgramListing>
-	#include &lt;stdio.h&gt;
-	#include &lt;dbi/dbi.h&gt;
+<![CDATA[
+#include <stdio.h>
+#include <dbi/dbi.h>
 
-	int main() {
-		dbi_driver_t *driver;
-		dbi_result_t *result;
-		dbi_row_t *row;
+int main() {
+	dbi_driver_t *driver;
+	dbi_result_t *result;
+	dbi_row_t *row;
 
-		double threshold = 99.99;
-		unsigned int idnumber;
-		char *fullname;
+	double threshold = 99.99;
+	unsigned int idnumber;
+	char *fullname;
 
-		dbi_initialize(NULL);
-		driver = dbi_load_driver("mysql");
+	dbi_initialize(NULL);
+	driver = dbi_load_driver("mysql");
 
-		dbi_set_option(driver, "host", "localhost");
-		dbi_set_option(driver, "username", "chug");
-		dbi_set_option(driver, "password", "dIP!");
-		dbi_set_option(driver, "database", "dbname");
-		dbi_set_option_numeric(driver, "use_compression", 1);
+	dbi_set_option(driver, "host", "localhost");
+	dbi_set_option(driver, "username", "chug");
+	dbi_set_option(driver, "password", "dIP!");
+	dbi_set_option(driver, "database", "dbname");
+	dbi_set_option_numeric(driver, "use_compression", 1);
 
-		dbi_connect(driver);
-		result = dbi_query(driver, "SELECT id, name FROM penguins WHERE fathername = "Linus" AND mode = "angry" AND mph &gt; %0.2f", threshold);
-		while ((row = dbi_fetch_row(result)) != NULL) {
-			idnumber = dbi_get_ulong(driver, row, "id");
-			fullname = dbi_get_string(driver, row, "name");
-			printf("You should be a lot more careful about what you say to %s! (id=%d)\n", fullname, idnumber);
-		}
-		dbi_free_query(result);
-		dbi_close_driver(driver);
-		dbi_shutdown();
-		return 0;
+	dbi_connect(driver);
+	result = dbi_query(driver, "SELECT id, name FROM penguins WHERE fathername = "Linus" AND mode = "angry" AND mph > %0.2f", threshold);
+	while (row = dbi_fetch_row(result)) {
+		idnumber = dbi_get_ulong(driver, row, "id");
+		fullname = dbi_get_string(driver, row, "name");
+		printf("You should be a lot more careful about what you say to %s! (id=%d)\n", fullname, idnumber);
 	}
+	dbi_free_query(result);
+	dbi_close_driver(driver);
+	dbi_shutdown();
+	return 0;
+}
+]]>
 </ProgramListing>
 <Para>
 	Of course, a complete program should be checking for errors. This example
