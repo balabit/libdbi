@@ -1,6 +1,7 @@
 /*
  * libdbi - database independent abstraction layer for C.
- * Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE), David Parker, Mark Tobenkin.
+ * Copyright (C) 2001, Brentwood Linux Users and Evangelists (BLUE).
+ * Copyright (C) David Parker and Mark Tobenkin.
  * http://libdbi.sourceforge.net
  * 
  * This library is free software; you can redistribute it and/or
@@ -17,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
- * dbd_template.c: Template plugin for libdbi.
+ * dbd_template.c: Example template plugin for libdbi.
  * Copyright (C) 2001, Herbert Z. Bartholemew <hbz@bombdiggity.net>.
  * http://www.bombdiggity.net/~hzb/dbd_template/
  * 
@@ -31,32 +32,44 @@
 #include <dbi/dbi.h>
 /* any database library includes */
 
-#define DBD_CUSTOM_FUNCTIONS { "template_frob", "template_bork", NULL } /* actual functions must be called dbd_template_frob and dbd_template_bork, but this is how they are referred to when using dbi_custom_function() */
 
-dbi_info_t dbd_template_info = {
+
+/*******************************
+ * plugin-specific information *
+ *******************************/
+
+dbi_info_t plugin_info = {
 	/* short name, used for loading drivers by name */
 	"template",
 	/* short desc, no more than two sentences, no newlines */
 	"Example template plugin for FooBlah database server",
 	/* plugin author/maintainer, email address */
-	"Herbert Z. Bartholemew <hzb@bombdiggity.net>",
+	"Herbert Z. Bartholemew <hzb@bomb-diggity.net>",
 	/* URL of plugin, if maintained by a third party */
-	"http://www.bombdiggity.net/~hzb/dbd_template/",
+	"http://www.bomb-diggity.net/~hzb/dbd_template/",
 	/* plugin version */
 	"dbd_template v0.00",
 	/* compilation date */
 	__DATE__
 };
 
+static const char **custom_functions_list = { "template_frob", "template_bork", NULL };
+/* actual functions must be called dbd_template_frob and dbd_template_bork, but
+ * this is how they are referred as when using dbi_custom_function() */
+
+static const char **reserved_words_list = { "SELECT", "INSERT", "UPDATE", "UNSIGNED", "NULL", "NOT", "IS", "TINYINT", "VARCHAR", "etc...", NULL };
+
+
+
+/********************************
+ * database-dependent functions *
+ ********************************/
+
 int dbd_initialize(dbi_plugin_t *myself) {
-	/* fill info structure and custom function list. name and filename will
-	 * already be set by the main dbi initialization. functions and custom_functions
-	 * will be automatically set by dbi initialization after this function executes.
-	 * also perform any database-specific init. return -1 on error, 0 on success */
-	
-	myself->info = &dbd_template_info;
-	myself->custom_functions_list = DBD_CUSTOM_FUNCTIONS;
-	/* other init... */
+	/* perform any database-specific server initialization.
+	 * dlhandle, filename, next, functions, reserved_words, and custom_functions
+	 * already filled in by the dbi core. return -1 on error, 0 on success.
+	 * if -1 is returned, the plugin will not be added to the list of available plugins. */
 	
 	return 0;
 }
@@ -72,7 +85,12 @@ int dbd_connect(dbi_driver_t *myself) {
 	return 0;
 }
 
-int dbd_fetch_field(dbi_result_t *result, const char *key, void *&dest) {
+int dbd_disconnect(dbi_driver_t *myself) {
+	/* do whatever's necessary... */
+	return 0;
+}
+
+int dbd_fetch_field(dbi_result_t *result, const char *key, void *dest) {
 	/* grab the value in the field, convert it to the
 	 * appropriate C datatype, and stuff it into dest */
 	return 0;
@@ -86,6 +104,18 @@ int dbd_fetch_row(dbi_result_t *result) {
 int dbd_free_query(dbi_result_t *result) {
 	/* do whatever's necessary... */
 	return 0;
+}
+
+static const char **dbd_get_custom_functions_list() {
+	return custom_functions_list;
+}
+
+static const dbi_info_t *dbd_get_info() {
+	return plugin_info;
+}
+
+static const char **dbd_get_reserved_words_list() {
+	return reserved_words_list;
 }
 
 int dbd_goto_row(dbi_result_t *result, unsigned int row) {
