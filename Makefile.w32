@@ -45,7 +45,7 @@ host_triplet = i686-pc-cygwin
 AS = @AS@
 CC = gcc
 DEBUG = -g -Wall -D__NO_MATH_INLINES -fsigned-char
-MYSQL_LIBS = -lmysqlclient -ldbi -lz
+MYSQL_LIBS = -lmysqlclient -ldbi -lz -liberty
 PGSQL_LIBS = -lpq -ldbi -lz -liberty
 plugindir = ${exec_prefix}/lib/dbd
 
