@@ -163,6 +163,7 @@ int dbd_fetch_row(dbi_result_t *result) {
 	result->row =  (dbi_row_t *) malloc(sizeof(dbi_row_t));
 	result->row->row_handle = (void *) row;
 	result->row->next = NULL;
+
 	
 	/*if(!trav){ /* If there are now rows already loaded, allocate a new one*/
 	/*	result->row = trav = (dbi_row_t *) malloc(sizeof(dbi_row_t));
