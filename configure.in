@@ -6,7 +6,7 @@ AM_CONFIG_HEADER(config.h)
 
 dnl Library versioning
 LIB_CURRENT=0
-LIB_REVISION=2
+LIB_REVISION=3
 LIB_AGE=0
 AC_SUBST(LIB_CURRENT)
 AC_SUBST(LIB_REVISION)
@@ -117,4 +117,5 @@ AC_OUTPUT([
 	drivers/Makefile
 	drivers/mysql/Makefile
 	drivers/postgresql/Makefile
+	tests/Makefile
 	])

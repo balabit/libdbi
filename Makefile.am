@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign dist-zip
 
-SUBDIRS = src include doc drivers debian
+SUBDIRS = src include doc drivers debian tests
 
 #m4datadir = $(datadir)/aclocal
 #m4data_DATA = dbi.m4

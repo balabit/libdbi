@@ -2,109 +2,127 @@
 #include <dbi/dbi.h>
 
 int main(int argc, char **argv) {
-	dbi_driver driver = NULL;
+	dbi_driver driver;
 	dbi_conn conn;
 	dbi_result result;
 
-	char *driverdir="/home/mmt/code/CVS/libdbi/local/lib/dbd";
-
-	int sqlTAGID;
-	char *sqlFILENAME;
-	short sqlMEDIATYPEID;
+	char driverdir[256];
+	char drivername[64];
+	char hostname[64];
+	char username[64];
+	char password[64];
+	char dbname[64];
 
 	char *errmsg;
-	int curplugidx = 0;
 	int numdrivers;
 
-	if(argc > 1){
-		argv++;
-		printf("Looking in: %s", *argv);
-		dbi_initialize(*argv);
-	} else {
-		printf("Looking in: %s", driverdir);
-		dbi_initialize(driverdir);
+	printf("\nlibdbi test program: $Id$\nLibrary version: %s\n\n", dbi_version());
+	
+	printf("libdbi driver directory? [%s] ", DBI_DRIVER_DIR);
+	fgets(driverdir, 256, stdin);
+	if (driverdir[0] == '\n') strncpy(driverdir, DBI_DRIVER_DIR, 255), driverdir[255] = '\0';
+	else driverdir[strlen(driverdir)-1] = '\0';
+	
+	numdrivers = dbi_initialize(driverdir);
+	
+	if (numdrivers < 0) {
+		printf("Unable to initialize libdbi! Make sure you specified a valid driver directory.\n");
+		dbi_shutdown();
+		return 1;
 	}
-	
-	printf("\nLibrary version: %s\n", dbi_version());
-	
-	if (numdrivers < 1) {
-		if (numdrivers == -1) printf("Couldn't open driver directory.\n");
-		printf("Unloading dbi, later...\n");
+	else if (numdrivers == 0) {
+		printf("Initialized libdbi, but no drivers were found!\n");
 		dbi_shutdown();
 		return 1;
 	}
 	
-		conn = dbi_conn_new("mysql");
-		driver = dbi_conn_get_driver(conn);
-		if (conn == NULL) {
-			printf("Can't load conn 'mysql'...\n");
-			dbi_shutdown();
-			return 1;
-		}
-		
-		printf("\n\tPLUGIN %d of %d\n\t---------------\n", curplugidx+1, numdrivers);
-		
-		printf("\tName:       %s\n"
-			   "\tFilename:   %s\n"
-			   "\tDesc:       %s\n"
-			   "\tMaintainer: %s\n"
-			   "\tURL:        %s\n"
-			   "\tVersion:    %s\n"
-			   "\tCompiled:   %s\n", dbi_driver_get_name(driver), dbi_driver_get_filename(driver), dbi_driver_get_description(driver), dbi_driver_get_maintainer(driver), dbi_driver_get_url(driver), dbi_driver_get_version(driver), dbi_driver_get_date_compiled(driver));
+	driver = NULL;
+	printf("Available drivers (%d): ", numdrivers);
+	while ((driver = dbi_driver_list(driver)) != NULL) {
+		printf("%s ", dbi_driver_get_name(driver));
+	}
+	driver = NULL;
+	drivername[0] = '\n';
 
-		printf("\tCreating conn instance of driver... ");
-		conn = dbi_conn_open(driver);
-		
-		if (conn == NULL) {
-			printf("Failed.\n");
-			dbi_shutdown();
-			return 1;
-		}
-		printf("OK.\n");
-		
-		//dbi_conn_set_option(conn, "host", "localhost");
-		//dbi_conn_set_option_numeric(conn, "port", 12345);
-		dbi_conn_set_option(conn, "username", "");
-		dbi_conn_set_option(conn, "password", "");
-		dbi_conn_set_option(conn, "dbname", "test");
-		//dbi_conn_set_option_numeric(conn, "efficient-queries", 0);
+	while (drivername[0] == '\n') {
+		printf("\ntest which driver? ");
+		fgets(drivername, 64, stdin);
+	}
+	drivername[strlen(drivername)-1] = '\0';
 
-		printf("Options set, about to connect...\n");
+	printf("database hostname? [localhost] ");
+	fgets(hostname, 64, stdin);
+	if (hostname[0] == '\n') strncpy(hostname, "localhost", 63), hostname[63] = '\0';
+	else hostname[strlen(hostname)-1] = '\0';
+	
+	printf("database username? [none] ");
+	fgets(username, 64, stdin);
+	if (username[0] == '\n') username[0] = '\0';
+	else username[strlen(username)-1] = '\0';
+	
+	printf("database password? [none] ");
+	fgets(password, 64, stdin);
+	if (password[0] == '\n') password[0] = '\0';
+	else password[strlen(password)-1] = '\0';
 
-		if (dbi_conn_connect(conn) == -1) {
-			dbi_conn_error(conn, &errmsg);
-			printf("FAILED! Error message: %s\n", errmsg);
-			free(errmsg);
-			dbi_shutdown();
-			return 1;
-		}
-		fprintf(stderr,"Connected to socket: %d, about to query... ",
-				dbi_conn_get_socket(conn));
-		while(1){}
+	printf("database name? [libdbitest] ");
+	fgets(dbname, 64, stdin);
+	if (dbname[0] == '\n') strncpy(dbname, "libdbitest", 63), dbname[63] = '\0';
+	else dbname[strlen(dbname)-1] = '\0';
+	
+	if ((conn = dbi_conn_new(drivername)) == NULL) {
+		printf("Can't instantiate '%s' driver into a dbi_conn!\n", drivername);
+		dbi_shutdown();
+		return 1;
+	}
 
-		result = dbi_conn_query(conn, "SELECT * FROM sample");
-		if (result) {
-			printf("OK\n");
-			dbi_result_bind_fields(result, "key1.%l enum1.%s", &sqlTAGID, &sqlFILENAME);
-			printf("\nkey1\tstring1\tFilename\n");
-			while (dbi_result_next_row(result)) {
-				printf("%d %s\n", sqlTAGID, sqlFILENAME);
-			}
-			printf("Done fetching rows.\n");
-			dbi_result_free(result);
-		}
-		else {
-			dbi_conn_error(conn, &errmsg);
-			printf("FAILED! Error message: %s", errmsg);
-			free(errmsg);
-		}
-		
+	driver = dbi_conn_get_driver(conn);
+
+	printf("\nPlugin information:\n-------------------\n");
+	printf("\tName:       %s\n"
+		   "\tFilename:   %s\n"
+		   "\tDesc:       %s\n"
+		   "\tMaintainer: %s\n"
+		   "\tURL:        %s\n"
+		   "\tVersion:    %s\n"
+		   "\tCompiled:   %s\n", dbi_driver_get_name(driver), dbi_driver_get_filename(driver), dbi_driver_get_description(driver), dbi_driver_get_maintainer(driver), dbi_driver_get_url(driver), dbi_driver_get_version(driver), dbi_driver_get_date_compiled(driver));
+
+	dbi_conn_set_option(conn, "host", hostname);
+	dbi_conn_set_option(conn, "username", username);
+	dbi_conn_set_option(conn, "password", password);
+	dbi_conn_set_option(conn, "dbname", dbname);
+
+	if (dbi_conn_connect(conn) < 0) {
+		dbi_conn_error(conn, &errmsg);
+		printf("Unable to connect! Error message: %s\n", errmsg);
+		free(errmsg);
+		dbi_shutdown();
+		return 1;
+	}
+
+	printf("Successfully connected! Available tables: \n\t");
+	
+	if ((result = dbi_conn_get_table_list(conn, dbname)) == NULL) {
+		dbi_conn_error(conn, &errmsg);
+		printf("AAH! Can't get table list! Error message: %s\n", errmsg);
+		free(errmsg);
 		dbi_conn_close(conn);
-		curplugidx++;
-		printf("\n");
-		
-	printf("Shutting down DBI...\n");
+		dbi_shutdown();
+		return 1;
+	}
+
+	while (dbi_result_next_row(result)) {
+		const char *tablename = NULL;
+		tablename = dbi_result_get_string_idx(result, 1);
+		printf("%s ", tablename);
+	}
+
+	dbi_result_free(result);
+	printf(".\n");
+	printf("All done, disconnecting and shutting down libdbi. Have a nice day.\n");
+
+	dbi_conn_close(conn);
 	dbi_shutdown();
-	printf("ja mata!\n");
+
 	return 0;
 }

@@ -1,6 +1,0 @@
-these are various mini-programs to test the dbi infrastructure and its
-associated plugins. although they are included in the CVS tree, they will not
-appear in the actual distribution (since the main configure.in and makefile.am
-won't include it). to compile, first compile and install the rest of libdbi.
-then, run gcc -ldl -ldbi -o FOO FOO.C.  Add -g to the gcc options if you want
-to be able to debug with gdb.
