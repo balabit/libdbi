@@ -184,6 +184,16 @@ unsigned short _map_type_attributes( enum enum_field_types mytype )
 		case FIELD_TYPE_TIMESTAMP:
 			attb |= DBI_INTEGER_SIZE8;
 		break;
+
+		case FIELD_TYPE_FLOAT:
+			attb |= DBI_DECIMAL_SIZE4;
+		break;
+		
+		case FIELD_TYPE_DOUBLE:
+		case FIELD_TYPE_DECIMAL:
+		case FIELD_TYPE_LONGLONG: /* Unforturnately, C can only see longlong's as doubles*/
+			attb |= DBI_DECIMAL_SIZE8;
+		break;
 		
 		/* Add Decimal Sizes Later */
 		default:
