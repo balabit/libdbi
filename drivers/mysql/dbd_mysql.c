@@ -69,7 +69,7 @@ unsigned short _map_type_attributes(enum enum_field_types mytype);
 
 char *_strcpy_safe(char *str1, const char *str2);
 
-dbi_row_t *_row_new(MYSQL_ROW *myrow);
+dbi_row_t *_row_new( MYSQL_ROW *myrow, int nfields );
 
 /* DBI Plugin Standard Functions *\
 \*********************************/
@@ -478,6 +478,10 @@ int dbd_fetch_row( dbi_result_t *result )
 
 	len = mysql_fetch_lengths(myres);
 
+	/* Grab Field Info */
+	mysql_field_seek(myres, 0);
+
+	myfield = mysql_fetch_fields(myres);
 	
 	/* Either No More Rows, Or Error*/
 	if(*myrow == NULL){
@@ -494,13 +498,10 @@ int dbd_fetch_row( dbi_result_t *result )
 
 	row = _row_new(myrow, mysql_num_fields(myres));
 
-	mysql_field_seek(myres, 0);
 
 	for(i = 0; i < row->numfields; i++){
 
-		myfield = mysql_fetch_field(myres);
-
-		row->field_names[i] = _strcpy_safe(NULL, myfield->name);
+		row->field_names[i] = _strcpy_safe(NULL, myfield[i].name);
 		row->field_types[i] = 0;
 		row->field_type_attributes[i] = 0;
 		
@@ -508,14 +509,14 @@ int dbd_fetch_row( dbi_result_t *result )
 		if(!string) return -1;
 
 		string[len[i]] = '\0';
-		if(len[i] != 0)
+		if(len[i] != 0 && *myrow != NULL)
 			memcpy((void*)string, *(myrow)[i], len[i]);
 
 		fprintf(stderr, "Debugging Statement (sorry): String Value [%s]\n",
 				string);
 
-		row->field_types[i] = _map_type(myfield->type);
-		row->field_type_attributes[i] = _map_type_attributes(myfield->type);
+		row->field_types[i] = _map_type(myfield[i].type);
+		row->field_type_attributes[i] = _map_type_attributes(myfield[i].type);
 
 		if(row->field_types[i] == DBI_TYPE_INTEGER){
 			if(row->field_type_attributes[i] & DBI_INTEGER_SIZE4){
@@ -555,6 +556,7 @@ int dbd_fetch_row( dbi_result_t *result )
 			}
 		}
 		free(string);
+		string = NULL;
 
 	}
 
