@@ -725,7 +725,6 @@ short dbi_result_get_short_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
@@ -769,7 +768,6 @@ long dbi_result_get_long_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
@@ -813,7 +811,6 @@ long long dbi_result_get_longlong_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
@@ -889,7 +886,6 @@ float dbi_result_get_float_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 
 	switch (sizeattrib) {
@@ -930,7 +926,6 @@ double dbi_result_get_double_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0.0;
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_DECIMAL_SIZE4, DBI_DECIMAL_SIZE8);
 
 	switch (sizeattrib) {
