@@ -111,7 +111,7 @@ dbi_info_t *dbd_get_info()
 
 /*****************************************************************************/
 /* DBD_GET_CUSTOM_FUNCTIONS                                                  */
-uui/*****************************************************************************/
+/*****************************************************************************/
 /*
  * Precondition: 
  * Postcondition: 
@@ -238,10 +238,6 @@ int dbd_disconnect( dbi_driver_t *driver )
  * Postcondition: none.
  * Returns: list of db names
  */
-
-/*****************************************************************************\
-* TODO: Switch list dbs && list tables to return a result.                    *
-\*****************************************************************************/
 
 dbi_result_t *dbd_list_dbs( dbi_driver_t *driver )
 {
@@ -414,7 +410,7 @@ int dbd_fetch_row( dbi_result_t *result )
 
 	/*********************************************************************\
 	* Psuedo Code For Rest Of Function:                                   *
-	* 	1) Allocate memory for field_names, field_types_*.              *
+	* 	1) Allocate memory for field_names, field_types_*.            *
 	*	2) Loop for numfields number of times, grabbing MYSQL_FIELDs  *
 	*	   2.1) strcpy_safe column names to field names               *
 	*          2.2) switch() statement to find corrent field_type and     *
