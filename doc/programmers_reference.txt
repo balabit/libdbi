@@ -7,7 +7,13 @@ $Id$
 INTRODUCTION:
 -------------
 
-libdbi provides application developers with a database independent abstraction layer for C. It handles the database-specific implementations for each type of database, so that you can use the same exact code with any type of database server that libdbi supports. You can initiate and use multiple database connections simultaneously, regardless of the types of database you are connecting to. The plugin architecture allows for new database drivers to be easily added dynamically by a third party.
+libdbi provides application developers with a database independent abstraction
+layer for C. It handles the database-specific implementations for each type of
+database, so that you can use the same exact code with any type of database
+server that libdbi supports. You can initiate and use multiple database
+connections simultaneously, regardless of the types of database you are
+connecting to. The plugin architecture allows for new database drivers to be
+easily added dynamically by a third party.
 
 MODIFICATIONS AND REDISTRIBUTION:
 ---------------------------------
@@ -37,8 +43,7 @@ EXAMPLE PROGRAM:
 ----------------
 
 #include <stdio.h>
-#include <string.h>
-#include "dbi/dbi.h"
+#include <dbi/dbi.h>
 
 int main() {
 	dbi_driver_t *driver;
@@ -71,7 +76,8 @@ int main() {
 	return 0;
 }
 
-Of course, a complete program should be checking for errors. This example omits error-checking for the sake of clarity.
+Of course, a complete program should be checking for errors. This example omits
+error-checking for the sake of clarity.
 
 LIBDBI API REFERENECE
 ---------------------
@@ -118,7 +124,8 @@ Returns
 dbi_driver_t *dbi_load_driver(const char *name)
 -----------------------------------------------
 
-Creates an actual driver instance from the plugin. This is just a shortcut for calling dbi_open_plugin() and then dbi_start_driver().
+Creates an actual driver instance from the plugin. This is just a shortcut for
+calling dbi_open_plugin() and then dbi_start_driver().
 
 Arguments
 	name: The short name of the desired plugin.
@@ -142,7 +149,8 @@ Returns
 void dbi_set_option(dbi_driver_t *driver, const char *key, char *value)
 -----------------------------------------------------------------------
 
-Sets the specified driver option to a string value. If the value is set to NULL, the entire option entry will be erased.
+Sets the specified driver option to a string value. If the value is set to
+NULL, the entire option entry will be erased.
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
@@ -170,6 +178,36 @@ Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
 
 
+void *dbi_custom_function(dbi_plugin_t *plugin, const char *name)
+-----------------------------------------------------------------
+
+Returns a function pointer to the specifed custom function. This can be used to
+access database-specific functionality, but its syntax is not elegant and will
+restrict your code to one particular database, lessening the benefits of using
+libdbi.
+
+Arguments
+	plugin: The target plugin.
+	name: The name of the custom function.
+
+Returns
+	If the custom function is found, a pointer to that function. If not, returns NULL.
+
+
+int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word)
+----------------------------------------------------------------
+
+Looks for the specified word in the list of reserved words. The result of this
+function may vary between databases. Case does not matter.
+
+Arguments
+	plugin: The target plugin.
+	word: The word to check against the reserved word list.
+
+Returns
+	-1 if an error occurs, 0 if the word is not reserved, 1 otherwise.
+
+
 void dbi_close_driver(dbi_driver_t *driver)
 -------------------------------------------
 
@@ -182,7 +220,8 @@ Arguments
 void dbi_shutdown()
 -------------------
 
-Frees all loaded plugins and terminates the DBI system. You should close each driver before shutting down, or else shit will fly.
+Frees all loaded plugins and terminates the DBI system. You should close each
+driver before shutting down, or else shit will fly.
 
 
 			******************************
@@ -240,7 +279,9 @@ Returns
 const char *dbi_plugin_url(dbi_plugin_t *plugin)
 ------------------------------------------------
 
-Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.
+Requests the maintainer's URL for the specified plugin. This is useful for
+plugins maintained by a third party. The calling program must not attempt to
+free the returned string.
 
 Arguments
 	plugin: The target plugin.
@@ -264,7 +305,8 @@ Returns
 const char *dbi_plugin_date_compiled(dbi_plugin_t *plugin)
 ----------------------------------------------------------
 
-Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.
+Requests the compilation date of the specified plugin. The calling program must
+not attempt to free the returned string.
 
 Arguments
 	plugin: The target plugin.
@@ -290,19 +332,27 @@ Returns
 int dbi_connect(dbi_driver_t *driver)
 -------------------------------------
 
-Connects to the database using the options (host, username, password, port, etc.) set with dbi_set_option() and dbi_set_option_numeric(). See the documentation for each specific database plugin for the options it recognizes and requires.
+Connects to the database using the options (host, username, password, port,
+etc.) set with dbi_set_option() and dbi_set_option_numeric(). See the
+documentation for each specific database plugin for the options it recognizes
+and requires.
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
 
 Returns
-	Zero on failure, non-zero on success.
+	-1 on failure, zero on success.
 
 
 int dbi_fetch_field(dbi_result_t *result, const char *key, void *to)
 --------------------------------------------------------------------
 
-Retrieves the value of the specified field and stores it in the "to" variable. libdbi detects the type of each field (INT, VARCHAR, etc), and will convert the retrieved value into the correct type. The programmer must make sure that the destination variable is also of the correct type, or else weird things will happen. See the documentation for each specific database plugin for the SQL datatypes it recognizes and the equivalent variable types in C.
+Retrieves the value of the specified field and stores it in the "to" variable.
+libdbi detects the type of each field (INT, VARCHAR, etc), and will convert the
+retrieved value into the correct type. The programmer must make sure that the
+destination variable is also of the correct type, or else weird things will
+happen. See the documentation for each specific database plugin for the SQL
+datatypes it recognizes and the equivalent variable types in C.
 
 Arguments
 	result: The result handle from a successful SELECT query.
@@ -310,13 +360,18 @@ Arguments
 	to: A pointer to the destination variable of the field's value.
 
 Returns
-	Zero on failure, non-zero on success.
+	-1 on failure, zero on success.
 
 
 int dbi_fetch_field_raw(dbi_result_t *result, const char *key, void *to)
 ------------------------------------------------------------------------
 
-Retrieves the value of the specified field and stores it in the "to" variable. libdbi will store the value as whatever type the database provided, which will vary between databases. The programmer must make sure that the destination variable is of the same type that the database expects, or else weird things will happen. See the documentation for each specific database plugin for the SQL datatypes it recognizes and the equivalent variable types in C.
+Retrieves the value of the specified field and stores it in the "to" variable.
+libdbi will store the value as whatever type the database provided, which will
+vary between databases. The programmer must make sure that the destination
+variable is of the same type that the database expects, or else weird things
+will happen. See the documentation for each specific database plugin for the
+SQL datatypes it recognizes and the equivalent variable types in C.
 
 [NOTE: THIS FUNCTION MAY BE REMOVED]
 
@@ -326,31 +381,38 @@ Arguments
 	to: A pointer to the destination variable of the field's value.
 
 Returns
-	Zero on failure, non-zero on success.
+	-1 on failure, zero on success.
 
 
 int dbi_fetch_row(dbi_result_t *result)
 ---------------------------------------
 
-Retrieves the next row in the result set. With most queries, this will simply increase a memory pointer where all the results are stored. However, if the query was executed with dbi_efficient_query(), this function will actually retrive the next row from the database server, minimizing the memory used by libdbi.
+Retrieves the next row in the result set. With most queries, this will simply
+increase a memory pointer where all the results are stored. However, if the
+query was executed with dbi_efficient_query(), this function will actually
+retrive the next row from the database server, minimizing the memory used by
+libdbi.
 
 Arguments
 	result: The result handle from a successful SELECT query.
 
 Returns
-	Zero if no more rows are available or there was an error, non-zero if the next row was successfully retrieved.
+	-1 if there was an error, zero if no more rows are available, or 1 if the next row was successfully retrieved.
 
 
 int dbi_free_query(dbi_result_t *result)
 ----------------------------------------
 
-Ends the query associated with the specified result handle and cleans up any temporary variables. In databases that require it (such as mysql), any unread rows in a result set will be read and then discarded so that the query can be safely freed.
+Ends the query associated with the specified result handle and cleans up any
+temporary variables. In databases that require it (such as mysql), any unread
+rows in a result set will be read and then discarded so that the query can be
+safely freed.
 
 Arguments
 	result: The result handle from a successful SELECT query.
 
 Returns
-	Zero on failure, non-zero on success.
+	-1 on failure, zero on success.
 
 
 int dbi_goto_row(dbi_result_t *result, unsigned int row)
@@ -363,13 +425,14 @@ Arguments
 	row: The offset of the row to seek to. The offset is zero based.
 
 Returns
-	Zero on failure or if the offset is invalid, non-zero on success.
+	-1 on failure or if the offset is invalid, zero on success.
 
 
 const char **dbi_list_dbs(dbi_driver_t *driver)
 -----------------------------------------------
 
-Requests a list of the available databases on the server. The calling program must free the returned array and each individual string.
+Requests a list of the available databases on the server. The calling program
+must free the returned array and each individual string.
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
@@ -381,7 +444,8 @@ Returns
 const char **dbi_list_tables(dbi_driver_t *driver, const char *db)
 ------------------------------------------------------------------
 
-Requests a list of the available tables in a particular database. The calling program must free the returned array and each individual string.
+Requests a list of the available tables in a particular database. The calling
+program must free the returned array and each individual string.
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
@@ -406,7 +470,9 @@ Returns
 unsigned int dbi_num_rows_affected(dbi_result_t *result)
 --------------------------------------------------------
 
-Returns the number of rows in the specified result set that were actually modified. Not all database servers support this, so it may always be zero. See the documentation for each specific plugin for details.
+Returns the number of rows in the specified result set that were actually
+modified. Not all database servers support this, so it may always be zero. See
+the documentation for each specific plugin for details.
 
 Arguments
 	result: The result handle from a successful SELECT query.
@@ -431,7 +497,10 @@ Returns
 dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...)
 -----------------------------------------------------------------------------------
 
-Executes the specified SQL query statement in an efficient manner, retrieving only one row of results at a time. This uses less memory, but has the downside that other queries can't be made until this one is closed (in some database servers - see the specific plugin documentation).
+Executes the specified SQL query statement in an efficient manner, retrieving
+only one row of results at a time. This uses less memory, but has the downside
+that other queries can't be made until this one is closed (in some database
+servers - see the specific plugin documentation).
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
@@ -451,7 +520,7 @@ Arguments
 	db: The name of the database to switch to.
 
 Returns
-	Zero on failure, non-zero on success.
+	-1 on failure, zero on success.
 
 
 			*********************************
@@ -459,40 +528,38 @@ Returns
 			*********************************
 
 
-const char *dbi_error(dbi_driver_t *driver)
--------------------------------------------
+int *dbi_error(dbi_driver_t *driver, char *errmsg_dest)
+-------------------------------------------------------
 
-Generates a formatted message with the error number and description resulting from the previous database operation.
-
-Arguments
-	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
-
-Returns
-	A formatted error message if the most recent database operation resulted in an error. If not, this will return a NULL.
-
-
-const char *dbi_errstr(dbi_driver_t *driver)
---------------------------------------------
-
-Retrieves the error description resulting from the previous database operation.
+Generates a formatted message with the error number and description resulting
+from the previous database operation, copying the message into the specified
+string.
 
 Arguments
 	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
+	errmsg_dest: The target string variable to copy the error message into. If NULL, no error message will be created, but the error number will still be returned.
 
 Returns
-	The error description of the most recent database operation if it resulted in an error. If not, or if error descriptions are unavailable, then this will return a NULL.
+	The error number of the most recent database operation if it resulted in an error. If not, this will return -1.
 
 
-int dbi_errno(dbi_driver_t *driver)
------------------------------------
+void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument)
+---------------------------------------------------------------------------------
 
-Retrieves the error number resulting from the previous database operation.
+Registers an error handler callback to be triggered whenever the database
+encounters an error. The callback function should perform as little work as
+possible, since the state in which it is called can be uncertain. The actual
+function declaration must accept two parameters: 
+
+	- dbi_driver_t *driver -- a pointer to the driver that triggered the error,
+	  from which dbi_error() can be called, and
+	- void *user_argument -- a pointer to whatever data (if any) was registered along with the handler
+	
+To remove the error handler callback, specify NULL as the function and user_argument.
 
 Arguments
-	driver: The initialized driver obtained from dbi_load_driver() or dbi_start_driver().
-
-Returns
-	The error number of the most recent database operation if it resulted in an error. If not, this will return 0.
+	function: A pointer to the function to call when the error handler should be triggered.
+	user_argument: Any data to pass along to the function when it is triggered. Set to NULL if unused.
 
 EOF
 

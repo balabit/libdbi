@@ -28,6 +28,7 @@ typedef struct dbi_row_s {
 } dbi_row_t;
 
 typedef struct dbi_result_s {
+	dbi_driver_t *driver; /* to link upwards to the parent driver node */
 	void *result_handle; /* will be typecast into driver-specific type */
 	unsigned int numrows_matched;
 	unsigned int numrows_changed; /* not all servers differentiate rows changed from rows matched, so this may be zero */
@@ -39,6 +40,7 @@ typedef struct dbi_result_s {
 /* DRIVER RELATED TYPES */
 
 typedef struct dbi_info_s {
+	const char *name; /* all lowercase letters and numbers, no spaces */
 	const char *description; /* one or two short sentences, no newlines */
 	const char *maintainer; /* Full Name <fname@fooblah.com> */
 	const char *url; /* where this plugin came from (if maintained by a third party) */
@@ -56,6 +58,21 @@ typedef struct dbi_option_s {
 
 typedef struct dbi_functions_s {
 	/* common function declarations go here. see ao/ao.h from ogg vorbis for example syntax */
+	dbd_initialize
+	dbd_connect
+	dbd_fetch_field
+	dbd_fetch_row
+	dbd_free_query
+	dbd_goto_row
+	dbd_list_dbs
+	dbd_list_tables
+	dbd_num_rows
+	dbd_num_rows_affected
+	dbd_query
+	dbd_efficient_query **
+	dbd_select_db
+	dbd_errstr
+	dbd_errno
 } dbi_functions_t;
 
 typedef struct dbi_custom_function_s {
@@ -66,24 +83,27 @@ typedef struct dbi_custom_function_s {
 } dbi_custom_function_t;
 
 typedef struct dbi_plugin_s {
-	const char *name; /* all lowercase letters and numbers, no spaces */
 	const char *filename; /* full pathname */
 	dbi_info_t *info;
 	dbi_functions_t *functions;
 	dbi_custom_function_t *custom_functions;
+	const char **custom_functions_list; /* used temporarily until the custom_functions linked list is filled */
 	struct dbi_plugin_s *next;
 } dbi_plugin_t;
 	
 typedef struct dbi_driver_s {
 	/* specific instance of a driver -- we can initialize and simultaneously use multiple connections from the same database driver (on different tables or hosts, unless you wanna fubar your data) */
-	dbi_plugin_t *driver; /* generic unchanging attributes shared by all instances of this driver */
+	dbi_plugin_t *plugin; /* generic unchanging attributes shared by all instances of this driver */
 	dbi_option_t *options;
 	/* dbi_result_t *result; ---- this should be stored by the host program, not the driver. there can be more than one valid result handle at a time */
 	void *generic_connection; /* will be typecast into driver-specific type. this is necessary because mysql in particular differentiates between the initial anonymous server connection and a validated server connection after successful login */
 	void *connection; /* will be typecast into driver-specific type */
+	char *current_db;
 	int status; /* check for success or errors */
 	int error_number;
 	char *error_message;
+	void *error_handler;
+	void *error_handler_argument;
 } dbi_driver_t;
 
 
@@ -98,6 +118,8 @@ dbi_driver_t *dbi_start_driver(const dbi_plugin_t *plugin); /* returns an actual
 void dbi_set_option(dbi_driver_t *driver, const char *key, char *value); /* if value is NULL, remove option from list */
 void dbi_set_option_numeric(dbi_driver_t *driver, const char *key, int value);
 void dbi_clear_options(dbi_driver_t *driver);
+void *dbi_custom_function(dbi_plugin_t *plugin, const char *name);
+int dbi_is_reserved_word(dbi_plugin_t *plugin, const char *word);
 void dbi_close_driver(dbi_driver_t *driver); /* disconnects database link and cleans up the driver's session */
 void dbi_shutdown();
 
@@ -129,9 +151,8 @@ dbi_result_t *dbi_query(dbi_driver_t *driver, const char *formatstr, ...); /* dy
 dbi_result_t *dbi_efficient_query(dbi_driver_t *driver, const char *formatstr, ...); /* better name instead of efficient_query? this will only request one row at a time, but has the downside that other queries can't be made until this one is closed. at least that's how it works in mysql, so it has to be the common denominator */
 int dbi_select_db(dbi_driver_t *driver, const char *db);
 
-const char *dbi_error(dbi_driver_t *driver); /* returns formatted message with the error number and string */
-const char *dbi_errstr(dbi_driver_t *driver); /* returns just the string */
-int dbi_errno(dbi_driver_t *driver); /* just the error number */
+int *dbi_error(dbi_driver_t *driver, char *errmsg_dest); /* returns formatted message with the error number and string */
+void dbi_error_handler(dbi_driver_t *driver, void *function, void *user_argument); /* registers a callback that's activated when the database encounters an error */
 
 #ifdef __cplusplus
 }
