@@ -263,7 +263,7 @@ time_t _dbd_parse_datetime(const char *raw, unsigned long attribs) {
 	
 	if (raw && (unparsed = strdup(raw)) != NULL) {
 	cur = unparsed;
-	if (strlen(cur) > 10 && attribs & DBI_DATETIME_DATE) {
+	if (strlen(cur) > 9 && attribs & DBI_DATETIME_DATE) {
 		cur[4] = '\0';
 		cur[7] = '\0';
 		cur[10] = '\0';
