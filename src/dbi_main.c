@@ -531,7 +531,7 @@ int dbi_conn_set_option(dbi_conn Conn, const char *key, const char *value) {
 	}
 
 	if (option->string_value) free(option->string_value);
-	option->string_value = strdup(value);
+	option->string_value = (value) ? strdup(value) : NULL;
 	option->numeric_value = 0;
 	
 	return 0;
