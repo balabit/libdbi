@@ -37,7 +37,7 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
-#define LIBDBI_VERSION "0.5"
+#define LIBDBI_VERSION "0.6"
 
 #ifndef DBI_PLUGIN_DIR
 #define DBI_PLUGIN_DIR "/usr/local/lib/dbd" /* use this as the default */
@@ -49,6 +49,7 @@ static void _free_custom_functions(dbi_plugin_t *plugin);
 static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *key);
 void _error_handler(dbi_driver_t *driver); /* make static again but still work from dbi_result.c */
 static int _update_internal_driver_list(dbi_driver_t *driver, int operation);
+unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
 
 dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 
@@ -227,6 +228,28 @@ const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
 	if (!plugin) return ERROR;
 	return plugin->info->date_compiled;
+}
+
+int dbi_plugin_escape_string(dbi_plugin Plugin, char **orig) {
+	dbi_plugin_t *plugin = Plugin;
+	char *temp;
+	char *newstr;
+	int newlen;
+	
+	if (!plugin || !orig || !*orig) return -1;
+	newstr = malloc((strlen(*orig)*2)+1); /* worst case, we have to escape every character */
+	
+	newlen = plugin->functions->escape_string(plugin, (const char *)*orig, newstr);
+	if (newlen < 0) {
+		free(newstr);
+		return -1;
+	}
+	
+	temp = *orig;
+	*orig = newstr;
+	free(temp); /* original unescaped string */
+
+	return newlen;
 }
 
 /* XXX DRIVER FUNCTIONS XXX */
@@ -556,6 +579,7 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			((plugin->functions->initialize = dlsym(dlhandle, "dbd_initialize")) == NULL) || dlerror() ||
 			((plugin->functions->connect = dlsym(dlhandle, "dbd_connect")) == NULL) || dlerror() ||
 			((plugin->functions->disconnect = dlsym(dlhandle, "dbd_disconnect")) == NULL) || dlerror() ||
+			((plugin->functions->escape_string = dlsym(dlhandle, "dbd_escape_string")) == NULL) || dlerror() ||
 			((plugin->functions->fetch_row = dlsym(dlhandle, "dbd_fetch_row")) == NULL) || dlerror() ||
 			((plugin->functions->free_query = dlsym(dlhandle, "dbd_free_query")) == NULL) || dlerror() ||
 			((plugin->functions->goto_row = dlsym(dlhandle, "dbd_goto_row")) == NULL) || dlerror() ||
@@ -706,5 +730,18 @@ void _error_handler(dbi_driver_t *driver) {
 		errfunc = driver->error_handler;
 		errfunc(driver, driver->error_handler_argument);
 	}
+}
+
+unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax) {
+	/* hahaha! who woulda ever thunk strawberry's code would come in handy? */
+	unsigned short startbit = log(rangemin)/log(2);
+	unsigned short endbit = log(rangemax)/log(2);
+	unsigned long attrib_mask = 0;
+	int x;
+	
+	for (x = startbit; x <= endbit; x++)
+		attrib_mask |= (unsigned long) pow(2, x);
+
+	return (attribs & attrib_mask);
 }
 

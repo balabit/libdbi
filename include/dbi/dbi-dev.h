@@ -44,11 +44,12 @@ typedef union dbi_data_u {
 	float d_float;
 	double d_double;
 	char *d_string;
+	time_t d_datetime; /* XXX add */
 } dbi_data_t;
 
 typedef struct dbi_row_s {
 	dbi_data_t *field_values;
-	unsigned int *field_sizes; /* only set for field indexes that are strings */
+	int *field_sizes; /* NULL field = 0, string field = len, anything else = -1 */
 } dbi_row_t;
 
 typedef struct dbi_result_s {
@@ -64,7 +65,6 @@ typedef struct dbi_result_s {
 	unsigned int *field_attribs;
 
 	enum { NOTHING_RETURNED, ROWS_RETURNED, GETTING_ROWS } result_state; /* nothing_returned: wasn't a SELECT query. returns_rows: select, but no rows fetched yet. getting_rows: select, at least one row has been fetched */
-	unsigned int has_string_fields;
 	dbi_row_t **rows; /* array of filled rows, elements set to NULL if not fetched yet */
 	unsigned long currowidx;
 } dbi_result_t;
@@ -102,6 +102,7 @@ typedef struct dbi_functions_s {
 	int (*initialize)(dbi_plugin_t_pointer);
 	int (*connect)(dbi_driver_t_pointer);
 	int (*disconnect)(dbi_driver_t_pointer);
+	int (*escape_string)(dbi_plugin_t_pointer, const char **, char **);
 	int (*fetch_row)(dbi_result_t *, unsigned int);
 	int (*free_query)(dbi_result_t *);
 	int (*goto_row)(dbi_result_t *, unsigned int);
@@ -139,6 +140,8 @@ typedef struct dbi_driver_s {
 	void *error_handler_argument;
 	struct dbi_driver_s *next; /* so libdbi can unload all drivers at exit */
 } dbi_driver_t;
+
+unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
 
 #ifdef __cplusplus
 }
