@@ -161,7 +161,9 @@ dbi_plugin dbi_plugin_open(const char *name) {
 int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word) {
 	unsigned int idx = 0;
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return 0;
+	
 	while (plugin->reserved_words[idx]) {
 		if (strcasecmp(word, plugin->reserved_words[idx]) == 0) {
 			return 1;
@@ -175,6 +177,7 @@ void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name) {
 	dbi_custom_function_t *custom;
 
 	if (!plugin) return NULL;
+
 	custom = plugin->custom_functions;
 	
 	while (custom && strcasecmp(name, custom->name)) {
@@ -188,43 +191,57 @@ void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name) {
 
 const char *dbi_plugin_get_name(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+	
 	return plugin->info->name;
 }
 
 const char *dbi_plugin_get_filename(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+	
 	return plugin->filename;
 }
 
 const char *dbi_plugin_get_description(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+	
 	return plugin->info->description;
 }
 
 const char *dbi_plugin_get_maintainer(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+
 	return plugin->info->maintainer;
 }
 
 const char *dbi_plugin_get_url(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+
 	if (!plugin) return ERROR;
+
 	return plugin->info->url;
 }
 
 const char *dbi_plugin_get_version(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+	
 	return plugin->info->version;
 }
 
 const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin) {
 	dbi_plugin_t *plugin = Plugin;
+	
 	if (!plugin) return ERROR;
+	
 	return plugin->info->date_compiled;
 }
 
@@ -235,6 +252,7 @@ int dbi_plugin_quote_string(dbi_plugin Plugin, char **orig) {
 	int newlen;
 	
 	if (!plugin || !orig || !*orig) return -1;
+
 	newstr = malloc((strlen(*orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 	
 	newlen = plugin->functions->quote_string(plugin, *orig, newstr);
@@ -289,15 +307,20 @@ dbi_driver dbi_driver_open(dbi_plugin Plugin) {
 
 void dbi_driver_close(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
+	
 	if (!driver) return;
+	
 	_update_internal_driver_list(driver, -1);
+	
 	driver->plugin->functions->disconnect(driver);
 	driver->plugin = NULL;
 	dbi_driver_clear_options(Driver);
 	driver->connection = NULL;
+	
 	if (driver->current_db) free(driver->current_db);
-	driver->error_number = 0;
 	if (driver->error_message) free(driver->error_message);
+	driver->error_number = 0;
+	
 	driver->error_handler = NULL;
 	driver->error_handler_argument = NULL;
 	free(driver);
@@ -305,7 +328,9 @@ void dbi_driver_close(dbi_driver Driver) {
 
 dbi_plugin dbi_driver_get_plugin(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
+	
 	if (!driver) return NULL;
+	
 	return driver->plugin;
 }
 
@@ -313,14 +338,17 @@ int dbi_driver_error(dbi_driver Driver, char **errmsg_dest) {
 	dbi_driver_t *driver = Driver;
 	char number_portion[20];
 	char *errmsg;
+	
 	if (driver->error_number) {
 		snprintf(number_portion, 20, "%d: ", driver->error_number);
 	}
 	else {
 		number_portion[0] = '\0';
 	}
+
 	asprintf(&errmsg, "%s%s", number_portion, driver->error_message);
 	*errmsg_dest = errmsg;
+
 	return driver->error_number;
 }
 
@@ -361,7 +389,7 @@ int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value)
 	dbi_driver_t *driver = Driver;
 	dbi_option_t *option;
 	
-	if (!option) {
+	if (!driver) {
 		return -1;
 	}
 	
@@ -474,7 +502,9 @@ void dbi_driver_clear_options(dbi_driver Driver) {
 int dbi_driver_connect(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	int retval;
+	
 	if (!driver) return -1;
+	
 	retval = driver->plugin->functions->connect(driver);
 	//if (retval == -1) {			XXX cant call error handler when connection is already failed and terminated
 	//	_error_handler(driver);
@@ -485,22 +515,30 @@ int dbi_driver_connect(dbi_driver Driver) {
 dbi_result dbi_driver_get_db_list(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	dbi_result_t *result;
+	
 	if (!driver) return NULL;
+	
 	result = driver->plugin->functions->list_dbs(driver);
+	
 	if (result == NULL) {
 		_error_handler(driver);
 	}
+
 	return (dbi_result)result;
 }
 
 dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db) {
 	dbi_driver_t *driver = Driver;
 	dbi_result_t *result;
+	
 	if (!driver) return NULL;
+	
 	result = driver->plugin->functions->list_tables(driver, db);
+	
 	if (result == NULL) {
 		_error_handler(driver);
 	}
+	
 	return (dbi_result)result;
 }
 
@@ -529,13 +567,18 @@ dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...) {
 int dbi_driver_select_db(dbi_driver Driver, const char *db) {
 	dbi_driver_t *driver = Driver;
 	char *retval;
+	
 	if (!driver) return -1;
+	
 	free(driver->current_db);
 	driver->current_db = NULL;
+	
 	retval = driver->plugin->functions->select_db(driver, db);
+	
 	if (retval == NULL) {
 		_error_handler(driver);
 	}
+	
 	if (retval[0] == '\0') {
 		/* if "" was returned, driver doesn't support switching databases */
 		return -1;
@@ -632,6 +675,7 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 static void _free_custom_functions(dbi_plugin_t *plugin) {
 	dbi_custom_function_t *cur;
 	dbi_custom_function_t *next;
+
 	if (!plugin) return;
 	cur = plugin->custom_functions;
 
@@ -731,7 +775,7 @@ void _error_handler(dbi_driver_t *driver) {
 }
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax) {
-	/* hahaha! who woulda ever thunk strawberry's code would come in handy? */
+	/* hahaha! who woulda ever thunk strawberry's code would come in handy? --David */
 	unsigned short startbit = log(rangemin)/log(2);
 	unsigned short endbit = log(rangemax)/log(2);
 	unsigned long attrib_mask = 0;

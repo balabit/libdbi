@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <dbi/dbi.h>
 
-int main() {
+int main(int argc, char **argv) {
 	dbi_plugin plugin = NULL;
 	dbi_driver driver;
 	dbi_result result;
+
+	char *plugindir="/usr/local/lib/dbd";
 
 	int sqlTAGID;
 	char *sqlFILENAME;
@@ -12,7 +14,14 @@ int main() {
 
 	char *errmsg;
 	int curplugidx = 0;
-	int numplugins = dbi_initialize("/usr/local/lib/dbd");
+	int numplugins;
+
+	if(argc > 0){
+		argv++;
+		printf("Looking in: %s", *argv);
+		dbi_initialize(*argv);
+	} else
+		dbi_initialize(plugindir);
 	
 	printf("\nLibrary version: %s\n", dbi_version());
 	
@@ -64,6 +73,8 @@ int main() {
 			dbi_driver_error(driver, &errmsg);
 			printf("FAILED! Error message: %s\n", errmsg);
 			free(errmsg);
+			dbi_shutdown();
+			return 1;
 		}
 		printf("Connected, about to query... ");
 
