@@ -1,0 +1,39 @@
+
+libdbi - Database Independent Abstraction Layer for C
+Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
+http://libdbi.sourceforge.net
+
+
+OSX-SPECIFIC INSTALLATION INSTRUCTIONS:
+-------------------------------------------
+
+Building libdbi on OSX requires a little more typing compared to other
+Unixes. This is what you need to do:
+
+/sw/bin/glibtoolize --force
+aclocal
+automake --add-missing
+autoconf
+./configure CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
+make CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
+sudo make install
+
+
+MODIFICATIONS AND REDISTRIBUTION (LGPL):
+----------------------------------------
+
+This library is free software; you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option) any
+later version.
+
+This library is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+details.
+
+See the file COPYING or http://www.gnu.org for more details.
+
+
+$Id$
+
