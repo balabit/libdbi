@@ -55,20 +55,153 @@ dbi_info_t plugin_info = {
         __DATE__
 };
 
-/* Function Prototypes */
-
-dbi_result_t *dbd_query(dbi_driver_t *driver, char *statement);
 
 /*****************************************************************************/
-/* STRCPY_SAFE                                                               */
+/* FUNCTION PROTOTYPES                                                       */
+/*****************************************************************************/
+
+ 
+/* Internal Functions *\
+\**********************/
+
+unsigned short _map_type(enum enum_field_types mytype);
+unsigned short _map_type_attributes(enum enum_field_types mytype);
+
+char *_strcpy_safe(char *str1, const char *str2);
+
+dbi_row_t *_row_new(MYSQL_ROW *myrow);
+
+/* DBI Plugin Standard Functions *\
+\*********************************/
+
+int dbd_connect( dbi_driver_t *driver );
+
+int dbd_disconnect( dbi_driver_t *driver );
+
+dbi_result_t *dbd_efficient_query( dbi_driver_t *driver, char *statement );
+int dbd_errno( dbi_driver_t *driver );
+char *dbd_errstr( dbi_driver_t *driver );
+
+int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest );
+int dbd_fetch_field_raw( dbi_result_t *result, const char *key, void **dest);
+int dbd_fetch_row( dbi_result_t *result );
+int dbd_free_query( dbi_result_t *result);
+	
+const char **dbd_get_custom_functions_list();
+const dbi_info_t *dbd_get_info();
+const char **dbd_get_reserved_words_list();
+int dbd_goto_row(dbi_result_t *result, unsigned int row);
+
+int dbd_initialize( dbi_plugin_t *plugin );
+
+dbi_result_t *dbd_list_dbs( dbi_driver_t *driver );
+dbi_result_t *dbd_list_tables( dbi_driver_t *driver );
+	
+unsigned int dbd_num_rows( dbi_result_t *result );
+unsigned int dbd_num_rows_affected( dbi_result_t *result );
+
+dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement );
+
+int dbd_select_db( dbi_driver_t *driver, char *database);
+
+
+
+/*****************************************************************************/
+/* _MAP_TYPE                                                                 */
+/*****************************************************************************/
+/*
+ * Precondition: none.
+ * Postcondition: none.
+ * Returns: The DBI type associated with MySQL type mytype.
+ */
+
+unsigned short _map_type( enum enum_field_types mytype)
+{
+	unsigned short type = 0;
+	
+	switch(mytype){
+		case FIELD_TYPE_YEAR:
+		case FIELD_TYPE_NULL:
+		case FIELD_TYPE_TINY:
+		case FIELD_TYPE_SHORT:
+		case FIELD_TYPE_LONG:
+		case FIELD_TYPE_INT24:
+		case FIELD_TYPE_TIMESTAMP:
+			type = DBI_TYPE_INTEGER;
+		break;
+		
+		case FIELD_TYPE_FLOAT:
+		case FIELD_TYPE_DOUBLE:
+		case FIELD_TYPE_DECIMAL:
+		case FIELD_TYPE_LONGLONG: /* Unforturnately, C can only see longlong's as doubles*/
+			type = DBI_TYPE_DECIMAL;
+		break;
+		
+		case FIELD_TYPE_DATE:
+		case FIELD_TYPE_NEWDATE:
+		case FIELD_TYPE_TIME:
+		case FIELD_TYPE_DATETIME:
+		case FIELD_TYPE_STRING:
+		case FIELD_TYPE_VAR_STRING:
+		case FIELD_TYPE_BLOB:
+		case FIELD_TYPE_TINY_BLOB:
+		case FIELD_TYPE_MEDIUM_BLOB:
+		case FIELD_TYPE_LONG_BLOB:
+		case FIELD_TYPE_SET:
+		case FIELD_TYPE_ENUM:
+			type = DBI_TYPE_STRING;
+		break;
+
+	}
+
+	return type;
+}
+
+/*****************************************************************************/
+/* _MAP_TYPE_ATTRIBUTES                                                      */
+/*****************************************************************************/
+/*
+ * Precondition: none.
+ * Postcondition: none.
+ * Returns: The DBI type attributes associated with MySQL type mytype.
+ */
+
+unsigned short _map_type_attributes( enum enum_field_types mytype )
+{
+	unsigned short attb=0;
+
+	switch(mytype){
+		case FIELD_TYPE_YEAR:
+		case FIELD_TYPE_NULL:
+			attb |= DBI_INTEGER_UNSIGNED;
+		case FIELD_TYPE_TINY:
+		case FIELD_TYPE_SHORT:
+			attb |= DBI_INTEGER_SIZE4;
+		break;
+
+		case FIELD_TYPE_LONG:
+		case FIELD_TYPE_INT24:
+		case FIELD_TYPE_TIMESTAMP:
+			attb |= DBI_INTEGER_SIZE8;
+		break;
+		
+		/* Add Decimal Sizes Later */
+		default:
+	}
+
+	return attb;
+}
+
+/*****************************************************************************/
+/* _STRCPY_SAFE                                                              */
 /*****************************************************************************/
 /*
  * Precondtion: str2 != NULL
- * Postcondition: str1 == str2, any memory is allocated
- * Returns: new string
+ * Postcondition: str1 is freed if not null
+ * Returns: A newly allocated copy of str2
  */
 
-char *strcpy_safe(char *str1, const char *str2)
+char *_strcpy_safe(char *str1, const char *str2)
 {
 	char *final=NULL;
 
@@ -78,101 +211,6 @@ char *strcpy_safe(char *str1, const char *str2)
 	strcpy(final, str2);
 
 	return final;
-}
-
-/*****************************************************************************/
-/* FREE_ROW                                                                  */
-/*****************************************************************************/
-/*
- * Precondition: row != NULL
- * Postcondition: free's all memory for fields_*, and frees row
- * Returns: none.
- */
-
-void free_row( dbi_row_t *row)
-{
-	dbi_row_t *del;
-	int i;
-	/* MAJOR MEMORY LEAK: NEEDS TO ACCOUNT FOR char* DATA TYPE!!! */
-	/* Needs to loop for each row, and loop for each field_* */
-	while(row){
-		for(i = 0; row->field_values[i]; i++)
-			free(row->field_values[i]);
-		
-		for(i = 0; row->field_names[i]; i++)
-			free(row->field_names[i]);
-		
-		for(i = 0; row->field_types[i]; i++)
-			free(row->field_types);
-		
-		for(i = 0; row->field_type_attributes[i]; i++)
-			free(row->field_type_attributes);
-
-		del = row;
-		row = row->next;
-
-		free(del);
-	}
-}
-
-/*****************************************************************************/
-/* DBD_GET_INFO                                                              */
-/*****************************************************************************/
-/*
- * Precondition: 
- * Postcondition: 
- * Returns:
- */
-
-const dbi_info_t *dbd_get_info()
-{
-	return &plugin_info;
-}
-
-/*****************************************************************************/
-/* DBD_GET_CUSTOM_FUNCTIONS                                                  */
-/*****************************************************************************/
-/*
- * Precondition: 
- * Postcondition: 
- * Returns:
- */
-
-const char **dbd_get_custom_functions()
-{
-	return custom_function_list;
-}
-
-/*****************************************************************************/
-/* DBD_GET_RESERVED_WORDS                                                    */
-/*****************************************************************************/
-/*
- * Precondition: 
- * Postcondition: 
- * Returns:
- */
-
-const char **dbd_get_reserved_words()
-{
-	return reserved_word_list;
-}
-
-/*****************************************************************************/
-/* DBD_INITIALIZE                                                            */
-/*****************************************************************************/
-/*
- * Precondition: plugin != NULL
- * Postcondition: plugin ready for usage
- * Returns: 0 on success, -1 on failure
- */
-
-int dbd_initialize( dbi_plugin_t *plugin )
-{
-	/*
-	plugin->info = &dbd_template_info;
-	plugin->custom_function_list = DBD_CUSTOM_FUNCTIONS;
-	*/
-	return 0;
 }
 
 
@@ -201,7 +239,7 @@ int dbd_connect( dbi_driver_t *driver )
 	mycon = mysql_init(NULL);
 
 	if(mycon == NULL){ /* Failure, Memory Problems */
-		/* driver->error_message = strcpy_safe(driver->error_message, "Not Enough Memory"); */
+		/*driver->error_message = _strcpy_safe(driver->error_message, "Not Enough Memory");*/
 		return -1;
 	}
 
@@ -209,13 +247,13 @@ int dbd_connect( dbi_driver_t *driver )
 	if( mysql_real_connect(mycon, host, username, password, database, port, NULL, 0) ){
 		driver->connection = (void *) mycon;
 		
-		driver->current_db = strcpy_safe(driver->current_db, database);
+		driver->current_db = _strcpy_safe(driver->current_db, database);
 
 		return 0;
 	} else {
-		/* driver->error_message = strcpy_safe(driver->error_message, mysql_error(con)); */
+		/*driver->error_message = _strcpy_safe(driver->error_message, mysql_error(mycon));*/
 
-		/* driver->error_number = mysql_errno(con); */
+		/*driver->error_number = mysql_errno(con);*/
 
 		mysql_close(mycon);
 
@@ -244,101 +282,10 @@ int dbd_disconnect( dbi_driver_t *driver )
 		return 0;
 	} else {
 
-		/* driver->error_message = strcpy_safe(driver->error_message, error); */
+		/*driver->error_message = _strcpy_safe(driver->error_message, error);*/
 		
 		return -1;
 	}
-}
-
-/*****************************************************************************/
-/* DBD_LIST_DBS                                                              */
-/*****************************************************************************/
-/*
- * Precondition: driver != NULL
- * Postcondition: none.
- * Returns: list of db names
- */
-
-dbi_result_t *dbd_list_dbs( dbi_driver_t *driver )
-{
-	return dbd_query(driver, "show databases");
-}
-
-/*****************************************************************************/
-/* DBD_LIST_TABLES                                                           */
-/*****************************************************************************/
-/*
- * Precondition:
- * Postcondition:
- * Returns:
- */
-
-dbi_result_t *dbd_list_tables( dbi_driver_t *driver )
-{
-	return dbd_query(driver, "show tables");
-}
-
-/*****************************************************************************/
-/* DBD_SELECT_DB                                                             */
-/*****************************************************************************/
-/*
- * Precondition: driver != NULL, database != NULL
- * Postcondition: connection set to new database, driver's current_db set to new
- *	database, set's error string/number on failure.
- * Returns: 0 on success, -1 on failure
- */
-
-int dbd_select_db( dbi_driver_t *driver, char *database)
-{
-	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
-
-	if(mysql_select_db(mycon, database)){ /* In Case Of Error */
-		/* driver->error_message = strcpy_safe(driver->error_message, mysql_error(con)); */
-		/* driver->error_number = mysql_errno(con); */
-
-		return -1;
-	}
-
-	/* Update driver */
-	driver->current_db = strcpy_safe(driver->current_db, database);
-
-	return 0;
-}
-
-/*****************************************************************************/
-/* DBD_QUERY                                                                 */
-/*****************************************************************************/
-/*
- * Precondition: driver != NULL, statement != NULL
- * Postcondition: query's server and creates dbi_result_t
- * Returns: dbi_result_t on success, sets driver's error_message on failure
- *	and returns NULL
- */
-
-dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
-{
-	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
-	MYSQL_RES *myres; /* MySQL's internal result type */
-	dbi_result_t *result; /* DBI's internal result type*/
-
-	/* Query, On Failure Return NULL */
-	if(mysql_query(mycon, statement)){
-		/* driver->error_message = strcpy_safe(driver->error_message, mysql_error(con)); */
-		/* driver->error_number = mysql_errno(con); */
-	
-		return NULL;
-	}
-
-	myres = mysql_store_result(mycon); /* Grab Result*/
-
-	result = (dbi_result_t*) malloc(sizeof(dbi_result_t));
-	result->result_handle = (void*) myres;
-	result->driver = driver;
-	result->numrows_affected = mysql_affected_rows(mycon);
-	result->numrows_matched = mysql_num_rows(myres);
-	result->row = NULL;
-
-	return result;
 }
 
 /*****************************************************************************/
@@ -350,25 +297,114 @@ dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
 
 dbi_result_t *dbd_efficient_query( dbi_driver_t *driver, char *statement )
 {
-
+	return NULL;
 }
 
 /*****************************************************************************/
-/* DBD_GOTO_ROW                                                              */
+/* DBD_ERRNO                                                                 */
 /*****************************************************************************/
 /*
- * Precondition: result != NULL
- * Postcondition: next fetched row will be the rowth row
- * Returns:
+ * Precondition: driver != NULL
+ * Postcondition: updates driver->error_number
+ * Returns: driver->error_number
  */
 
-int dbi_goto_row(dbi_result_t *result, unsigned int row)
+int dbd_errno( dbi_driver_t *driver )
 {
-	MYSQL_RES *myres = (MYSQL_RES *)result->result_handle;
+	MYSQL *mycon = (MYSQL*)driver->connection;
 	
-	mysql_row_seek(myres, (MYSQL_FIELD_OFFSET) row);
+	if(!driver->error_number)
+		driver->error_number = mysql_errno(mycon);
+
+	return driver->error_number;
+}
+
+/*****************************************************************************/
+/* DBD_ERRSTR                                                                */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: updates driver->error_message
+ * Returns: driver->error_message
+ */
+
+char *dbd_errstr( dbi_driver_t *driver )
+{
+	MYSQL *mycon = (MYSQL*)driver->connection;
+	
+	if(!driver->error_message)
+		driver->error_message = _strcpy_safe(driver->error_message, mysql_error(mycon));
+
+	return driver->error_message;
+}
+
+/*****************************************************************************/
+/* DBD_FETCH_FIELD                                                           */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL, result->row != NULL
+ * Postcondition: dest = fetched field
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
+	
+	/*dbi_driver_t *driver = result->driver;  Our Driver */
+	dbi_row_t *row = result->row; /* Our Row */
+	
+	int i;
+
+	for(i = 0; i < row->numfields; i++){
+		if(!strcmp(row->field_names[i], key))
+			break;
+	}
+
+	if(i == row->numfields){
+		/* driver->error_message = _strcpy_safe(driver->error_message, "Field Does Not Exist"); */
+
+		return -1;
+	}
+
+	/* Find Field's Type, Allocate Memory And Copy  */
+	if(row->field_types[i] == DBI_TYPE_INTEGER){
+		
+		if(row->field_type_attributes[i] & DBI_INTEGER_SIZE3)
+			*( (char*) *dest ) = *( (char*) row->field_values[i]);
+
+		else if(row->field_type_attributes[i] & DBI_INTEGER_SIZE4)
+			*( (short*) *dest ) = *( (short*) row->field_values[i] );
+
+		else if(row->field_type_attributes[i] & DBI_INTEGER_SIZE8)
+			*( (long*) *dest) = *( (long*) row->field_values[i]);
+
+	} else if(row->field_types[i] == DBI_TYPE_DECIMAL) {
+		
+		if(row->field_type_attributes[i] & DBI_DECIMAL_SIZE4)
+			*( (float*) *dest) = *( (float*) row->field_values[i]);
+		
+		else if(row->field_type_attributes[i] & DBI_DECIMAL_SIZE8)
+			*( (double*) *dest) = *( (double*) row->field_values[i]);
+
+	} else if(row->field_types[i] == DBI_TYPE_STRING){
+		*((char**)*dest) = _strcpy_safe(NULL, (char*)row->field_values[i]);
+	}
 
 	return 0;
+}
+
+/*****************************************************************************/
+/* DBD_FETCH_FIELD_RAW (DEPRECATED)                                          */
+/*****************************************************************************/
+/*
+ * Precondition:
+ * Postcondition:
+ * Returns:
+ */
+int dbd_fetch_field_raw(dbi_result_t *result, const char *key, void **dest)
+{
+	*dest = NULL;
+
+	return -1;
 }
 
 /*****************************************************************************/
@@ -410,7 +446,7 @@ int dbd_fetch_row( dbi_result_t *result )
 	if(*myrow == NULL){
 
 		if( errno = mysql_errno(mycon) ){ /* In Case Of Error */
-			/* driver->error_message = strcpy_safe(driver->error_message, mysql_error(con)); */
+			/* driver->error_message = _strcpy_safe(driver->error_message, mysql_error(con)); */
 			/* driver->error_number = errno; */
 
 			return -1;
@@ -435,7 +471,7 @@ int dbd_fetch_row( dbi_result_t *result )
 	* Psuedo Code For Rest Of Function:                                   *
 	* 	1) Allocate memory for field_names, field_types_*.            *
 	*	2) Loop for numfields number of times, grabbing MYSQL_FIELDs  *
-	*	   2.1) strcpy_safe column names to field names               *
+	*	   2.1) _strcpy_safe column names to field names              *
 	*          2.2) switch() statement to find corrent field_type and     *
 	*	            field_type_attributes.                            *
 	*          2.3) find correct field length                             *
@@ -447,61 +483,26 @@ int dbd_fetch_row( dbi_result_t *result )
 	* NOTE: field_names and field_types_* should both be part of the      *
 	*         dbi_result_t, not the dbi_row_t.                            *
 	\*********************************************************************/
-
 	row->field_names = (char **) malloc(sizeof(char*) * (row->numfields + 1)); 
-	row->field_types = (int *) malloc(sizeof(int) * (row->numfields + 1));
-	row->field_type_attributes = (int *) malloc(sizeof(int) * (row->numfields + 1));
+	row->field_types = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
+	row->field_type_attributes = (unsigned short*) malloc(sizeof(unsigned short) * (row->numfields + 1));
 	row->field_values = (void**) malloc(sizeof(void*) * (row->numfields + 1));
 	
 	for(i = 0; i < row->numfields; i++){
 		myfield = mysql_fetch_field(myres);
 
-		row->field_names[i] = strcpy_safe(NULL, myfield->name);
+		row->field_names[i] = _strcpy_safe(NULL, myfield->name);
 		row->field_types[i] = 0;
 		row->field_type_attributes[i] = 0;
 		
-		switch(myfield->type){
-			case FIELD_TYPE_YEAR:
-			case FIELD_TYPE_NULL:
-				row->field_type_attributes[i] |= DBI_INTEGER_UNSIGNED;
-			case FIELD_TYPE_TINY:
-			case FIELD_TYPE_SHORT:
-				row->field_type_attributes[i] |= DBI_INTEGER_SIZE4;
-				row->field_types[i] = DBI_TYPE_INTEGER;
-			break;
-
-			case FIELD_TYPE_LONG:
-			case FIELD_TYPE_INT24:
-			case FIELD_TYPE_TIMESTAMP:
-				row->field_type_attributes[i] |= DBI_INTEGER_SIZE8;
-				row->field_types[i] = DBI_TYPE_INTEGER;
-			break;
-			
-			case FIELD_TYPE_FLOAT:
-			case FIELD_TYPE_DOUBLE:
-			case FIELD_TYPE_DECIMAL:
-			case FIELD_TYPE_LONGLONG: /* Unforturnately, C can only see longlong's as doubles*/
-				row->field_types[i] = DBI_TYPE_DECIMAL;
-			break;
-			
-			case FIELD_TYPE_DATE:
-			case FIELD_TYPE_TIME:
-			case FIELD_TYPE_DATETIME:
-			case FIELD_TYPE_STRING:
-			case FIELD_TYPE_BLOB:
-			case FIELD_TYPE_SET:
-			case FIELD_TYPE_ENUM:
-				row->field_types[i] = DBI_TYPE_STRING;
-			break;
-		}
-		/* In all code, replace len with myfield->length */
-
 		string = (char*) malloc(sizeof(char) * (len[i] + 1));
 		if(!string) return -1;
 
 		string[len[i]] = '\0';
-		memcpy((void*)string, (void*)myrow,len[i]);
-		myrow += len[i];
+		memcpy((void*)string, *(myrow)[i], len[i]);
+
+		row->field_types[i] = _map_type(myfield->type);
+		row->field_type_attributes[i] = _map_type_attributes(myfield->type);
 
 		if(row->field_types[i] == DBI_TYPE_INTEGER){
 			if(row->field_type_attributes[i] & DBI_INTEGER_SIZE4){
@@ -540,6 +541,7 @@ int dbd_fetch_row( dbi_result_t *result )
 				strcpy(*((char**)row->field_values[i]), string);
 			}
 		}
+		mysql_field_seek(myres, 0);
 		free(string);
 
 	}
@@ -550,74 +552,9 @@ int dbd_fetch_row( dbi_result_t *result )
 	row->field_type_attributes[i] = 0;
 	row->field_values[i] = NULL;
 
-	free_row(result->row);
-
 	result->row = row;
 
-	return 0;
-}
-
-/*****************************************************************************/
-/* DBD_FETCH_FIELD                                                           */
-/*****************************************************************************/
-/*
- * Precondition: result != NULL, result->row != NULL
- * Postcondition: dest = fetched field
- * Returns: 0 on success, -1 on failure
- */
-
-int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
-	
-	dbi_driver_t *driver = result->driver; /* Our Driver */
-	dbi_row_t *row = result->row; /* Our Row */
-	
-	int i;
-
-	for(i = 0; i < row->numfields; i++){
-		if(!strcmp(row->field_names[i], key))
-			break;
-	}
-
-	if(i == row->numfields){
-		/* driver->error_message = strcpy_safe(driver->error_message, "Field Does Not Exist"); */
-
-		return -1;
-	}
-
-	/* Find Field's Type, Allocate Memory And Copy  */
-	if(row->field_types[i] == DBI_TYPE_INTEGER){
-		
-		if(row->field_type_attributes[i] & DBI_INTEGER_SIZE3){
-			*dest = malloc(sizeof(char));
-			*((char*)*dest) = *((char*)row->field_values[i]);
-
-		}else if(row->field_type_attributes[i] & DBI_INTEGER_SIZE4){
-			*dest = malloc(sizeof(short));
-			*( (short*) *dest ) = *( (short*) row->field_values[i] );
-
-		}else if(row->field_type_attributes[i] & DBI_INTEGER_SIZE8){
-			*dest = malloc(sizeof(long));
-			*((long*)*dest) = *((long*)row->field_values[i]);
-
-		}
-	} else if(row->field_types[i] == DBI_TYPE_DECIMAL) {
-		
-		if(row->field_type_attributes[i] & DBI_DECIMAL_SIZE4){
-			*dest = malloc(sizeof(float));
-			*((float*)*dest) = *((float*)row->field_values[i]);
-		}else if(row->field_type_attributes[i] & DBI_DECIMAL_SIZE8){
-			*dest = malloc(sizeof(double));
-			*((double*)*dest) = *((double*)row->field_values[i]);
-		}
-	} else if(row->field_types[i] == DBI_TYPE_STRING){
-		*dest = malloc(sizeof(char*));
-		/**((char**)*dest) = malloc (sizeof(char) * (1 + strlen((char*)row->field_values[i])) );*/
-		*((char**)*dest) = strcpy_safe(NULL, (char*)row->field_values[i]);
-	}
-
-	if(*dest == NULL) return -1;
-
-	return 0;
+	return 1;
 }
 
 /*****************************************************************************/
@@ -631,20 +568,119 @@ int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
 
 int dbd_free_query( dbi_result_t *result)
 {
-	dbi_row_t *row = result->row;
-	
 	/* Free All Result Rows  */
-	while(row){
-		result->row = result->row->next;
-		free_row(row);
-		row = result->row;
-	}
 
 	if(result->result_handle) free(result->result_handle);
 
-	free(result);
+	return 0;
+}
+
+/*****************************************************************************/
+/* DBD_GET_CUSTOM_FUNCTIONS                                                  */
+/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+const char **dbd_get_custom_functions_list()
+{
+	return custom_function_list;
+}
+
+/*****************************************************************************/
+/* DBD_GET_INFO                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+const dbi_info_t *dbd_get_info()
+{
+	return &plugin_info;
+}
+
+
+/*****************************************************************************/
+/* DBD_GET_RESERVED_WORDS                                                    */
+/*****************************************************************************/
+/*
+ * Precondition: 
+ * Postcondition: 
+ * Returns:
+ */
+
+const char **dbd_get_reserved_words_list()
+{
+	return reserved_word_list;
+}
+
+/*****************************************************************************/
+/* DBD_GOTO_ROW                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: result != NULL
+ * Postcondition: next fetched row will be the rowth row
+ * Returns:
+ */
+
+int dbd_goto_row(dbi_result_t *result, unsigned int row)
+{
+	MYSQL_RES *myres = (MYSQL_RES *)result->result_handle;
+	
+	mysql_row_seek(myres, (MYSQL_FIELD_OFFSET) row);
 
 	return 0;
+}
+
+
+/*****************************************************************************/
+/* DBD_INITIALIZE                                                            */
+/*****************************************************************************/
+/*
+ * Precondition: plugin != NULL
+ * Postcondition: plugin ready for usage
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_initialize( dbi_plugin_t *plugin )
+{
+	/*
+	plugin->info = &dbd_template_info;
+	plugin->custom_function_list = DBD_CUSTOM_FUNCTIONS;
+	*/
+	return 0;
+}
+
+/*****************************************************************************/
+/* DBD_LIST_DBS                                                              */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: none.
+ * Returns: list of db names
+ */
+
+dbi_result_t *dbd_list_dbs( dbi_driver_t *driver )
+{
+	return dbd_query(driver, "show databases");
+}
+
+/*****************************************************************************/
+/* DBD_LIST_TABLES                                                           */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL
+ * Postcondition: none.
+ * Returns: result storing list of table names
+ */
+
+dbi_result_t *dbd_list_tables( dbi_driver_t *driver )
+{
+	return dbd_query(driver, "show tables");
 }
 
 /*****************************************************************************/
@@ -675,38 +711,69 @@ unsigned int dbd_num_rows_affected( dbi_result_t *result )
 	return result->numrows_affected;
 }
 
-/*****************************************************************************/
-/* DBD_ERRSTR                                                                */
-/*****************************************************************************/
-/*
- * Precondition: driver != NULL
- * Postcondition: updates driver->error_message
- * Returns: driver->error_message
- */
-
-char *dbd_errstr( dbi_driver_t *driver )
-{
-	MYSQL *mycon = (MYSQL*)driver->connection;
-	
-	driver->error_message = strcpy_safe(driver->error_message, mysql_error(mycon));
-
-	return driver->error_message;
-}
 
 /*****************************************************************************/
-/* DBD_ERRNO                                                                 */
+/* DBD_QUERY                                                                 */
 /*****************************************************************************/
 /*
- * Precondition: driver != NULL
- * Postcondition: updates driver->error_number
- * Returns: driver->error_number
+ * Precondition: driver != NULL, statement != NULL
+ * Postcondition: query's server and creates dbi_result_t
+ * Returns: dbi_result_t on success, sets driver's error_message on failure
+ *	and returns NULL
  */
 
-int dbd_errno( dbi_driver_t *driver )
+dbi_result_t *dbd_query( dbi_driver_t *driver, char *statement )
 {
-	MYSQL *mycon = (MYSQL*)driver->connection;
-	
-	driver->error_number = mysql_errno(mycon);
+	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
+	MYSQL_RES *myres; /* MySQL's internal result type */
+	dbi_result_t *result; /* DBI's internal result type*/
 
-	return driver->error_number;
+	/* Query, On Failure Return NULL */
+	if(mysql_query(mycon, statement)){
+		/* driver->error_message = _strcpy_safe(driver->error_message, mysql_error(con)); */
+		/* driver->error_number = mysql_errno(con); */
+	
+		return NULL;
+	}
+
+	myres = mysql_store_result(mycon); /* Grab Result*/
+
+	result = (dbi_result_t*) malloc(sizeof(dbi_result_t));
+	result->result_handle = (void*) myres;
+	result->driver = driver;
+	result->numrows_affected = mysql_affected_rows(mycon);
+	result->numrows_matched = mysql_num_rows(myres);
+	result->row = NULL;
+
+	return result;
 }
+
+
+
+/*****************************************************************************/
+/* DBD_SELECT_DB                                                             */
+/*****************************************************************************/
+/*
+ * Precondition: driver != NULL, database != NULL
+ * Postcondition: connection set to new database, driver's current_db set to new
+ *	database, set's error string/number on failure.
+ * Returns: 0 on success, -1 on failure
+ */
+
+int dbd_select_db( dbi_driver_t *driver, char *database)
+{
+	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
+
+	if(mysql_select_db(mycon, database)){ /* In Case Of Error */
+		/* driver->error_message = _strcpy_safe(driver->error_message, mysql_error(con)); */
+		/* driver->error_number = mysql_errno(con); */
+
+		return -1;
+	}
+
+	/* Update driver */
+	driver->current_db = _strcpy_safe(driver->current_db, database);
+
+	return 0;
+}
+
