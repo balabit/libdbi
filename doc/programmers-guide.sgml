@@ -1,0 +1,95 @@
+<!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+
+<!ENTITY libdbi-reference SYSTEM "libdbi-reference.sgml">
+<!ENTITY freedoc-license SYSTEM "include/copying-fdl.sgml">
+<!ENTITY www '<ULink url="http://libdbi.sourceforge.net">http://libdbi.sourceforge.net</ULink>'>
+
+]>
+
+<Book id="programmers-guide">
+
+<BookInfo>
+	<Title>Libdbi Developer's Guide</Title>
+	<Author>
+		<Firstname>David</Firstname>
+		<Othername>A.</Othername>
+		<Surname>Parker</Surname>
+		<Affiliation>
+			<OrgName>Neon Goat Productions</OrgName>
+			<Address><EMail>david@neongoat.com</EMail></Address>
+		</Affiliation>
+	</Author>
+	<Edition>Document revision: $Id$</Edition>
+	<PubDate>June 11, 2001</PubDate>
+	<Copyright>
+		<Year>2001</Year>
+		<Holder>David Parker, Neon Goat Productions</Holder>
+	</Copyright>
+	<LegalNotice>
+		<Para>
+			Permission is granted to copy, distribute and/or modify this
+			document under the terms of the <Link linkend="copying-FDL">
+			<CiteTitle>GNU Free Documentation License</CiteTitle></Link>,
+			Version 1.1 or any later version published by the Free Software
+			Foundation; with no Invariant Sections, with no	Front-Cover Texts,
+			and with no Back-Cover Texts.  A copy of the license is included in
+			<XRef linkend="copying-FDL">.
+		</Para>
+	</LegalNotice>
+	<Abstract>
+	<Para>
+		libdbi implements a database-independent abstraction layer in C,
+		similar to the DBI/DBD layer in Perl. Writing one generic set of code,
+		programmers can leverage the power of multiple databases and multiple
+		simultaneous database connections by using this framework.
+	</Para>
+	</Abstract>
+</BookInfo>
+
+<Chapter id="intro"><Title>Introduction</Title>
+	<Section id="description"><Title>Description</Title>
+		<Para>
+			libdbi provides application developers with a database independent abstraction
+			layer for C. It handles the database-specific implementations for each type of
+			database, so that you can use the same exact code with any type of database
+			server that libdbi supports. You can initiate and use multiple database
+			connections simultaneously, regardless of the types of database you are
+			connecting to. The plugin architecture allows for new database drivers to be
+			easily added dynamically by a third party.
+		</Para>
+	</Section>
+	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
+		<Para>
+			libdbi is Copyright (C) 2001, David Parker and Mark Tobenkin.
+		</Para>
+		<Para>			
+			libdbi is free software; you can redistribute it and/or
+			modify it under the terms of the GNU Lesser General Public
+			License as published by the Free Software Foundation; either
+			version 2.1 of the License, or (at your option) any later version.
+		</Para>
+		<Para>
+			This library is distributed in the hope that it will be useful,
+			but WITHOUT ANY WARRANTY; without even the implied warranty of
+			MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+			Lesser General Public License for more details.
+		</Para>
+		<Para>
+			You should have received a copy of the GNU Lesser General Public
+			License along with this library; if not, write to the Free Software
+			Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+		</Para>
+	</Section>
+	<Section id="contact"><Title>Contact Info</Title>
+		<ItemizedList>
+			<ListItem><Para>&www;</Para></ListItem>
+			<ListItem><Para>David Parker <EMail>david@neongoat.com</EMail></Para></ListItem>
+			<ListItem><Para>Mark Tobenkin <EMail>mark@brentwoodradio.com</EMail></Para></ListItem>
+		</ItemizedList>
+	</Section>
+</Chapter>
+
+&libdbi-reference;
+&freedoc-license;
+
+</Book>
