@@ -94,7 +94,7 @@ case $host in
 	*-*-win32*)
 		shlib_ext=.dll ;;
 	*-*-darwin*)
-		shlib_ext=.dylib
+		shlib_ext=.so
 		dlsym_prefix=_ ;;
 	*)
 		shlib_ext=.so ;;
