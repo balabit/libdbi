@@ -4,7 +4,7 @@
 libtoolize --force --copy
 aclocal
 autoheader
-automake --add-missing --force-missing
+automake --add-missing
 
 echo
 echo "Using `autoconf --version`, if you have problems"
