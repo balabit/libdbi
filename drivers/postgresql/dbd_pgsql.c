@@ -110,12 +110,15 @@ int dbd_connect(dbi_conn_t *conn) {
 	if (!pgconn) return -1;
 
 	if (PQstatus(pgconn) == CONNECTION_BAD) {
-		_error_handler(conn, DBI_ERROR_DBD); /* grab any more specific error information from postgresql first */
+		conn->connection = (void *)pgconn; // still need this set so _error_handler can grab information
+		_error_handler(conn, DBI_ERROR_DBD);
 		PQfinish(pgconn);
+		conn->connection = NULL; // pgconn no longer valid
 		return -2;
 	}
 	else {
 		conn->connection = (void *)pgconn;
+		// XXX no conn->current_db assignment here like the mysql driver. investigate.
 	}
 	
 	return 0;

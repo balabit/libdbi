@@ -638,8 +638,7 @@ int dbi_conn_connect(dbi_conn Conn) {
 	
 	retval = conn->driver->functions->connect(conn);
 	if (retval == -2) {
-		/* a DBD-level error has already been set, just call the callback if present */
-		_error_handler(conn, DBI_ERROR_DBD);
+		/* a DBD-level error has already been set and the callback has already triggered */
 	}
 	else if (retval == -1) {
 		/* couldn't create a connection and no DBD-level error information is available */
@@ -984,6 +983,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	static const char *errflag_messages[] = {
 		/* DBI_ERROR_USER */		NULL,
 		/* DBI_ERROR_NONE */		NULL,
+		/* DBI_ERROR_ALREADYSET */	NULL,
 		/* DBI_ERROR_DBD */			NULL,
 		/* DBI_ERROR_BADOBJECT */	"An invalid or NULL object was passed to libdbi",
 		/* DBI_ERROR_BADTYPE */		"The requested variable type does not match what libdbi thinks it should be",
@@ -1001,25 +1001,31 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 		 * garbage collector was about to get rid of it. */
 		return;
 	}
-		
-	if (errflag == DBI_ERROR_DBD) {
-		errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
 
-		if (errstatus == -1) {
-			/* not _really_ an error. XXX debug this, does it ever actually happen? */
-			return;
-		}
-	}
-
-	if (conn->error_message) free(conn->error_message);
-
-	if (errflag_messages[errflag+1] != NULL) {
-		errmsg = strdup(errflag_messages[errflag+1]);
-	}
+	// if DBI_ERROR_ALREADYSET, we just need to trigger the callback if necessary
 	
-	conn->error_flag = errflag;
-	conn->error_number = errno;
-	conn->error_message = errmsg;
+	if (errflag != DBI_ERROR_ALREADYSET) {
+		// go ahead and modify error variables
+
+		if (errflag == DBI_ERROR_DBD) {
+			errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
+
+			if (errstatus == -1) {
+				/* not _really_ an error. XXX debug this, does it ever actually happen? */
+				return;
+			}
+		}
+
+		if (conn->error_message) free(conn->error_message);
+
+		if (errflag_messages[errflag+1] != NULL) {
+			errmsg = strdup(errflag_messages[errflag+1]);
+		}
+		
+		conn->error_flag = errflag;
+		conn->error_number = errno;
+		conn->error_message = errmsg;
+	}
 	
 	if (conn->error_handler != NULL) {
 		/* trigger the external callback function */
