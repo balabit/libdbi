@@ -178,6 +178,7 @@ int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word) {
 		if (strcasecmp(word, driver->reserved_words[idx]) == 0) {
 			return 1;
 		}
+		idx++;
 	}
 	return 0;
 }
