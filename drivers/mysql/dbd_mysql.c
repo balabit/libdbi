@@ -50,6 +50,7 @@ static const dbi_info_t plugin_info = {
 static const char *custom_functions[] = {NULL}; // TODO
 static const char *reserved_words[] = MYSQL_RESERVED_WORDS;
 
+void _internal_error_handler(dbi_driver_t *driver, const char *errmsg, const int errno);
 void _translate_mysql_type(enum enum_field_types fieldtype, unsigned short *type, unsigned int *attribs);
 void _get_field_info(dbi_result_t *result);
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx);
@@ -89,7 +90,7 @@ int dbd_connect(dbi_driver_t *driver) {
 
 	conn = mysql_init(NULL);
 	if (!conn || !mysql_real_connect(conn, host, username, password, dbname, port, unix_socket, _compression)) {
-		_error_handler(driver);
+		_internal_error_handler(driver, "Unable to connect to database server", 0);
 		mysql_close(conn);
 		return -1;
 	}
@@ -196,7 +197,7 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 	 * return 0 if error, 1 if errno filled, 2 if errstr filled, 3 if both errno and errstr filled */
 	
 	if (!driver->connection) {
-		_internal_error_handler(driver, "Unable to connect to database", 0);
+		_internal_error_handler(driver, "No connection found", 0);
 		return 2;
 	}
 	
@@ -206,8 +207,9 @@ int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr) {
 }
 
 
-void _internal_error_handler(dbi_driver_t *driver, char *errmsg, int errno)
+void _internal_error_handler(dbi_driver_t *driver, const char *errmsg, const int errno)
 {
+	void (*errfunc)(dbi_driver_t *, void *);
 	/* set the values*/
 	driver->error_number = errno;
 	driver->error_message = strdup(errmsg);
