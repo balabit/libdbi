@@ -113,6 +113,7 @@ int dbi_result_prev_row(dbi_result Result) {
 
 int dbi_result_next_row(dbi_result Result) {
 	dbi_result_t *result = Result;
+	if(!result) return 0;
 	if (result->currowidx >= dbi_result_get_numrows(Result)) return 0;
 	return dbi_result_seek_row(Result, result->currowidx+1);
 }
