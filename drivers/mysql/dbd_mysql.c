@@ -166,6 +166,18 @@ dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern) {
 
 dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db) {
 	return dbd_query(conn, "SHOW TABLES");
+	dbi_result_t *res;
+	char *sql_cmd;
+
+	if (db == NULL) {
+		return dbd_query(conn, "SHOW TABLES");
+	}
+	else {
+		asprintf(&sql_cmd, "SHOW TABLES FROM %s", db);
+		res = dbd_query(conn, sql_cmd);
+		free(sql_cmd);
+		return res;
+	}
 }
 
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest) {

@@ -318,7 +318,7 @@ NAME dbi_conn_get_db_list
 	ENDDESC
 	ARG Conn The target connection.
 	ARG pattern A string pattern that each name must match.
-	RET A query result object, which will contain a field named "dbname" from which the standard row/field fetching functions can be used.
+	RET A query result object, which will contain database names in the first (zeroth) field (for use with the by-index field functions).
 
 *
 
@@ -329,7 +329,7 @@ NAME dbi_conn_get_table_list
 	ENDDESC
 	ARG Conn The target connection.
 	ARG db The target database name.
-	RET A query result object, which will contain a field named "tablename" from which the standard row/field fetching functions can be used.
+	RET A query result object, which will contain table names in the first (zeroth) field (for use with the by-index field functions).
 
 *
 
