@@ -1087,41 +1087,6 @@ unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, uns
 	return (attribs & attrib_mask);
 }
 
-time_t _parse_datetime(const char *raw, unsigned long attribs) {
-  struct tm unixtime;
-  char *unparsed;
-  char *cur;
-
-  unixtime.tm_sec = unixtime.tm_min = unixtime.tm_hour = 0;
-  unixtime.tm_mday = unixtime.tm_mon = unixtime.tm_year = 0;
-  unixtime.tm_isdst = -1;
-	
-  if (raw && (unparsed = strdup(raw)) != NULL) {
-    cur = unparsed;
-    if (strlen(cur) > 10 && attribs & DBI_DATETIME_DATE) {
-      cur[4] = '\0';
-      cur[7] = '\0';
-      cur[10] = '\0';
-      unixtime.tm_year = atoi(cur)-1900;
-      unixtime.tm_mon = atoi(cur+5)-1; /* months are 0 through 11 */
-      unixtime.tm_mday = atoi(cur+8);
-      if (attribs & DBI_DATETIME_TIME) cur += 11;
-    }
-    
-    if (strlen(cur) > 5 && attribs & DBI_DATETIME_TIME) {
-      cur[2] = '\0';
-      cur[5] = '\0';
-      unixtime.tm_hour = atoi(cur);
-      unixtime.tm_min = atoi(cur+3);
-      unixtime.tm_sec = atoi(cur+6);
-    }
-
-    free(unparsed);
-  }
-
-  return mktime(&unixtime);
-}
-
 #if HAVE_MACH_O_DYLD_H
 static int dyld_error_set=0;
 static void * dyld_dlopen(const char * file)
