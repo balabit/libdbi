@@ -256,9 +256,14 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr) {
 }
 
 unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence) {
+	unsigned long long seq_next = dbd_get_seq_next(conn, sequence);
+	return (seq_next > 0) ? (seq_next - 1) : 0;
+}
+
+unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
 	dbi_result_t *result;
 	char *sql_cmd;
-	unsigned long long seq_last = 0;
+	unsigned long long seq_next = 0;
 
 	asprintf(&sql_cmd, "SHOW TABLE STATUS LIKE '%s'", sequence);
 	result = dbd_query(conn, sql_cmd);
@@ -266,17 +271,12 @@ unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence) {
 	
 	/* grab #10 "Auto_increment" from result */
 	if (result && dbi_result_next_row((dbi_result)result)) {
-		seq_last = dbi_result_get_ulonglong((dbi_result)result, "Auto_increment");
+		seq_next = dbi_result_get_ulonglong((dbi_result)result, "Auto_increment");
 	}
 
 	dbi_result_free((dbi_result)result);
 
-	return seq_last;
-}
-
-unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence) {
-	unsigned long long seq_last = dbd_get_seq_last(conn, sequence);
-	return seq_last + 1;
+	return seq_next;
 }
 
 /* CORE MYSQL DATA FETCHING STUFF */
