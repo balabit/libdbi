@@ -312,11 +312,12 @@ NAME dbi_conn_connect
 *
 
 NAME dbi_conn_get_db_list
-	PROTO dbi_result dbi_conn_get_db_list(dbi_conn Conn)
+	PROTO dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern)
 	DESC
 	Queries the list of available databases on the server.
 	ENDDESC
 	ARG Conn The target connection.
+	ARG pattern A string pattern that each name must match.
 	RET A query result object, which will contain a field named "dbname" from which the standard row/field fetching functions can be used.
 
 *
