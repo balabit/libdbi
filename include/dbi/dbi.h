@@ -123,6 +123,7 @@ int dbi_result_first_row(dbi_result Result);
 int dbi_result_last_row(dbi_result Result);
 int dbi_result_prev_row(dbi_result Result);
 int dbi_result_next_row(dbi_result Result);
+unsigned long long dbi_result_get_currow(dbi_result Result);
 unsigned long long dbi_result_get_numrows(dbi_result Result);
 unsigned long long dbi_result_get_numrows_affected(dbi_result Result);
 unsigned long long dbi_result_get_field_size(dbi_result Result, const char *fieldname);

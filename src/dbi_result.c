@@ -128,6 +128,12 @@ int dbi_result_next_row(dbi_result Result) {
 	return dbi_result_seek_row(Result, result->currowidx+1);
 }
 
+unsigned long long dbi_result_get_currow(dbi_result Result) {
+	dbi_result_t *result = Result;
+	if (!result) return 0;
+	return result->currowidx;
+}
+
 unsigned long long dbi_result_get_numrows(dbi_result Result) {
 	dbi_result_t *result = Result;
 	if (!result) return 0;
