@@ -2,6 +2,3 @@
 
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = dbi
-
-#distclean:
-#	rm -f Makefile Makefile.in

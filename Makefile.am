@@ -14,9 +14,3 @@ debug:
 
 profile:
 	$(MAKE) all CFLAGS="@PROFILE@"
-
-#clean:
-#
-#distclean: clean
-#	rm -f config.status config.cache config.log configure
-#	rm -f Makefile Makefile.in

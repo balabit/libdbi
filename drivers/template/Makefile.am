@@ -23,10 +23,3 @@ libtemplate_la_LDFLAGS = $(template_ldflags)
 libtemplate_la_SOURCES = $(template_sources)
 
 EXTRA_DIST = dbd_template.c
-
-#clean:
-#	rm -f *.o *.lo *.la
-#	rm -rf .libs/ .deps/
-#
-#distclean: clean
-#	rm -f Makefile Makefile.in

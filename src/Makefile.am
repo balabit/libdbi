@@ -14,10 +14,3 @@ debug:
 
 profile:
 	$(MAKE) all CFLAGS="@PROFILE@"
-
-#clean:
-#	rm -f *.o *.lo *.la
-#	rm -rf .deps/ .libs/
-#
-#distclean: clean
-#	rm -f Makefile Makefile.in

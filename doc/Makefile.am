@@ -7,8 +7,3 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 doc_DATA = plugin_authors_guide.txt programmers_reference.txt
 
 EXTRA_DIST = $(doc_DATA)
-
-#clean:
-#
-#distclean:
-#	rm -f Makefile Makefile.in
