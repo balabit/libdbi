@@ -2,12 +2,12 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/dbi_main.c)
 AM_MAINTAINER_MODE
 
-AM_INIT_AUTOMAKE(libdbi, 0.6.7)
+AM_INIT_AUTOMAKE(libdbi, 0.7.0)
 AM_CONFIG_HEADER(config.h)
 
 dnl Library versioning
 LIB_CURRENT=0
-LIB_REVISION=4
+LIB_REVISION=5
 LIB_AGE=0
 AC_SUBST(LIB_CURRENT)
 AC_SUBST(LIB_REVISION)
@@ -87,8 +87,8 @@ dnl ==============================
 dnl functions to load dynamic libraries
 use_ltdl=no
 AC_ARG_WITH(ltdl,
-	[ --with-ltdl	          Use libtool's libltdl to load runtime modules (no)],
-	[ use_ltdl=$withval ])
+	[  --with-ltdl	          Use libtool's libltdl to load runtime modules [no]],
+	[  use_ltdl=$withval ])
 	
 if test "x$use_ltdl" = xyes; then
 AC_CHECK_HEADERS([ltdl.h], [AC_CHECK_LIB([ltdl],[lt_dlopen],[LIBADD_DL=-lltdl])])
@@ -117,11 +117,11 @@ case $host in
 esac
 
 AC_ARG_WITH(shlib-ext,
-	[ --with-shlib-ext	  Specifies the filename extension of loadable modules (usually not necessary).],
-	[ shlib_ext=$withval ])
+	[  --with-shlib-ext	  Specifies the filename extension of loadable modules (usually not necessary).],
+	[  shlib_ext=$withval ])
 AC_ARG_WITH(dlsym-prefix,
-	[ --with-dlsym-prefix	  Specifies a required prefix for symbol names of dynamically loaded modules (usually not necessary).],
-	[ dlsym_prefix=$withval ])
+	[  --with-dlsym-prefix	  Specifies a required prefix for symbol names of dynamically loaded modules (usually not necessary).],
+	[  dlsym_prefix=$withval ])
 
 AC_DEFINE_UNQUOTED(DRIVER_EXT, "$shlib_ext", [ Specifies the filename extension of loadable modules ])
 AC_DEFINE_UNQUOTED(DLSYM_PREFIX, "$dlsym_prefix", [ Specifies a required prefix for symbol names of dynamically loaded modules ])
@@ -145,5 +145,4 @@ AC_OUTPUT([
 	doc/Makefile
 	include/Makefile
 	include/dbi/Makefile
-	tests/Makefile
 	])

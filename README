@@ -1,6 +1,6 @@
 
 libdbi - Database Independent Abstraction Layer for C
-Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
+Copyright (C) 2001-2003, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
@@ -21,19 +21,13 @@ supported by libdbi.
 WARNING:
 --------
 
-Since the following information is not in the documentation, which is outdated
-in this maintenance release, be sure to read this section:
-
-This version of libdbi sends queries untouched to the server, so no printf-like
-substitution is done. To accomplish the old behavior, just change your code to
-call the "dbi_conn_queryf" function instead of "dbi_conn_query". (this should
-be the only change that breaks old code written for libdbi 0.6.5)
-
-If you are using BINARY fields that might happen to have a NULL character as
-the last character of the field data, and are storing such fields in MySQL, see
-the MySQL section in README.drivers. Because of a situation with the MySQL
-client API (which is not specific to libdbi in any way), you may not get back
-the data you expect.
+The documentation included with this release is outdated. If you find a
+discrepancy between documentation and implementation and would rather not read
+source code to clarify the inconsistency, please e-mail the libdbi-users
+mailing list (see below). Since this is a long overdue bugfix release and
+since the API will undergo significant changes soon with the addition of
+prepared statements, the developers justified their laziness in documentation
+in the interest of a timely release ;)
 
 
 INSTALLATION:
@@ -139,8 +133,18 @@ quickstart guide to using libdbi.
 MAILING LISTS:
 --------------
 
- * libdbi users/developers: libdbi-users@lists.sourceforge.net
- * libdbi plugin authors: libdbi-plugins@lists.sourceforge.net
+http://libdbi.sourceforge.net/maillists.php
+
+ * libdbi-users: libdbi-users@lists.sourceforge.net
+   Go here if you have any general questions, ideas, or problems with using
+   libdbi in your program.
+ 
+ * libdbi-devel: libdbi-devel@lists.sourceforge.net
+   Discussion about development of the core library and DBD interface.
+
+ * libdbi-cvs: libdbi-cvs@lists.sourceforge.net
+   Automated CVS diffs and log entries are sent to this address. Subscribe
+   here if you want to track libdbi's progress at the source-code level.
 
 
 CONTACT INFO:

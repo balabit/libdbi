@@ -1,3 +1,17 @@
+2003-06-	David A. Parker  <david at neongoat dot com>
+
+	* release 0.7.0 (the "" release)
+	* split off drivers into libdbi-drivers project
+	* dropped support for nonstandard ENUM/SET types
+	* enabled compilation with alternate dynamic loading mechanisms, now
+	  working properly on Mac OSX
+	* added backend ping support
+	* added get_currow accessor
+	* date and time-related bugfixes
+	* improvements to error handling and reporting
+	* result metadata (column names, types, etc) can now be retrieved before
+	  rows are fetched
+
 2002-11-18	David A. Parker  <david at neongoat dot com>
 
 	* release 0.6.7 (the "Happy Birthday" release)

@@ -6,9 +6,9 @@ Main developers:
 * Mark Tobenkin <mark at brentwoodradio.com>
 
 These people have also contributed to the project:
-(if I forgot you, please let me know!)
+(if we forgot you, please let us know!)
 
-* Peter O'Gorman <pogma@opendarwin.org>
+* Peter O'Gorman <pogma at opendarwin.org>
   - configure/Makefile/libtool fixes, OSX guru
 
 * Markus Hoenicka <hoenicka_markus at compuserve.com>
@@ -26,7 +26,7 @@ These people have also contributed to the project:
 * Ron Arts <raarts at netland.nl>
   - caught large memory leak
 
-* sad@spider.ru
+* sad at spider.ru
   - atoll.c bugfix
 
 * Christophe GIAUME <christophe at giaume.com>
