@@ -54,6 +54,9 @@ static void _free_caps(_capability_t *caproot);
 static const char *_get_option(dbi_conn Conn, const char *key, int aggressive);
 static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive);
 
+void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
+extern int _disjoin_from_conn(dbi_result_t *result);
+
 dbi_result dbi_conn_query(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __attribute__ ((format (printf, 3, 4)));
 
@@ -344,6 +347,20 @@ dbi_conn dbi_conn_open(dbi_driver Driver) {
 	conn->results_size = conn->results_used = 0;
 
 	return (dbi_conn)conn;
+}
+
+int dbi_conn_disjoin_results(dbi_conn Conn) {
+	dbi_conn_t *conn = Conn;
+	int disjoined = 0;
+	int idx;
+
+	if (!conn) return 0;
+
+	for (idx = conn->results_used-1; idx >= 0; idx--) {
+		disjoined += dbi_result_disjoin((dbi_result)conn->results[idx]);
+	}
+
+	return disjoined;
 }
 
 void dbi_conn_close(dbi_conn Conn) {
@@ -944,6 +961,15 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 		/* DBI_ERROR_NOCONN */		"libdbi could not establish a connection",
 		/* DBI_ERROR_NOMEM */		"libdbi ran out of memory" };
 	
+	if (conn == NULL) {
+		/* temp hack... if a result is disjoined and encounters an error, conn
+		 * will be null when we get here. just ignore it, since we assume
+		 * errors require a valid conn. this shouldn't even be a problem now,
+		 * since (currently) the only reason a result would be disjoint is if a
+		 * garbage collector was about to get rid of it. */
+		return;
+	}
+		
 	if (errflag == DBI_ERROR_DBD) {
 		errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
 

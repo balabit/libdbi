@@ -41,7 +41,7 @@ static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *cap
 int _dbd_result_add_to_conn(dbi_result_t *result) {
 	dbi_conn_t *conn = result->conn;
 	
-	if (conn->resuls_size < conn->results_used+1) {
+	if (conn->results_size < conn->results_used+1) {
 		dbi_result_t **results = (dbi_result_t **) realloc(conn->results, sizeof(dbi_result_t *) * (conn->results_size+1));
 		if (!results) {
 			return 0;

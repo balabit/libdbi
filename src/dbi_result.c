@@ -49,6 +49,7 @@ static void _activate_bindings(dbi_result_t *result);
 static int _parse_field_formatstr(const char *format, char ***tokens_dest, char ***fieldnames_dest);
 static void _free_string_list(char **booyah, int total);
 static void _free_result_rows(dbi_result_t *result);
+int _disjoin_from_conn(dbi_result_t *result);
 
 static void _bind_helper_char(_field_binding_t *binding);
 static void _bind_helper_uchar(_field_binding_t *binding);
@@ -306,12 +307,47 @@ unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int i
 	return result->field_attribs[idx];
 }
 
+int _disjoin_from_conn(dbi_result_t *result) {
+	int idx;
+	int found = -1;
+
+	retval = result->conn->driver->functions->free_query(result);
+
+	for (idx = 0; idx < result->conn->results_used; idx++) {
+		if (found < 0) {
+			/* keep looking */
+			if (result->conn->results[idx] == result) {
+				found = idx;
+				result->conn->results[idx] = NULL;
+			}
+		}
+		else {
+			/* already found, shift remaining elements back one */
+			result->conn->results[idx-1] = result->conn->results[idx];
+		}
+	}
+	if (found >= 0) {
+		result->conn->results[result->conn->results_used-1] = NULL;
+		result->conn->results_used--;
+	}
+
+	result->conn = NULL;
+	
+	return 1;
+}
+
+int dbi_result_disjoin(dbi_result Result) {
+	dbi_result_t *result = Result;
+	if (!result) return 0;
+	return _disjoin_from_conn(result);
+}
+
 int dbi_result_free(dbi_result Result) {
 	dbi_result_t *result = Result;
 	int retval;
 	if (!result) return -1;
 	
-	retval = result->conn->driver->functions->free_query(result);
+	if (result->conn) _disjoin_from_conn(result);
 
 	while (result->field_bindings) {
 		_remove_binding_node(result, result->field_bindings);
