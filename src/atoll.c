@@ -41,6 +41,7 @@
 #endif
 
 /*  #include <global.h> */
+#include <stdlib.h>
 #include <limits.h> /* for LONG_LONG_MIN etc */
 #include <ctype.h> /* for isspace() etc, toupper() */
 #include <sys/types.h> /* uint */
@@ -54,8 +55,8 @@
 #endif
 
 #define UTYPE_MAX (~(unsigned long long) 0)
-#define TYPE_MIN LONG_LONG_MIN
-#define TYPE_MAX LONG_LONG_MAX
+#define TYPE_MIN LLONG_MIN
+#define TYPE_MAX LLONG_MAX
 #define longtype long long
 #define ulongtype unsigned long long
 
