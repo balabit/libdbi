@@ -60,7 +60,7 @@ dbi_info_t plugin_info = {
 /* FUNCTION PROTOTYPES                                                       */
 /*****************************************************************************/
 
- 
+
 /* Internal Functions *\
 \**********************/
 
@@ -128,13 +128,13 @@ unsigned short _map_type( enum enum_field_types mytype)
 		case FIELD_TYPE_LONG:
 		case FIELD_TYPE_INT24:
 		case FIELD_TYPE_TIMESTAMP:
+		case FIELD_TYPE_LONGLONG: 
 			type = DBI_TYPE_INTEGER;
 		break;
 		
 		case FIELD_TYPE_FLOAT:
 		case FIELD_TYPE_DOUBLE:
 		case FIELD_TYPE_DECIMAL:
-		case FIELD_TYPE_LONGLONG: /* Unforturnately, C can only see longlong's as doubles*/
 			type = DBI_TYPE_DECIMAL;
 		break;
 		
@@ -177,13 +177,17 @@ unsigned short _map_type_attributes( enum enum_field_types mytype )
 			attb |= DBI_INTEGER_UNSIGNED;
 		case FIELD_TYPE_TINY:
 		case FIELD_TYPE_SHORT:
-			attb |= DBI_INTEGER_SIZE4;
+			attb |= DBI_INTEGER_SIZE3;
 		break;
 
 		case FIELD_TYPE_LONG:
 		case FIELD_TYPE_INT24:
 		case FIELD_TYPE_TIMESTAMP:
-			attb |= DBI_INTEGER_SIZE8;
+			attb |= DBI_INTEGER_SIZE4;
+		break;
+
+		case FIELD_TYPE_LONGLONG:
+			attb |= DBI_INTEGER_SIZE5;
 		break;
 
 		case FIELD_TYPE_FLOAT:
@@ -192,7 +196,6 @@ unsigned short _map_type_attributes( enum enum_field_types mytype )
 		
 		case FIELD_TYPE_DOUBLE:
 		case FIELD_TYPE_DECIMAL:
-		case FIELD_TYPE_LONGLONG: /* Unforturnately, C can only see longlong's as doubles*/
 			attb |= DBI_DECIMAL_SIZE8;
 		break;
 		
