@@ -396,7 +396,7 @@ int dbd_fetch_field( dbi_result_t *result, const char *key, void **dest ){
 			*( (double*) *dest) = *( (double*) row->field_values[i]);
 
 	} else if(row->field_types[i] == DBI_TYPE_STRING){
-		*((char**)*dest) = _strcpy_safe(NULL, (char*)row->field_values[i]);
+		*((char**)*dest) = _strcpy_safe(NULL, *((char**)row->field_values[i]));
 	}
 
 	return 0;
