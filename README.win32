@@ -27,6 +27,15 @@ Makefile to work is the binutils package (linker and such), which should be
 "binutils-20011002-1" or newer.
 
 
+USAGE:
+------
+
+Once libdbi is compiled for Win32 and you have a DLL, you can use that DLL like
+any other. The only requirement is that the cygwin runtime DLL is available on
+the target machine also, since non-Windows API functions are implemented by
+cygwin.
+
+
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
 ----------------------------------------
 
