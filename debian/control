@@ -26,7 +26,7 @@ Description: Database Independent Abstraction Layer for C
 Package: libdbd-mysql
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: libdbi0 (= ${Source-Version}), ${shlibs:Depends}
 Description: MySQL database server driver for libdbi
  This driver provides connectivity to MySQL database servers through the
  libdbi Database Independent Abstraction Layer. Switching a program's driver
@@ -35,7 +35,7 @@ Description: MySQL database server driver for libdbi
 Package: libdbd-pgsql
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: libdbi0 (= ${Source-Version}), ${shlibs:Depends}
 Description: PostgreSQL database server driver for libdbi
  This driver provides connectivity to PostgreSQL database servers through the
  libdbi Database Independent Abstraction Layer. Switching a program's driver

@@ -67,7 +67,7 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp
-	$(MAKE) install prefix=$(CURDIR)/debian/tmp
+	$(MAKE) install prefix=$(CURDIR)/debian/tmp/usr
 
 
 # Build architecture-independent files here.
@@ -101,7 +101,7 @@ binary-arch: build install
 	dh_makeshlibs
 	dh_installdeb
 #	dh_perl
-	dh_shlibdeps --exclude=dbd
+	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
