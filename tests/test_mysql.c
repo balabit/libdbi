@@ -1,22 +1,19 @@
 #include <stdio.h>
 #include <dbi/dbi.h>
 
-int main ()
+int main (int argc, char **argv)
 {
 	dbi_driver_t *driver=NULL;
 	dbi_result_t *result=NULL;
 	dbi_row_t *row=NULL;
+	char *plugdir = NULL;
 
-	/* These are our data types, use for copying */
-	short sshort=-1;		short *p_sshort=&sshort;
-	unsigned short ushort=-1;	unsigned short *p_ushort=&ushort;
-	long slong=-1;			long *p_slong=&slong;
-	double precision=-1;		double *p_precision=&precision;
-	char *string;			char **p_string=&string;
-	char query[1024] = "";
+	int numplugins;
 
-
-	int numplugins = dbi_initialize("/home/mmt/Projects/libdbi/locallib/lib/dbd");
+	if(argc > 0) plugdir = argv[1];
+	
+	
+	numplugins = dbi_initialize(plugdir);
 
 	if(numplugins < 1){
 		if(numplugins == -1) fprintf(stderr, "Couldn't open plugin directory.\nTest failed.\n");

@@ -70,11 +70,11 @@ int dbd_connect(dbi_driver_t *driver) {
 	MYSQL *mycon; /* The Connection To The MySQL Server */
 
 	/* These Are Variables Preloaded Into The Driver  */
-	const char *host = dbi_get_option(driver, "host");
-        const char *username = dbi_get_option(driver, "username");
-        const char *password = dbi_get_option(driver, "password");
-        const char *database = dbi_get_option(driver, "database");
-        int port = dbi_get_option_numeric(driver, "port");
+	const char *host = dbi_driver_get_option(driver, "host");
+        const char *username = dbi_driver_get_option(driver, "username");
+        const char *password = dbi_driver_get_option(driver, "password");
+        const char *database = dbi_driver_get_option(driver, "database");
+        int port = dbi_driver_get_option_numeric(driver, "port");
 
 	/* Initialize Connection */
 	mycon = mysql_init(NULL);
@@ -88,7 +88,7 @@ int dbd_connect(dbi_driver_t *driver) {
 	if( mysql_real_connect(mycon, host, username, password, database, port, NULL, 0) ){
 		driver->connection = (void *) mycon;
 		
-		driver->current_db = strdup(driver->current_db, database);
+		driver->current_db = strdup(driver->current_db);
 
 		return 0;
 	} else {
@@ -149,12 +149,12 @@ int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
 }
 
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	return dbd_driver_query(driver, "show databases");
+	return dbd_query(driver, "show databases");
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {
 	/*return (dbi_result_t *)dbi_driver_query((dbi_driver)driver, "SELECT relname AS tablename FROM pg_class WHERE relname !~ '^pg_' AND relkind = 'r' AND relowner = (SELECT datdba FROM pg_database WHERE datname = '%s') ORDER BY relname", db);*/
-	return dbd_driver_query(driver, "show tables");
+	return dbd_query(driver, "show tables");
 	/* my (mmt) thought is to add a function:
 	 * 	char *dbi_result_get_column(result, int); which will return
 	 * 		the name of a certain column, then use this:
@@ -195,14 +195,14 @@ char *dbd_select_db(dbi_driver_t *driver, const char *db) {
 	/* postgresql doesn't support switching databases without reconnecting */
 	MYSQL *mycon = (MYSQL*) driver->connection; /* Our Connection */
 
-	if(mysql_select_db(mycon, database)){ /* In Case Of Error */
+	if(mysql_select_db(mycon, db)){ /* In Case Of Error */
 		_error_handler(driver);
 
-		return -1;
+		return "";
 	}
 
 
-	return 0;
+	return (char*)db;
 
 }
 
@@ -330,11 +330,11 @@ void _get_field_info(dbi_result_t *result) {
 
 void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 	dbi_driver_t *driver = result->driver;
-	MYSQL *mycon = (MYSQL*); driver->connection;
+	MYSQL *mycon = (MYSQL*) driver->connection;
 	MYSQL_RES *myres = (MYSQL_RES *) result->result_handle;
 	MYSQL_ROW *myrow = NULL;
 
-	int *len = NULL;
+	long *len = NULL;
 	char *string = NULL;
 	int i = 0;
 	dbi_data_t *data;
@@ -353,9 +353,9 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 
 		data = &row->field_values[i];
 	
-		switch (result->field_types[curfield]) {
+		switch (result->field_types[i]) {
 			case DBI_TYPE_INTEGER:
-				switch (result->field_attribs[curfield]) {
+				switch (result->field_attribs[i]) {
 					case DBI_INTEGER_SIZE1:
 						data->d_char = (char) atol(string); break;
 					case DBI_INTEGER_SIZE2:
@@ -370,7 +370,7 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				}
 				break;
 			case DBI_TYPE_DECIMAL:
-				switch (result->field_attribs[curfield]) {
+				switch (result->field_attribs[i]) {
 					case DBI_DECIMAL_SIZE4:
 						data->d_float = (float) strtod(string, NULL); break;
 					case DBI_DECIMAL_SIZE8:
@@ -381,11 +381,11 @@ void _get_row_data(dbi_result_t *result, dbi_row_t *row, unsigned int rowidx) {
 				break;
 			case DBI_TYPE_STRING:
 				data->d_string = strdup(string);
-				if (row->field_sizes) row->field_sizes[curfield] = strsize;
+				if (row->field_sizes) row->field_sizes[i] = len[i];
 				break;
 			case DBI_TYPE_BINARY:
-				if (row->field_sizes) row->field_sizes[curfield] = strsize;
-				memcpy(data->d_string, string, strsize);
+				if (row->field_sizes) row->field_sizes[i] = len[i];
+				memcpy(data->d_string, string, len[i]);
 				break;
 				
 			case DBI_TYPE_ENUM:
