@@ -310,6 +310,7 @@ unsigned long dbi_result_get_field_attribs_idx(dbi_result Result, unsigned int i
 int _disjoin_from_conn(dbi_result_t *result) {
 	int idx;
 	int found = -1;
+	int retval;
 
 	retval = result->conn->driver->functions->free_query(result);
 
@@ -333,12 +334,12 @@ int _disjoin_from_conn(dbi_result_t *result) {
 
 	result->conn = NULL;
 	
-	return 1;
+	return retval;
 }
 
 int dbi_result_disjoin(dbi_result Result) {
 	dbi_result_t *result = Result;
-	if (!result) return 0;
+	if (!result) return -1;
 	return _disjoin_from_conn(result);
 }
 
@@ -347,7 +348,7 @@ int dbi_result_free(dbi_result Result) {
 	int retval;
 	if (!result) return -1;
 	
-	if (result->conn) _disjoin_from_conn(result);
+	if (result->conn) retval = _disjoin_from_conn(result);
 
 	while (result->field_bindings) {
 		_remove_binding_node(result, result->field_bindings);

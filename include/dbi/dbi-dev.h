@@ -161,6 +161,7 @@ typedef struct dbi_conn_s {
 
 unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
+int _disjoin_from_conn(dbi_result_t *result);
 
 #ifdef __cplusplus
 }

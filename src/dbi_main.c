@@ -351,16 +351,18 @@ dbi_conn dbi_conn_open(dbi_driver Driver) {
 
 int dbi_conn_disjoin_results(dbi_conn Conn) {
 	dbi_conn_t *conn = Conn;
-	int disjoined = 0;
+	int errors = 0;
 	int idx;
 
 	if (!conn) return 0;
 
 	for (idx = conn->results_used-1; idx >= 0; idx--) {
-		disjoined += dbi_result_disjoin((dbi_result)conn->results[idx]);
+		if (dbi_result_disjoin((dbi_result)conn->results[idx]) < 0) {
+			errors--;
+		}
 	}
 
-	return disjoined;
+	return errors;
 }
 
 void dbi_conn_close(dbi_conn Conn) {
