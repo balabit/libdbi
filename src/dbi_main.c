@@ -469,17 +469,19 @@ int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest) {
 	char number_portion[20];
 	static char *errmsg = NULL; // XXX quick hack, revisit this when API is redesigned
 
-	if (errmsg) free(errmsg);
-	
-	if (conn->error_number) {
-		snprintf(number_portion, 20, "%d: ", conn->error_number);
-	}
-	else {
-		number_portion[0] = '\0';
-	}
+	if (errmsg_dest) {
+		if (errmsg) free(errmsg);
+		
+		if (conn->error_number) {
+			snprintf(number_portion, 20, "%d: ", conn->error_number);
+		}
+		else {
+			number_portion[0] = '\0';
+		}
 
-	asprintf(&errmsg, "%s%s", number_portion, conn->error_message ? conn->error_message : "");
-	*errmsg_dest = errmsg;
+		asprintf(&errmsg, "%s%s", number_portion, conn->error_message ? conn->error_message : "");
+		*errmsg_dest = errmsg;
+	}
 
 	return conn->error_number;
 }
