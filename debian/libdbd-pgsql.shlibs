@@ -1,0 +1,1 @@
+libpgsql 0 libdbd-pgsql (>> 0.0.5-0), libdbd-pgsql (<< 0.0.5-99), libdbi0 (>> 0.0.5-0), libdbi0 (<< 0.0.5-99)

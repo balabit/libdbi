@@ -183,6 +183,12 @@ int dbi_result_free(dbi_result Result) {
 	return retval;
 }
 
+dbi_driver dbi_result_get_driver(dbi_result Result) {
+	dbi_result_t *result = Result;
+	if (!result) return NULL;
+	return result->driver;
+}
+
 /* RESULT: mass retrieval functions */
 
 static int _parse_field_formatstr(const char *format, char ***tokens_dest, char ***fieldnames_dest) {

@@ -140,6 +140,16 @@ NAME dbi_plugin_get_date_compiled
 
 *
 
+NAME dbi_driver_new
+	PROTO dbi_driver dbi_driver_new(const char *name)
+	DESC
+	Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().
+	ENDDESC
+	ARG name The name of the desired plugin.
+	RET A driver instance of the specified plugin, or NULL if there was an error.
+
+*
+
 NAME dbi_driver_open
 	PROTO dbi_driver dbi_driver_open(dbi_plugin Plugin)
 	DESC
@@ -150,13 +160,13 @@ NAME dbi_driver_open
 
 *
 
-NAME dbi_driver_new
-	PROTO dbi_driver dbi_driver_new(const char *name)
+NAME dbi_driver_get_plugin
+	PROTO dbi_plugin dbi_driver_get_plugin(dbi_driver Driver)
 	DESC
-	Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().
+	Returns the plugin type of the specified driver.
 	ENDDESC
-	ARG name The name of the desired plugin.
-	RET A driver instance of the specified plugin, or NULL if there was an error.
+	ARG Driver The target driver.
+	RET The plugin type of the target driver.
 
 *
 
@@ -318,7 +328,7 @@ NAME dbi_driver_query
 	ENDDESC
 	ARG Driver The target driver.
 	ARG formatstr The format string for the SQL statement. It uses the same format as printf().
-	ARG ... Any variables that correspond to the printf-like format string.
+	ARG (...) Any variables that correspond to the printf-like format string.
 	RET A query result object, or NULL if there was an error.
 
 *
@@ -331,6 +341,16 @@ NAME dbi_driver_select_db
 	ARG Driver The target driver.
 	ARG db The target database name.
 	RET -1 on failure, zero on success.
+
+*
+
+NAME dbi_result_get_driver
+	PROTO dbi_driver dbi_result_get_driver(dbi_result Result)
+	DESC
+	Returns the driver belonging to the specified result object.
+	ENDDESC
+	ARG Result The target query result.
+	RET The driver belonging to the target query result.
 
 *
 
@@ -461,7 +481,7 @@ NAME dbi_result_get_fields
 	ENDDESC
 	ARG Result The target query result.
 	ARG format The field format string as described above.
-	ARG ... Pointers to the destination variables corresponding with each field in the format string.
+	ARG (...) Pointers to the destination variables corresponding with each field in the format string.
 	RET The number of fields fetched, or -1 if there was an error. If an invalid field name was specified it will not cause -1 to be returned, and the other fetched fields will work as usual.
 
 *
@@ -473,7 +493,7 @@ NAME dbi_result_bind_fields
 	ENDDESC
 	ARG Result The target query result.
 	ARG format The field format string as described above.
-	ARG ... Pointers to the destination variables corresponding with each field in the format string.
+	ARG (...) Pointers to the destination variables corresponding with each field in the format string.
 	RET The number of field binding set up, or -1 if there was an error.
 
 *
@@ -843,4 +863,5 @@ NAME dbi_result_bind_set
 	ARG fieldname The name of the field to bind to.
 	ARG bindto A pointer to the variable that will be updated with the specified field's value.
 	RET 0 upon success, -1 if there was an error
+
 

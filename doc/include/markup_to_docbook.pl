@@ -14,8 +14,8 @@ sub parse_markup {
 	while (<MARKUP>) {
 		my ($proto, $descverbatim, $desc, $returns, @args);
 		my $blob = $_; $blob =~ s/\n\*\n/\n/g;
-		($proto, $desc, $returns) = (($blob =~ /\tPROTO (.+)\n\tDESC\w*\n\t(.*)ENDDESC\n\t.*RET (.*)[\s\*]*/s) && (strip($1), strip($2), strip($3)));
-		$descverbatim = (($blob =~ /\n\t(DESC\w*)\n/) && ($1 eq 'DESC-VERBATIM'));
+		($proto, $desc, $returns) = (($blob =~ /\tPROTO (.+)\n\tDESC[-\w]*\n\t(.*)ENDDESC\n\t.*RET (.*)[\s\*]*/s) && (strip($1), strip($2), strip($3)));
+		$descverbatim = (($blob =~ /\n\t(DESC[-\w]*)\n/) && ($1 eq 'DESC-VERBATIM'));
 		my $argsraw = (($blob =~ /\n\tENDDESC\n\t(ARG .*)\n\tRET /) && $1);
 		foreach my $arg (split(/\n/, $argsraw)) {
 			$arg = strip($arg);

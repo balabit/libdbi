@@ -280,6 +280,12 @@ void dbi_driver_close(dbi_driver Driver) {
 	free(driver);
 }
 
+dbi_plugin dbi_driver_get_plugin(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
+	if (!driver) return NULL;
+	return driver->plugin;
+}
+
 int dbi_driver_error(dbi_driver Driver, char *errmsg_dest) {
 	dbi_driver_t *driver = Driver;
 	char number_portion[20];

@@ -1,11 +1,8 @@
 $Id$
 
 ** PRE-RELEASE TODO: **
-- review reference section of docs
-- add packaging for postgresql plugin
-- make noted changes to debian packaging
-- finish libdbi website
-- dbi_driver_get_plugin(), dbi_result_get_driver(), other accessors?
+- finish mysql and pgsql plugins
+- finish plugins/ dir on libdbi website
 
 - revamp error handling
 - _dbd_* plugin authors' convenience library

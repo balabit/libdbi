@@ -74,6 +74,7 @@ const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin);
 
 dbi_driver dbi_driver_new(const char *name); /* shortcut for dbi_driver_open(dbi_plugin_open("foo")) */
 dbi_driver dbi_driver_open(dbi_plugin Plugin); /* returns an actual instance of the driver */
+dbi_plugin dbi_driver_get_plugin(dbi_driver Driver);
 int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value); /* if value is NULL, remove option from list */
 int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value);
 const char *dbi_driver_get_option(dbi_driver Driver, const char *key);
@@ -92,6 +93,7 @@ dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db);
 dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...); 
 int dbi_driver_select_db(dbi_driver Driver, const char *db);
 
+dbi_driver dbi_result_get_driver(dbi_result Result);
 int dbi_result_free(dbi_result Result);
 int dbi_result_seek_row(dbi_result Result, unsigned int row);
 int dbi_result_first_row(dbi_result Result);

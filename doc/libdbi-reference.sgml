@@ -202,6 +202,22 @@ published by the Free Software Foundation.
 		</Section>
 	</Section>
 	<Section id="reference-driver"><Title>Driver Infrastructure</Title>
+		<Section id="dbi-driver-new" XRefLabel="dbi_driver_new"><Title>dbi_driver_new</Title>
+			<Para><ProgramListing>dbi_driver dbi_driver_new(const char *name)</ProgramListing></Para>
+			<Para>Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>name</Literal>: The name of the desired plugin.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>A driver instance of the specified plugin, or NULL if there was an error.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
 		<Section id="dbi-driver-open" XRefLabel="dbi_driver_open"><Title>dbi_driver_open</Title>
 			<Para><ProgramListing>dbi_driver dbi_driver_open(dbi_plugin Plugin)</ProgramListing></Para>
 			<Para>Creates a driver instance of the specified plugin. This driver can be used to perform queries and set options.</Para>
@@ -218,19 +234,19 @@ published by the Free Software Foundation.
 				</VarListEntry>
 			</VariableList>
 		</Section>
-		<Section id="dbi-driver-new" XRefLabel="dbi_driver_new"><Title>dbi_driver_new</Title>
-			<Para><ProgramListing>dbi_driver dbi_driver_new(const char *name)</ProgramListing></Para>
-			<Para>Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().</Para>
+		<Section id="dbi-driver-get-plugin" XRefLabel="dbi_driver_get_plugin"><Title>dbi_driver_get_plugin</Title>
+			<Para><ProgramListing>dbi_plugin dbi_driver_get_plugin(dbi_driver Driver)</ProgramListing></Para>
+			<Para>Returns the plugin type of the specified driver.</Para>
 			<VariableList>
 				<VarListEntry>
 					<Term><Emphasis>Arguments</Emphasis></Term>
 					<ListItem>
-						<Para><Literal>name</Literal>: The name of the desired plugin.</Para>
+						<Para><Literal>Driver</Literal>: The target driver.</Para>
 					</ListItem>
 				</VarListEntry>
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
-					<ListItem><Para>A driver instance of the specified plugin, or NULL if there was an error.</Para></ListItem>
+					<ListItem><Para>The plugin type of the target driver.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>
@@ -404,6 +420,22 @@ published by the Free Software Foundation.
 				<VarListEntry>
 					<Term><Emphasis>Returns</Emphasis></Term>
 					<ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
+				</VarListEntry>
+			</VariableList>
+		</Section>
+		<Section id="dbi-result-get-driver" XRefLabel="dbi_result_get_driver"><Title>dbi_result_get_driver</Title>
+			<Para><ProgramListing>dbi_driver dbi_result_get_driver(dbi_result Result)</ProgramListing></Para>
+			<Para>Returns the driver belonging to the specified result object.</Para>
+			<VariableList>
+				<VarListEntry>
+					<Term><Emphasis>Arguments</Emphasis></Term>
+					<ListItem>
+						<Para><Literal>Result</Literal>: The target query result.</Para>
+					</ListItem>
+				</VarListEntry>
+				<VarListEntry>
+					<Term><Emphasis>Returns</Emphasis></Term>
+					<ListItem><Para>The driver belonging to the target query result.</Para></ListItem>
 				</VarListEntry>
 			</VariableList>
 		</Section>

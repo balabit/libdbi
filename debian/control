@@ -1,10 +1,11 @@
 Source: libdbi
-Section: devel
+Section: libs
 Priority: optional
 Maintainer: David Parker <david@neongoat.com>
 Standards-Version: 3.0.1
 
-Package: libdbi0-dev
+Package: libdbi-dev
+Section: devel
 Architecture: any
 Depends: libdbi0 (= ${Source-Version}), libc6-dev
 Description: Database independent abstraction layer for C (development files)
@@ -14,25 +15,25 @@ Description: Database independent abstraction layer for C (development files)
 Package: libdbi0
 Architecture: any
 Depends: ${shlibs:Depends}
-Suggests: libdbd-mysql | libdbd-template
+Suggests: libdbd-mysql | libdbd-pgsql
 Description: Database independent abstraction layer for C
  libdbi provides developers with a database independent abstraction layer for C,
  allowing for multiple simultaneous connections to different types of servers.
  The plugin architecture allows for new database drivers to be easily added by a
  third party.
 
-Package: libdbd-template
-Architecture: any
-Depends: libdbi0 (= ${Source-Version})
-Description: template database server plugin for libdbi
- This plugin provides connectivity to template database servers through the
- libdbi database independent abstraction layer. Switching a program's plugin
- does not require recompilation or rewriting source code.
- 
 Package: libdbd-mysql
 Architecture: any
-Depends: libdbi0 (= ${Source-Version})
+Depends: libdbi0 (= ${Source-Version}), libmysqlclient6, zlib1g (>= 1:1.1.3)
 Description: MySQL database server plugin for libdbi
  This plugin provides connectivity to MySQL database servers through the
+ libdbi database independent abstraction layer. Switching a program's plugin
+ does not require recompilation or rewriting source code.
+
+Package: libdbd-pgsql
+Architecture: any
+Depends: libdbi0 (= ${Source-Version}), libpgsql2 (>= 6.4-0), libpgsql2 (<< 7.0)
+Description: PostgreSQL database server plugin for libdbi
+ This plugin provides connectivity to PostgreSQL database servers through the
  libdbi database independent abstraction layer. Switching a program's plugin
  does not require recompilation or rewriting source code.
