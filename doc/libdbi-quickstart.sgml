@@ -1,0 +1,24 @@
+<Para>
+	libdbi uses a plugin system that allows various databases to be supported simultaneously, and can dynamically load or unload plugins that are supplied by libdbi or a third-party. The library is initiallized by calling <XRef linkend="dbi-initialize"> and a plugin instance (a driver) is started by calling either <XRef linkend="dbi-driver-new"> or both <XRef linkend="dbi-plugin-open"> and <XRef linkend="dbi-driver-open">.
+</Para>
+<Para>
+	The driver's options such as username, password, hostname, and database name are set with <XRef linkend="dbi-driver-set-option"> and <XRef linkend="dbi-driver-set-option-numeric">. Once all options are set, <XRef linkend="dbi-driver-connect"> will connect to the database, waiting to handle a <XRef linkend="dbi-driver-query">. After a successful query, you can retrieve rows with <XRef linkend="dbi-result-first-row">, <XRef linkend="dbi-result-last-row">, <XRef linkend="dbi-result-prev-row">, <XRef linkend="dbi-result-next-row">, and <XRef linkend="dbi-result-seek-row">.
+</Para>
+<Para>
+	There are two methods for fetching field data, and two ways to perform each method. You can either "pull" the data from DBI using the <Literal>dbi_result_get_*</Literal> family of functions, or have DBI automatically "push" the data into predefined variables with the <Literal>dbi_result_bind_*</Literal> family of functions.
+</Para>
+<Para>
+	Pulling the data from the database can be done with one of the functions such as <XRef linkend="dbi-result-get-long"> or <XRef linkend="dbi-result-get-string">, which simply return the field value you asked for. You can also get more than one field at a time by using a shorthand printf-like syntax with <XRef linkend="dbi-result-get-fields">.
+</Para>
+<Para>
+	If you want DBI to automatically fill your programs variables with field values whenever a new row is fetched, you can "bind" a certain field with your variable. Bindings are set up with <XRef linkend="dbi-result-bind-long">, <XRef linkend="dbi-result-bind-string">, and the rest of the bind family functions. Like the associated "get" function, you can set up multiple bindings at once with the <XRef linkend="dbi-result-bind-fields"> function.
+</Para>
+<Para><Emphasis>Caveats:</Emphasis></Para>
+<ItemizedList>
+	<ListItem><Para>For fields holding integers (not fractional numbers), DBI differentiates between signed and unsigned variables. By default, DBI returns signed values. If you want an unsigned value, prepend a "u" to the name of the target type. For example, dbi_result_bind_short becomes dbi_result_bind_ushort.</Para></ListItem>
+	<ListItem><Para>You must set up any bindings AFTER a successful query but BEFORE you fetch any rows. Even if you are using field bindings, you can still use the dbi_result_get_* functions as usual.</Para></ListItem>
+	<ListItem><Para>All string and binary data returned or binded from DBI is READ-ONLY. If you want your own local copy that can be modified at will, use <XRef linkend="dbi-result-get-string-copy">, <XRef linkend="dbi-result-get-binary-copy">, <XRef linkend="dbi-result-bind-string-copy">, or <XRef linkend="dbi-result-bind-binary-copy">. You will be responsible for freeing the memory allocated by these functions.</Para></ListItem>
+</ItemizedList>
+<Para>
+	<XRef linkend="dbi-result-next-row"> (and the other row-seeking functions) will return zero when there are no more rows available. Before the next database operation is performed, you must call <XRef linkend="dbi-result-free">.  Before the program terminates, the driver must be disconnected and unloaded with <XRef linkend="dbi-driver-close"> and libdbi must be unloaded with <XRef linkend="dbi-shutdown">.
+</Para>

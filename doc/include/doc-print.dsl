@@ -12,11 +12,20 @@
 ;;(define %page-height%
 ;;  11in)
 
-;;(define %top-margin%
-;;  0in)
+;;(define %default-quadding%
+;;  'justify)
 
-;;(define %bottom-margin%
-;;  0in)
+(define %top-margin%
+  7pi)
+
+(define %bottom-margin%
+  0pi)
+
+(define %footer-margin%
+  2pi)
+
+(define %header-margin%
+  3pi)
 
 (define %generate-article-toc%
   ;; Should a Table of Contents be produced for Articles?
@@ -69,6 +78,18 @@
 (define %admon-graphics%
   ;; Use graphics in admonitions?
   #f)
+
+(define %shade-verbatim%
+  #t)
+
+;;(define %indent-programlisting-lines%
+;;  "    ")
+
+;;(define %text-width% (- %page-width% (+ %left-margin% %right-margin%)))
+
+;;Define the body width. (Change the elements in the formula rather
+;;than the formula itself)
+;;(define %body-width% (- %text-width% %body-start-indent%))
 
 </style-specification-body>
 </style-specification>

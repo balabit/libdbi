@@ -1,6 +1,7 @@
 <!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
 
 <!ENTITY libdbi-reference SYSTEM "libdbi-reference.sgml">
+<!ENTITY libdbi-quickstart SYSTEM "libdbi-quickstart.sgml">
 <!ENTITY example-program SYSTEM "example-program.sgml">
 <!ENTITY freedoc-license SYSTEM "include/copying-fdl.sgml">
 <!ENTITY www '<ULink url="http://libdbi.sourceforge.net">http://libdbi.sourceforge.net</ULink>'>
@@ -110,78 +111,8 @@
 
 <Chapter id="quickstart"><Title>libdbi in a Nutshell (Quickstart Guide)</Title>
 	<Section id="quickstart-debriefing"><Title>Quick Overview</Title>
-		<Para>
-			libdbi uses a plugin system that allows various databases to be
-			supported simultaneously, and can dynamically load or unload
-			plugins that are supplied by libdbi or a third-party. The library
-			is initiallized by calling <Literal><XRef
-			linkend="dbi-initialize"></Literal> and a plugin instance (a
-			driver) is started by calling either <Literal><XRef
-			linkend="dbi-load-driver"></Literal> or both <Literal><XRef
-			linkend="dbi-open-plugin"></Literal> and <Literal><XRef
-			linkend="dbi-start-driver"></Literal>. The driver's options
-			such as username, password, hostname, and database name are set
-			with <Literal><XRef linkend="dbi-set-option"></Literal> and
-			<Literal><XRef linkend="dbi-set-option-numeric"></Literal>.
-			Once all options are set, <Literal><XRef
-			linkend="dbi-connect"></Literal> will connect to the
-			database (returning -1 in case of an error), waiting to handle a
-			<Literal><XRef linkend="dbi-query"></Literal>. After a
-			successful query, <Literal><XRef
-			linkend="dbi-fetch-row"></Literal> will retrieve the next
-			matched row, which can be passed on to one of the field-fetching
-			functions: <Literal><XRef linkend="dbi-get-char"></Literal>,
-			<Literal><XRef linkend="dbi-get-short">dbi_get_short</Literal>,
-			<Literal><XRef linkend="dbi-get-long"></Literal>,
-			<Literal><XRef linkend="dbi-get-longlong"></Literal>,
-			<Literal><XRef linkend="dbi-get-uchar"></Literal>
-			(unsigned), <Literal><XRef
-			linkend="dbi-get-ushort"></Literal> (unsigned),
-			<Literal><XRef linkend="dbi-get-ulong"></Literal>
-			(unsigned), <Literal><XRef
-			linkend="dbi-get-ulonglong"></Literal> (unsigned),
-			<Literal><XRef linkend="dbi-get-float"></Literal>,
-			<Literal><XRef linkend="dbi-get-double"></Literal>,
-			<Literal><XRef linkend="dbi-get-string"></Literal>,
-			<Literal><XRef linkend="dbi-get-binary"></Literal>,
-			<Literal><XRef linkend="dbi-get-string-copy"></Literal>,
-			<Literal><XRef linkend="dbi-get-binary-copy"></Literal>,
-			<Literal><XRef linkend="dbi-get-enum"></Literal>, or
-			<Literal><XRef linkend="dbi-get-set"></Literal>. When using
-			the string or binary functions, the programmer must not modify the
-			returned data, since it is managed by libdbi and may be
-			inaccessible after the next fetched row. If the data must be
-			modified or must be managed by the program itself, <Literal><XRef
-			linkend="dbi-get-string-copy"></Literal> and <Literal><XRef
-			linkend="dbi-get-binary-copy"></Literal> will return a copy of the
-			data for the program to use.  Memory allocated by these two
-			functions must be manually freed by the program. For string and
-			binary fields, <Literal><XRef
-			linkend="dbi-get-length"></Literal> will return the length
-			in characters of a particular field. For other types of fields,
-			<Literal><XRef linkend="dbi-get-size"></Literal> will return
-			the size in bytes of a particular field's type. Before the next
-			database operation is performed, <Literal><XRef
-			linkend="dbi-free-query"></Literal> must be called to free
-			internal variables.  Before the program terminates, the driver must
-			be disconnected and unloaded with <Literal><XRef
-			linkend="dbi-close-driver"></Literal> and libdbi must be
-			unloaded with <Literal><XRef
-			linkend="dbi-shutdown"></Literal>.
-		</Para>
-		<Para>
-			As an alternative to calling the dbi_get_TYPENAME functions after
-			every fetched row, you can also <Quote>bind</Quote> variables to
-			database fields so that libdbi updates the variables automatically.
-			Any desired bindings must be set before <Literal><XRef
-			linkend="dbi-fetch-row"></Literal> is called. To unbind a
-			field, specify <Literal>NULL</Literal> as the destination
-			variable's pointer.
-		</Para>
-		<Para>
-			[description of error handling scheme goes here]
-		</Para>
-	</Section> <!-- put section with example code here, explain error handling? -->
+		&libdbi-quickstart;
+	</Section>
 	<Section id="quickstart-code"><Title>Generic Example Program</Title>
 		&example-program;
 	</Section>

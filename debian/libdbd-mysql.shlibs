@@ -1,1 +1,1 @@
-libmysql 0 libdbd-mysql (>> 0.0.8-0), libdbd-mysql (<< 0.0.8-99), libdbi0 (>> 0.0.8-0), libdbi0 (<< 0.0.8-99)
+libmysql 0 libdbd-mysql (>> 0.0.5-0), libdbd-mysql (<< 0.0.5-99), libdbi0 (>> 0.0.5-0), libdbi0 (<< 0.0.5-99)

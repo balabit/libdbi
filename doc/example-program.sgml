@@ -4,38 +4,42 @@
 #include <dbi/dbi.h>
 
 int main() {
-	dbi_driver_t *driver;
-	dbi_result_t *result;
-	dbi_row_t *row;
+    dbi_driver driver;
+    dbi_result result;
 
-	double threshold = 99.99;
-	unsigned int idnumber;
-	char *fullname;
+    double threshold = 4.333333;
+    unsigned int idnumber;
+    const char *fullname;
+    
+    dbi_initialize(NULL);
+    driver = dbi_driver_open("mysql");
 
-	dbi_initialize(NULL);
-	driver = dbi_load_driver("mysql");
+    dbi_driver_set_option(driver, "host", "localhost");
+    dbi_driver_set_option(driver, "username", "chug");
+    dbi_driver_set_option(driver, "password", "dIP!");
+    dbi_driver_set_option(driver, "database", "db_name");
+    dbi_driver_set_option_numeric(driver, "efficient-queries", 1);
 
-	dbi_set_option(driver, "host", "localhost");
-	dbi_set_option(driver, "username", "chug");
-	dbi_set_option(driver, "password", "dIP!");
-	dbi_set_option(driver, "database", "dbname");
-	dbi_set_option_numeric(driver, "use_compression", 1);
+    dbi_driver_connect(driver);
+    result = dbi_driver_query(driver, "SELECT id, name FROM coders"
+	                                  "WHERE hours_of_sleep > %0.2f", threshold);
+    
+    while (dbi_result_next_row(result)) {
+        idnumber = dbi_result_get_long(result, "id");
+        fullname = dbi_result_get_string(result, "name");
+        printf("%i. %s\n", idnumber, fullname);
+    }
+    
+    dbi_result_free(result);
+    dbi_driver_close(driver);
+    dbi_shutdown();
 
-	dbi_connect(driver);
-	result = dbi_query(driver, "SELECT id, name FROM penguins WHERE fathername = "Linus" AND mode = "angry" AND mph > %0.2f", threshold);
-	while (row = dbi_fetch_row(result)) {
-		idnumber = dbi_get_ulong(driver, row, "id");
-		fullname = dbi_get_string(driver, row, "name");
-		printf("You should be a lot more careful about what you say to %s! (id=%d)\n", fullname, idnumber);
-	}
-	dbi_free_query(result);
-	dbi_close_driver(driver);
-	dbi_shutdown();
-	return 0;
+    return 0;
 }
 ]]>
 </ProgramListing>
 <Para>
 	Of course, a complete program should be checking for errors. This example
-	omits error-checking for the sake of clarity.
+	omits error-checking for the sake of clarity. There are also other ways to
+	retrieve data after a successful query. Keep reading on to see the rest.
 </Para>

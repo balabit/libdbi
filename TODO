@@ -1,8 +1,10 @@
 $Id$
 
-- a better way of handling query() vs. efficient_query()
-- sanity-check arguments, don't call dbd functions if an invalid plugin/driver was specified
-- prepare precompiled redhat packages (and test/fix debian packages)
+- prepare precompiled redhat packages (and test debian packages)
+- revamp error handling
+- _dbd_* plugin authors' convenience library
+- add more accessor/convenience functinos (think gui)
+- tweak print DSSSL to shade ProgramListing content
 - plugins:
 	* mysql (finish plugin and run stress tests)
 	* msql
@@ -10,4 +12,3 @@ $Id$
 	* oracle
 	* others?
 - create a config.h and use it to determine datatype information (how many bits an 'int' is, etc. mainly for portability to non-lintel systems)
-- more advanced plugin capabilities struct?

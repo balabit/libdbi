@@ -1,9 +1,9 @@
-libdbi (0.0.8-1) unstable; urgency=low
+libdbi (0.0.5-1) unstable; urgency=low
 
   * Initial Release.
 
- -- David Parker <david@neongoat.com>  Wed,  4 Apr 2001 21:13:59 -0700
-
+ -- David Parker <david@neongoat.com>  Sun,  8 Jul 2001 22:21:08 -0700 PDT 2001
+ 
 Local variables:
 mode: debian-changelog
 End:

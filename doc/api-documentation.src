@@ -1,0 +1,846 @@
+*
+
+NAME dbi_initialize
+	PROTO int dbi_initialize(const char *plugindir)
+	DESC
+	Locates all available shared modules (plugins) and loads them into memory.
+	ENDDESC
+	ARG plugindir The directory to search for plugins. If NULL, DBI_PLUGIN_DIR (defined at compile time) will be used instead.
+	RET The number of plugins successfully loaded, or -1 if there was an error.
+
+*
+
+NAME dbi_shutdown
+	PROTO void dbi_shutdown()
+	DESC
+	Frees all loaded plugins and terminates the DBI system. You should close each driver you opened before shutting down, but libdbi will clean up after you if you don't.
+	ENDDESC
+	RET 
+
+*
+
+NAME dbi_version
+	PROTO const char *dbi_version()
+	DESC
+	Requests the version of libdbi. The calling program must not attempt to free the returned string.
+	ENDDESC
+	RET A string containing the library's name and version.
+
+*
+
+NAME dbi_plugin_list
+	PROTO dbi_plugin dbi_plugin_list(dbi_plugin Current)
+	DESC
+	Enumerates all loaded plugins. If Current is NULL, the first available plugin will be returned. If Current is a valid plugin, the next available plugin will be returned.
+	ENDDESC
+	ARG Current The current plugin in the list of plugins.
+	RET The next available plugin, or NULL if there is an error or no more are available.
+
+*
+
+NAME dbi_plugin_open
+	PROTO dbi_plugin dbi_plugin_open(const char *name)
+	DESC
+	Locate the plugin with the specified name.
+	ENDDESC
+	ARG name The name of the plugin to open.
+	RET The requested plugin, or NULL if there is an error or it is not found.
+
+*
+
+NAME dbi_plugin_is_reserved_word
+	PROTO int dbi_plugin_is_reserved_word(dbi_plugin Plugin, const char *word)
+	DESC
+	Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.
+	ENDDESC
+	ARG Plugin The target plugin.
+	ARG word The word to check against the reserved word list.
+	RET -1 if an error occurs, 0 if the word is not reserved, 1 otherwise.
+
+*
+
+NAME dbi_plugin_specific_function
+	PROTO void *dbi_plugin_specific_function(dbi_plugin Plugin, const char *name)
+	DESC
+	Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but it will restrict your code to one particular database, lessening the benefits of using libdbi.
+	ENDDESC
+	ARG Plugin The target plugin.
+	ARG name The name of the custom function.
+	RET If the custom function is found, a pointer to that function. If not, returns NULL.
+
+*
+
+NAME dbi_plugin_get_name
+	PROTO const char *dbi_plugin_get_name(dbi_plugin Plugin)
+	DESC
+	Requests the name of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the plugin's name.
+
+*
+
+NAME dbi_plugin_get_filename
+	PROTO const char *dbi_plugin_get_filename(dbi_plugin Plugin)
+	DESC
+	Requests the filename of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the plugin's full path and file name.
+
+*
+
+NAME dbi_plugin_get_description
+	PROTO const char *dbi_plugin_get_description(dbi_plugin Plugin)
+	DESC
+	Requests a description of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the plugin's description. It will be one or two short sentences with no newlines.
+
+*
+
+NAME dbi_plugin_get_maintainer
+	PROTO const char *dbi_plugin_get_maintainer(dbi_plugin Plugin)
+	DESC
+	Requests the maintainer of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the plugin maintainer's full name and email address.
+
+*
+
+NAME dbi_plugin_get_url
+	PROTO const char *dbi_plugin_get_url(dbi_plugin Plugin)
+	DESC
+	Requests the maintainer's URL for the specified plugin. This is useful for plugins maintained by a third party. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET 
+
+*
+
+NAME dbi_plugin_get_version
+	PROTO const char *dbi_plugin_get_version(dbi_plugin Plugin)
+	DESC
+	Requests the version of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the plugin's version.
+
+*
+
+NAME dbi_plugin_get_date_compiled
+	PROTO const char *dbi_plugin_get_date_compiled(dbi_plugin Plugin)
+	DESC
+	Requests the compilation date of the specified plugin. The calling program must not attempt to free the returned string.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A string containing the date the plugin was compiled.
+
+*
+
+NAME dbi_driver_open
+	PROTO dbi_driver dbi_driver_open(dbi_plugin Plugin)
+	DESC
+	Creates a driver instance of the specified plugin. This driver can be used to perform queries and set options.
+	ENDDESC
+	ARG Plugin The target plugin.
+	RET A driver instance of the specified plugin, or NULL if there was an error.
+
+*
+
+NAME dbi_driver_new
+	PROTO dbi_driver dbi_driver_new(const char *name)
+	DESC
+	Creates a driver instance of the plugin specified by "name". This is a shortcut for calling dbi_plugin_open() and passing the result to dbi_driver_open().
+	ENDDESC
+	ARG name The name of the desired plugin.
+	RET A driver instance of the specified plugin, or NULL if there was an error.
+
+*
+
+NAME dbi_driver_set_option
+	PROTO int dbi_driver_set_option(dbi_driver Driver, const char *key, char *value)
+	DESC
+	Sets a specified driver option to a string value.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
+	ARG value The string value of the target setting.
+	RET XXX TODO
+
+*
+
+NAME dbi_driver_set_option_numeric
+	PROTO int dbi_driver_set_option_numeric(dbi_driver Driver, const char *key, int value)
+	DESC
+	Sets a specified driver option to a numeric value.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG key The name of the target setting. Must only contain alphanumerics and the underscore character.
+	ARG value The numeric value of the target setting.
+	RET XXX TODO
+
+*
+
+NAME dbi_driver_get_option
+	PROTO const char *dbi_driver_get_option(dbi_driver Driver, const char *key)
+	DESC
+	Retrieves the string value of the specified option set for a driver.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG key The name of the target setting.
+	RET A read-only string with the setting, or NULL if it is not available.
+
+*
+
+NAME dbi_driver_get_option_numeric
+	PROTO int dbi_driver_get_option_numeric(dbi_driver Driver, const char *key)
+	DESC
+	Retrieves the integer value of the specified option set for a driver.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG key The name of the target setting.
+	RET The value of the setting, or -1 if it is not available.
+
+*
+
+NAME dbi_driver_get_option_list
+	PROTO const char *dbi_driver_get_option_list(dbi_driver Driver, const char *current)
+	DESC
+	Enumerates the list of available options for a driver. If current is NULL, the first available option will be returned. If current is a valid option name, the next available option will be returned.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG current The key name of the target option.
+	RET The key name of the next option, or NULL if there was an error or there are no more options.
+
+*
+
+NAME dbi_driver_clear_option
+	PROTO void dbi_driver_clear_option(dbi_driver Driver, const char *key)
+	DESC
+	Removes the target option setting from a driver.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG key The name of the target setting.
+	RET 
+
+*
+
+NAME dbi_driver_clear_options
+	PROTO void dbi_driver_clear_options(dbi_driver Driver)
+	DESC
+	Removes all option settings from a driver.
+	ENDDESC
+	ARG Driver The target driver.
+	RET 
+
+*
+
+NAME dbi_driver_close
+	PROTO void dbi_driver_close(dbi_driver Driver)
+	DESC
+	Disconnects the specified driver connection from the database and cleans up the driver session.
+	ENDDESC
+	ARG Driver The target driver.
+	RET 
+
+*
+
+NAME dbi_driver_error
+	PROTO int dbi_driver_error(dbi_driver Driver, char *errmsg_dest)
+	DESC
+	Generates a formatted message with the error number and description resulting from the previous database operation, copying the message into the specified string.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG errmsg_dest The target string variable to copy the error message into. If NULL, no error message will be created, but the error number will still be returned.
+	RET The error number of the most recent database operation if it resulted in an error. If not, this will return -1.
+
+*
+
+NAME dbi_driver_error_handler
+	PROTO void dbi_driver_error_handler(dbi_driver Driver, void *function, void *user_argument)
+	DESC-VERBATIM
+	<Para>
+		Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters:
+	</Para>
+	<ItemizedList>
+		<ListItem><Para>dbi_driver_t *driver: a pointer to the driver that triggered the error, from which dbi_error() can be called, and</Para></ListItem>
+		<ListItem><Para>void *user_argument: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
+	</ItemizedList>
+	<Para>
+		To remove the error handler callback, specify NULL as the function and user_argument.
+	</Para>
+	ENDDESC
+	ARG Driver The target driver.
+	ARG function A pointer to the function to call when the error handler should be triggered.
+	ARG user_argument Any data to pass along to the function when it is triggered. Set to NULL if unused.
+	RET 
+
+*
+
+NAME dbi_driver_connect
+	PROTO int dbi_driver_connect(dbi_driver Driver)
+	DESC
+	Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric().  See the documentation for each specific database plugin for the options it recognizes and requires.
+	ENDDESC
+	ARG Driver The target driver.
+	RET -1 on failure, zero on success.
+
+*
+
+NAME dbi_driver_get_db_list
+	PROTO dbi_result dbi_driver_get_db_list(dbi_driver Driver)
+	DESC
+	Queries the list of available databases on the server.
+	ENDDESC
+	ARG Driver The target driver.
+	RET A query result object, which will contain a field named "dbname" from which the standard row/field fetching functions can be used.
+
+*
+
+NAME dbi_driver_get_table_list
+	PROTO dbi_result dbi_driver_get_table_list(dbi_driver Driver, const char *db)
+	DESC
+	Queries the list of available tables in a particular database.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG db The target database name.
+	RET A query result object, which will contain a field named "tablename" from which the standard row/field fetching functions can be used.
+
+*
+
+NAME dbi_driver_query
+	PROTO dbi_result dbi_driver_query(dbi_driver Driver, const char *formatstr, ...)
+	DESC
+	Execute the specified SQL query statement.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG formatstr The format string for the SQL statement. It uses the same format as printf().
+	ARG ... Any variables that correspond to the printf-like format string.
+	RET A query result object, or NULL if there was an error.
+
+*
+
+NAME dbi_driver_select_db
+	PROTO int dbi_driver_select_db(dbi_driver Driver, const char *db)
+	DESC
+	Switches to a different database on the server.
+	ENDDESC
+	ARG Driver The target driver.
+	ARG db The target database name.
+	RET -1 on failure, zero on success.
+
+*
+
+NAME dbi_result_free
+	PROTO int dbi_result_free(dbi_result Result)
+	DESC
+	Frees the result's query, disables all stored field bindings, and releases internally stored variables.
+	ENDDESC
+	ARG Result The target query result.
+	RET -1 on failure, zero on success.
+
+*
+
+NAME dbi_result_seek_row
+	PROTO int dbi_result_seek_row(dbi_result Result, unsigned int row)
+	DESC
+	Jump to a specific row in a result set.
+	ENDDESC
+	ARG Result The target query result.
+	ARG row The ordinal number of the row to seek to. The first row is at position 1, not zero.
+	RET The row number that was fetched, or 0 if there is an error.
+
+*
+
+NAME dbi_result_first_row
+	PROTO int dbi_result_first_row(dbi_result Result)
+	DESC
+	Jump to the first row in a result set.
+	ENDDESC
+	ARG Result The target query result.
+	RET The row number that was fetched, or 0 if there is an error.
+
+*
+
+NAME dbi_result_last_row
+	PROTO int dbi_result_last_row(dbi_result Result)
+	DESC
+	Jump to the last row in a result set.
+	ENDDESC
+	ARG Result The target query result.
+	RET The row number that was fetched, or 0 if there is an error.
+
+*
+
+NAME dbi_result_prev_row
+	PROTO int dbi_result_prev_row(dbi_result Result)
+	DESC
+	Jump to the previous row in a result set.
+	ENDDESC
+	ARG Result The target query result.
+	RET The row number that was fetched, or 0 if there is an error.
+
+*
+
+NAME dbi_result_next_row
+	PROTO int dbi_result_next_row(dbi_result Result)
+	DESC
+	Jump to the next row in a result set.
+	ENDDESC
+	ARG Result The target query result.
+	RET The row number that was fetched, or 0 if there is an error.
+
+*
+
+NAME dbi_result_get_numrows
+	PROTO unsigned int dbi_result_get_numrows(dbi_result Result)
+	DESC
+	Returns the number of rows in the specified result set.
+	ENDDESC
+	ARG Result The target query result.
+	RET The number of rows in the result set.
+
+*
+
+NAME dbi_result_get_numrows_affected
+	PROTO unsigned int dbi_result_get_numrows_affected(dbi_result Result)
+	DESC
+	Returns the number of rows in the specified result set that were actually modified. Note that not all database servers support this, in which case it will always be zero. See the documentation for each specific plugin for details.
+	ENDDESC
+	ARG Result The target query result.
+	RET The number of modified rows in the result set.
+
+*
+
+NAME dbi_result_get_field_size
+	PROTO unsigned int dbi_result_get_field_size(dbi_result Result, const char *fieldname)
+	DESC
+	Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the target field.
+	RET The size in bytes of the target field data.
+
+*
+
+NAME dbi_result_get_field_length
+	PROTO unsigned int dbi_result_get_field_length(dbi_result Result, const char *fieldname)
+	DESC
+	Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.	
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the target field.
+	RET The length in bytes of the target field data.
+
+*
+
+NAME dbi_result_get_fields
+	PROTO int dbi_result_get_fields(dbi_result Result, const char *format, ...)
+	DESC-VERBATIM
+	<Para>Fetch multiple fields from the current result set, using a printf-like syntax. The formatter string specified field names and types, and each field's associated destination variable is passed as an argument following the format string. Fields in the formatter string are separated by spaces, and follow the format "%a.b", where "a" is the field type specifier, and "b" is the name of the field. Make sure you pass the destination variables' memory addresses by prepending the &amp; operator to each variable's name.</Para>
+	<Para><Emphasis>Field type specifiers:</Emphasis></Para>
+	<ItemizedList>
+		<ListItem><Para><Literal>%c / %uc</Literal>: A signed/unsigned character</Para></ListItem>
+		<ListItem><Para><Literal>%h / %uh</Literal>: A signed/unsigned short integer</Para></ListItem>
+		<ListItem><Para><Literal>%l / %ul</Literal>: A signed/unsigned long integer</Para></ListItem>
+		<ListItem><Para><Literal>%i / %ui</Literal>: A signed/unsigned long integer</Para></ListItem>
+		<ListItem><Para><Literal>%L / %uL</Literal>: A signed/unsigned long long integer</Para></ListItem>
+		<ListItem><Para><Literal>%f</Literal>: A floating point number</Para></ListItem>
+		<ListItem><Para><Literal>%d</Literal>: A double-precision number</Para></ListItem>
+		<ListItem><Para><Literal>%s</Literal>: A read-only string</Para></ListItem>
+		<ListItem><Para><Literal>%S</Literal>: A local copy of a string (must be freed by program)</Para></ListItem>
+		<ListItem><Para><Literal>%b</Literal>: A read-only pointer to binary data</Para></ListItem>
+		<ListItem><Para><Literal>%B</Literal>: A local copy of binary data (must be freed by program)</Para></ListItem>
+		<ListItem><Para><Literal>%t</Literal>: A read-only string representing a SET</Para></ListItem>
+		<ListItem><Para><Literal>%e</Literal>: A read-only string representing an ENUM</Para></ListItem>
+	</ItemizedList>
+	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "%ul.idnum %s.lastname", &id_number, &name)</Literal></Para>
+	ENDDESC
+	ARG Result The target query result.
+	ARG format The field format string as described above.
+	ARG ... Pointers to the destination variables corresponding with each field in the format string.
+	RET The number of fields fetched, or -1 if there was an error. If an invalid field name was specified it will not cause -1 to be returned, and the other fetched fields will work as usual.
+
+*
+
+NAME dbi_result_bind_fields
+	PROTO int dbi_result_bind_fields(dbi_result Result, const char *format, ...)
+	DESC-VERBATIM
+	<Para>Bind multiple fields in the current result set, using a printf-like syntax. See <Literal><XRef linkend="dbi-result-get-fields"></Literal> for a detailed explanation of the syntax.</Para>
+	ENDDESC
+	ARG Result The target query result.
+	ARG format The field format string as described above.
+	ARG ... Pointers to the destination variables corresponding with each field in the format string.
+	RET The number of field binding set up, or -1 if there was an error.
+
+*
+
+NAME dbi_result_get_char
+	PROTO signed char dbi_result_get_char(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_uchar
+	PROTO unsigned char dbi_result_get_uchar(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_short
+	PROTO short dbi_result_get_short(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ushort
+	PROTO unsigned short dbi_result_get_ushort(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_long
+	PROTO long dbi_result_get_long(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ulong
+	PROTO unsigned long dbi_result_get_ulong(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_longlong
+	PROTO long long dbi_result_get_longlong(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_ulonglong
+	PROTO unsigned long long dbi_result_get_ulonglong(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains an unsigned long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_float
+	PROTO float dbi_result_get_float(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a floating-point number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_double
+	PROTO double dbi_result_get_double(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a double-precision fractional number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_string
+	PROTO const char *dbi_result_get_string(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_binary
+	PROTO const unsigned char *dbi_result_get_binary(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_string_copy
+	PROTO char *dbi_result_get_string_copy(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_binary_copy
+	PROTO unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_enum
+	PROTO const char *dbi_result_get_enum(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains an ENUM (which will be represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_get_set
+	PROTO const char *dbi_result_get_set(dbi_result Result, const char *fieldname)
+	DESC
+	Fetch the data stored in the speficied field, which contains a SET (which will be represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to fetch.
+	RET The data stored in the specified field.
+
+*
+
+NAME dbi_result_bind_char
+	PROTO int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_uchar
+	PROTO int dbi_result_bind_uchar(dbi_result Result, const char *fieldname, unsigned char *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds an unsigned character.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_short
+	PROTO int dbi_result_bind_short(dbi_result Result, const char *fieldname, short *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_ushort
+	PROTO int dbi_result_bind_ushort(dbi_result Result, const char *fieldname, unsigned short *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds an unsigned short integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_long
+	PROTO int dbi_result_bind_long(dbi_result Result, const char *fieldname, long *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_ulong
+	PROTO int dbi_result_bind_ulong(dbi_result Result, const char *fieldname, unsigned long *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds an unsigned long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_longlong
+	PROTO int dbi_result_bind_longlong(dbi_result Result, const char *fieldname, long long *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_ulonglong
+	PROTO int dbi_result_bind_ulonglong(dbi_result Result, const char *fieldname, unsigned long long *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds an unsigned long long integer.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_float
+	PROTO int dbi_result_bind_float(dbi_result Result, const char *fieldname, float *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a floating-point number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_double
+	PROTO int dbi_result_bind_double(dbi_result Result, const char *fieldname, double *bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a double-precision fractional number.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_string
+	PROTO int dbi_result_bind_string(dbi_result Result, const char *fieldname, const char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a string. The string must not be modified.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_binary
+	PROTO int dbi_result_bind_binary(dbi_result Result, const char *fieldname, const unsigned char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds binary BLOB data. The data must not be modified.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_string_copy
+	PROTO int dbi_result_bind_string_copy(dbi_result Result, const char *fieldname, char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_binary_copy
+	PROTO int dbi_result_bind_binary_copy(dbi_result Result, const char *fieldname, unsigned char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds binary BLOB data. The newly allocated data may be modified by the host program, but the program is responsible for freeing the data.
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_enum
+	PROTO int dbi_result_bind_enum(dbi_result Result, const char *fieldname, const char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds an ENUM (which is represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
+*
+
+NAME dbi_result_bind_set
+	PROTO int dbi_result_bind_set(dbi_result Result, const char *fieldname, const char **bindto)
+	DESC
+	Bind the specified variable to the specified field, which holds a SET (which is represented as a read-only string).
+	ENDDESC
+	ARG Result The target query result.
+	ARG fieldname The name of the field to bind to.
+	ARG bindto A pointer to the variable that will be updated with the specified field's value.
+	RET 0 upon success, -1 if there was an error
+
