@@ -45,8 +45,8 @@ typedef struct dbi_row_s {
 	void *row_handle; /* will be typecast into driver-specific type */
 	unsigned int numfields;
 	char **field_names;
-	int *field_types;
-	unsigned int *field_type_attributes;
+	unsigned short *field_types;
+	unsigned short *field_type_attributes;
 	void **field_values;
 	struct dbi_row_s *next; /* NULL, unless we slurp all available rows at once */
 } dbi_row_t;
