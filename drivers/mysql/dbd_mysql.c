@@ -17,8 +17,8 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
- * dbd_pgsql.c: PostgreSQL database support (using libpq)
- * Copyright (C) 2001, David Parker <david@neongoat.com>.
+ * dbd_mysql.c: MySQL database support (using libpq)
+ * Copyright (C) 2001, Mark Tobenkin <mark@brentwoodradio.com>
  * http://libdbi.sourceforge.net
  * 
  * $Id$
