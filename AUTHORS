@@ -8,6 +8,9 @@ Main developers:
 These people have also contributed to the project:
 (if I forgot you, please let me know!)
 
+* Peter O'Gorman <pogma@opendarwin.org>
+  - configure/Makefile/libtool fixes, OSX guru
+
 * Markus Hoenicka <hoenicka_markus at compuserve.com>
   - win32 port, atoll() portability, list_* tweaks, assorted bugfixes, error_flag scheme
   
