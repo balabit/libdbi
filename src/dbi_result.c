@@ -681,7 +681,6 @@ signed char dbi_result_get_char_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0; // XXX error_handler here?
 	sizeattrib = _isolate_attrib(result->field_attribs[idx], DBI_INTEGER_SIZE1, DBI_INTEGER_SIZE8);
 
 	switch (sizeattrib) {
@@ -1173,7 +1172,6 @@ time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned short idx) {
 		_error_handler(result->conn, DBI_ERROR_BADTYPE);
 		return ERROR;
 	}
-	if (result->rows[result->currowidx]->field_sizes[idx] == 0) return 0;
 	
 	return (time_t)(result->rows[result->currowidx]->field_values[idx].d_datetime);
 }
