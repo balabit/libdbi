@@ -577,16 +577,18 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 			)
 		{
 			free(plugin->functions);
+			free(plugin->filename);
 			free(plugin);
 			return NULL;
 		}
-		dbd_register_plugin(plugin->info, &custom_functions_list, &plugin->reserved_words);
+		plugin->functions->register_plugin(&plugin->info, &custom_functions_list, &plugin->reserved_words);
 		plugin->custom_functions = NULL; /* in case no custom functions are available */
-		while (custom_functions_list[idx] != NULL) {
+		while (custom_functions_list && custom_functions_list[idx] != NULL) {
 			custom = (dbi_custom_function_t *) malloc(sizeof(dbi_custom_function_t));
 			if (!custom) {
 				_free_custom_functions(plugin);
 				free(plugin->functions);
+				free(plugin->filename);
 				free(plugin);
 				return NULL;
 			}
@@ -598,6 +600,7 @@ static dbi_plugin_t *_get_plugin(const char *filename) {
 				_free_custom_functions(plugin);
 				free(custom); /* not linked into the list yet */
 				free(plugin->functions);
+				free(plugin->filename);
 				free(plugin);
 				return NULL;
 			}
@@ -647,7 +650,8 @@ static int _update_internal_driver_list(dbi_driver_t *driver, const int operatio
 		if (!curdriver) return -1;
 		if (operation == 0) return 1;
 		else if (operation == -1) {
-			prevdriver->next = curdriver->next;
+			if (prevdriver) prevdriver->next = curdriver->next;
+			else rootdriver = NULL;
 			return 0;
 		}
 	}
@@ -695,15 +699,17 @@ static dbi_option_t *_find_or_create_option_node(dbi_driver Driver, const char *
 
 void _error_handler(dbi_driver_t *driver) {
 	int errno = 0;
-	const char *errmsg = NULL;
+	char *errmsg = NULL;
 	void (*errfunc)(dbi_driver_t *, void *);
-	int errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
+	int errstatus;
+	
+	errstatus = driver->plugin->functions->geterror(driver, &errno, &errmsg);
 
 	if (errno) {
 		driver->error_number = errno;
 	}
 	if (errmsg) {
-		driver->error_message = (char *) errmsg;
+		driver->error_message = errmsg;
 	}
 	if (driver->error_handler != NULL) {
 		/* trigger the external callback function */

@@ -46,11 +46,30 @@ static const dbi_info_t plugin_info = {
 static const char *custom_functions[] = {NULL}; // TODO
 static const char *reserved_words[] = PGSQL_RESERVED_WORDS;
 
-void dbd_register_plugin(const dbi_info_t *_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
+/* function delarations */
+void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words);
+int dbd_initialize(dbi_plugin_t *plugin);
+int dbd_connect(dbi_driver_t *driver);
+int dbd_disconnect(dbi_driver_t *driver);
+int dbd_fetch_row(dbi_result_t *result, unsigned int rownum);
+int dbd_free_query(dbi_result_t *result);
+int dbd_goto_row(dbi_driver_t *driver, unsigned int row);
+dbi_result_t *dbd_list_dbs(dbi_driver_t *driver);
+dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db);
+dbi_result_t *dbd_query(dbi_driver_t *driver, const char *statement);
+char *dbd_select_db(dbi_driver_t *driver, const char *db);
+int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr);
+int dbd_geterror(dbi_driver_t *driver, int *errno, char **errstr);
+
+/* to shut gcc up... */
+int asprintf(char **, const char *, ...);
+
+
+void dbd_register_plugin(const dbi_info_t **_plugin_info, const char ***_custom_functions, const char ***_reserved_words) {
 	/* this is the first function called after the plugin module is loaded into memory */
-	_custom_functions = &custom_functions_list;
-	_plugin_info = &plugin_info;
-	_reserved_words = &reserved_words;
+	*_plugin_info = &plugin_info;
+	*_custom_functions = custom_functions;
+	*_reserved_words = reserved_words;
 }
 
 int dbd_initialize(dbi_plugin_t *plugin) {
@@ -64,7 +83,7 @@ int dbd_initialize(dbi_plugin_t *plugin) {
 
 int dbd_connect(dbi_driver_t *driver) {
 	const char *host = dbi_driver_get_option(driver, "host");
-	const char *username = dbi_driver_get_option(driver, "username")
+	const char *username = dbi_driver_get_option(driver, "username");
 	const char *password = dbi_driver_get_option(driver, "password");
 	const char *dbname = dbi_driver_get_option(driver, "dbname");
 	int port = dbi_driver_get_option_numeric(driver, "port");
@@ -80,7 +99,7 @@ int dbd_connect(dbi_driver_t *driver) {
 	if (port) asprintf(&port_str, "%d", port);
 	else port_str = NULL;
 
-	asprintf(conninfo, "host='%s' port='%s' dbname='%s' user='%s' password='%s' options='%s' tty='%s'",
+	asprintf(&conninfo, "host='%s' port='%s' dbname='%s' user='%s' password='%s' options='%s' tty='%s'",
 		host ? host : "", /* if we pass a NULL directly to the %s it will show up as "(null)" */
 		port_str ? port_str : "",
 		dbname ? dbname : "",
@@ -111,7 +130,7 @@ int dbd_disconnect(dbi_driver_t *driver) {
 
 int dbd_fetch_row(dbi_result_t *result, unsigned int rownum) {
 	/* XXX XXX XXX XXX XXX XXX XXX XXX */
-	return 1; /* return -1 on error, 0 on no more rows, 1 on successful fetchrow */
+	return -1; /* return -1 on error, 0 on no more rows, 1 on successful fetchrow */
 }
 
 int dbd_free_query(dbi_result_t *result) {
@@ -127,7 +146,7 @@ int dbd_goto_row(dbi_driver_t *driver, unsigned int row) {
 }
 
 dbi_result_t *dbd_list_dbs(dbi_driver_t *driver) {
-	return dbd_query(driver, "SELECT datname AS dbname FROM pg_database");
+	return (dbi_result_t *)dbd_query(driver, "SELECT datname AS dbname FROM pg_database");
 }
 
 dbi_result_t *dbd_list_tables(dbi_driver_t *driver, const char *db) {

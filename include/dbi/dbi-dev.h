@@ -96,7 +96,7 @@ typedef struct dbi_option_s {
 } dbi_option_t;
 
 typedef struct dbi_functions_s {
-	void (*register_plugin)(const dbi_info_t *, const char ***, const char ***);
+	void (*register_plugin)(const dbi_info_t **, const char ***, const char ***);
 	int (*initialize)(dbi_plugin_t_pointer);
 	int (*connect)(dbi_driver_t_pointer);
 	int (*disconnect)(dbi_driver_t_pointer);

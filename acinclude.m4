@@ -36,22 +36,17 @@ AC_ARG_WITH(mysql,
 	[  --with-mysql		  Include MySQL support.],
 	[  ac_mysql="YES" ])
 AC_ARG_WITH(mysql-dir,
-	[  --with-mysql-dir			Specifies the MySQL root directory.],
+	[  --with-mysql-dir	  Specifies the MySQL root directory.],
 	[  ac_mysql_incdir="$withval"/include
 	   ac_mysql_libdir="$withval"/lib ])
 AC_ARG_WITH(mysql-incdir,
-	[  --with-mysql-incdir		Specifies where the MySQL include files are.],
+	[  --with-mysql-incdir	  Specifies where the MySQL include files are.],
 	[  ac_mysql_incdir="$withval" ])
 AC_ARG_WITH(mysql-libdir,
-	[  --with-mysql-libdir		Specifies where the MySQL libraries are.],
+	[  --with-mysql-libdir	  Specifies where the MySQL libraries are.],
 	[  ac_mysql_libdir="$withval" ])
 
 if test "$ac_mysql" = "YES"; then
-	# check if we have all the libraries needed by MySQL
-	AC_SEARCH_LIBS(yp_bind, "nsl")
-	AC_SEARCH_LIBS(crypt, "crypt")
-	AC_SEARCH_LIBS(socket, "socket")
-
 	if test "$ac_mysql_incdir" = "NO" || test "$ac_mysql_libs" = "NO"; then
 		mysql_incdirs="/usr/include /usr/local/include /usr/include/mysql /usr/local/include/mysql /usr/local/mysql/include /usr/local/mysql/include/mysql"
 		AC_FIND_FILE(mysql.h, $mysql_incdirs, ac_mysql_incdir)
@@ -68,11 +63,11 @@ if test "$ac_mysql" = "YES"; then
 		fi
 	fi
 	AC_MSG_RESULT([yes: libs in $ac_mysql_libdir, headers in $ac_mysql_incdir])
-	AM_CONDITIONAL(HAVE_MYSQL, 1)
+	AM_CONDITIONAL(HAVE_MYSQL, test 1)
 	
 	MYSQL_LIBS=-lmysqlclient
-	MYSQL_INCLUDE=-I$mysql_incdir
-	MYSQL_LFLAGS=-L$mysql_libdir
+	MYSQL_INCLUDE=-I$ac_mysql_incdir
+	MYSQL_LFLAGS=-L$ac_mysql_libdir
 	
 	AC_SUBST(MYSQL_LIBS)
 	AC_SUBST(MYSQL_INCLUDE)
@@ -98,17 +93,17 @@ PGSQL_INCLUDE=""
 AC_MSG_CHECKING(for PostgreSQL support)
 
 AC_ARG_WITH(pgsql,
-	[  --with-pgsql			Include PostgreSQL support.],
+	[  --with-pgsql		  Include PostgreSQL support.],
 	[  ac_pgsql="YES" ])
 AC_ARG_WITH(pgsql-dir,
-	[  --with-pgsql-dir		Specifies the PostgreSQL root directory.],
+	[  --with-pgsql-dir	  Specifies the PostgreSQL root directory.],
 	[  ac_pgsql_incdir="$withval"/include
 	   ac_pgsql_libdir="$withval"/lib ])
 AC_ARG_WITH(pgsql-incdir,
-	[  --with-pgsql-incdir		Specifies where the PostgreSQL include files are.],
+	[  --with-pgsql-incdir	  Specifies where the PostgreSQL include files are.],
 	[  ac_pgsql_incdir="$withval" ])
 AC_ARG_WITH(pgsql-libdir,
-	[  --with-pgsql-libdir		Specifies where the PostgreSQL libraries are.],
+	[  --with-pgsql-libdir	  Specifies where the PostgreSQL libraries are.],
 	[  ac_pgsql_libdir="$withval" ])
 
 if test "$ac_pgsql" = "YES"; then
@@ -128,7 +123,7 @@ if test "$ac_pgsql" = "YES"; then
 		fi
 	fi
 	AC_MSG_RESULT([yes: libs in $ac_pgsql_libdir, headers in $ac_pgsql_incdir])
-	AM_CONDITIONAL(HAVE_PGSQL, 1)
+	AM_CONDITIONAL(HAVE_PGSQL, test 1)
 	
 	PGSQL_LIBS=-lpq
 	PGSQL_INCLUDE=-I$ac_pgsql_incdir
