@@ -221,23 +221,20 @@ unsigned short _map_type_attributes( enum enum_field_types mytype )
 void _map_memory(dbi_row_t *row, const char *raw, const long len, int idx)
 {
 	if(row->field_types[idx] == DBI_TYPE_INTEGER){
-		if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE4){
+		if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE2)
+			row->field_values[idx] = malloc(sizeof(char));
+		else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE3)
 			row->field_values[idx] = malloc(sizeof(short));
-			if(row->field_type_attributes[idx] & DBI_INTEGER_UNSIGNED)
-				*((unsigned short*)row->field_values[idx]) = (unsigned short) atoi(raw);
-			else
-				*((short*)row->field_values[idx]) = (short) atoi(raw);
-		} else {
+		else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE4)
 			row->field_values[idx] = malloc(sizeof(long));
-			*((long*)row->field_values[idx]) = (long) atol(raw);
-		}
+		else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE8)
+			row->field_values[idx] = malloc(sizeof(long long));
 	}else if(row->field_types[idx] == DBI_TYPE_DECIMAL){
+
 		if(row->field_type_attributes[idx] & DBI_DECIMAL_SIZE4){	
 			row->field_values[idx] = malloc(sizeof(float));
-			*((float*)row->field_values[idx]) = atof(raw);
 		}else{
 			row->field_values[idx] = malloc(sizeof(double));
-			*((double*)row->field_values[idx]) = atof(raw);
 		}
 		
 	} else if(row->field_types[idx] == DBI_TYPE_STRING){
@@ -248,12 +245,9 @@ void _map_memory(dbi_row_t *row, const char *raw, const long len, int idx)
 			
 			*((void**)row->field_values[idx]) = malloc(sizeof(char) * len);
 			
-			memcpy( *( (void**) row->field_values[idx] ), (void*)raw, len);
-			row->field_type_attributes[idx] = len;
 		} else {
 			row->field_values[idx] = malloc(sizeof(char*));
 			*((char**)row->field_values[idx]) = malloc(sizeof(char) *(len+1));
-			strcpy(*((char**)row->field_values[idx]), raw);
 		}
 	}
 }
@@ -262,21 +256,41 @@ void _map_memory(dbi_row_t *row, const char *raw, const long len, int idx)
 /* _MAP_VALUE                                                                */
 /*****************************************************************************/
 /*
- * Precondtion: str2 != NULL
- * Postcondition: str1 is freed if not null
+ * Precondtion: row != NULL, idx is legal index of row->field_*, row->
+ * 		field_values[idx] has been correctly allocated
+ * Postcondition: sets
  * Returns: A newly allocated copy of str2
  */
+
 void _map_value(dbi_row_t *row, const char *raw, const long len, int idx)
 {
 	if(row->field_types[idx] == DBI_TYPE_INTEGER){
-		if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE4){
+		if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE2){
 			if(row->field_type_attributes[idx] & DBI_INTEGER_UNSIGNED)
-				*((unsigned short*)row->field_values[idx]) = (unsigned short) atoi(raw);
+				*((unsigned char*)row->field_values[idx]) = (unsigned char) atoi(raw);
 			else
+				*((char*)row->field_values[idx]) = (char) atoi(raw);
+
+		}else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE3){
+			if(row->field_type_attributes[idx] & DBI_INTEGER_UNSIGNED){
+				*((unsigned short*)row->field_values[idx]) = (unsigned short) atoi(raw);
+			}else
 				*((short*)row->field_values[idx]) = (short) atoi(raw);
-		} else {
-			*((long*)row->field_values[idx]) = (long) atol(raw);
+			
+		}else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE4){
+			if(row->field_type_attributes[idx] & DBI_INTEGER_UNSIGNED)
+				*((unsigned long*)row->field_values[idx]) = (unsigned long) atoi(raw);
+			else
+				*((long*)row->field_values[idx]) = (long) atoi(raw);
+			
+		}else if(row->field_type_attributes[idx] & DBI_INTEGER_SIZE8){
+			if(row->field_type_attributes[idx] & DBI_INTEGER_UNSIGNED)
+				*((unsigned long long*)row->field_values[idx]) = (unsigned long long) atoll(raw);
+			else
+				*((long long*)row->field_values[idx]) = (long long) atoll(raw);
+
 		}
+
 	}else if(row->field_types[idx] == DBI_TYPE_DECIMAL){
 		if(row->field_type_attributes[idx] & DBI_DECIMAL_SIZE4){	
 			*((float*)row->field_values[idx]) = atof(raw);
@@ -604,12 +618,10 @@ int dbd_fetch_row( dbi_result_t *result )
 		if(len[i] != 0 && *myrow != NULL)
 			memcpy((void*)string, *(myrow)[i], len[i]);
 
-		fprintf(stderr, "Debugging Statement (sorry): String Value [%s]\n",
-				string);
-
 		row->field_types[i] = _map_type(myfield[i].type);
 		row->field_type_attributes[i] = _map_type_attributes(myfield[i].type);
 		_map_memory(row, string, len[i], i);
+		_map_value(row, string, len[i], i);
 		
 		free(string);
 		string = NULL;
