@@ -1,3 +1,92 @@
+libdbi (0.7.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Parker <david@neongoat.com>  Tue, 20 Jan 2004 13:27:51 -0800
+
+libdbi (0.7.1-1) unstable; urgency=low
+
+  * New upstream release (closes: #210747)
+  * Drivers are now split off from the libdbi core project into the
+    libdbi-drivers project.
+  * Bumped up Standards-Version
+
+ -- David Parker <david@neongoat.com>  Tue, 23 Dec 2003 13:09:48 -0800
+
+libdbi (0.6.7-5) unstable; urgency=low
+
+  * We now explicitly Build-Depend on libmysqlclient10-dev, since the company
+    decided to drop the LGPL licensing and instead impose the GPL on users of
+    their client library. sigh.
+  * Made configure.in temporarily use AM_MAINTAINER_MODE until this is added
+    in the next upstream release. (closes: #186975)
+  * Changed libdbi0-dev section to libdevel.
+
+ -- David Parker <david@neongoat.com>  Mon, 14 Apr 2003 21:45:27 -0700
+
+libdbi (0.6.7-4) unstable; urgency=low
+
+  * Updated build system with newer libtool, allowing us to compile on mips
+    (closes: #181842)
+  * Bumped up Standards-Version.
+
+ -- David Parker <david@neongoat.com>  Wed, 26 Mar 2003 15:22:09 -0800
+
+libdbi (0.6.7-3) unstable; urgency=low
+
+  * Fixed libdbd-pgsql dependencies for new PostgreSQL 7.3 packages.
+
+ -- David Parker <david@neongoat.com>  Sun, 19 Jan 2003 19:11:41 -0800
+
+libdbi (0.6.7-2) unstable; urgency=low
+
+  * Bumped up Standards-Version.
+
+ -- David Parker <david@neongoat.com>  Tue, 17 Dec 2002 17:44:32 -0800
+
+libdbi (0.6.7-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- David Parker <david@neongoat.com>  Tue,  3 Dec 2002 10:08:18 -0800
+
+libdbi (0.6.5-4) unstable; urgency=low
+
+  * Bumped up Standards-Version.
+  * Close ITP (closes: #163467)
+  * Added Section to Source paragraph
+  * Got rid of templateisms in copyright and rules
+
+ -- David Parker <david@neongoat.com>  Sat,  5 Oct 2002 16:38:13 -0700
+
+libdbi (0.6.5-3) unstable; urgency=low
+
+  * Changed Standards-Version.
+  * More libdbi-dev to libdbi0-dev references.
+  * Fixed Build-Depends.
+
+ -- David Parker <david@neongoat.com>  Tue, 30 Jul 2002 11:31:11 -0700
+
+libdbi (0.6.5-2) unstable; urgency=low
+
+  * Changed libdbi-dev to libdbi0-dev
+  * Removed libdbi0's postrm and postinst since ldconfig is auto-added.
+  * Updated Standards-Version.
+
+ -- David Parker <david@neongoat.com>  Mon, 29 Jul 2002 23:21:43 -0700
+
+libdbi (0.6.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- David Parker <david@neongoat.com>  Fri, 14 Jun 2002 17:02:25 -0700
+
+libdbi (0.6.4-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- David Parker <david@neongoat.com>  Sat, 11 May 2002 15:30:50 -0700
+
 libdbi (0.6.5-3) unstable; urgency=low
 
   * Changed Standards-Version.
