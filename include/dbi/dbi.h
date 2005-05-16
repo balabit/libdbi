@@ -148,6 +148,8 @@ int dbi_conn_select_db(dbi_conn Conn, const char *db);
 unsigned long long dbi_conn_sequence_last(dbi_conn Conn, const char *name); /* name of the sequence or table */
 unsigned long long dbi_conn_sequence_next(dbi_conn Conn, const char *name);
 int dbi_conn_ping(dbi_conn Conn);
+int dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newstr);
+int dbi_conn_quote_string(dbi_conn Conn, char **orig);
 
 dbi_conn dbi_result_get_conn(dbi_result Result);
 int dbi_result_free(dbi_result Result);
