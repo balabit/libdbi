@@ -454,6 +454,7 @@ void dbi_conn_close(dbi_conn Conn) {
 	free(conn->results);
 
 	free(conn);
+
 }
 
 dbi_driver dbi_conn_get_driver(dbi_conn Conn) {
@@ -528,6 +529,47 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) {
 	}
 	
 	return len;
+}
+
+int dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newquoted) {
+	dbi_conn_t *conn = Conn;
+	char *newstr;
+	int newlen;
+	
+	if (!Conn || !orig || !newquoted) return -1;
+
+	newstr = malloc((strlen(orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
+
+	if (!newstr) {
+		return -1;
+	}
+	
+	newlen = conn->driver->functions->conn_quote_string(conn, orig, newstr);
+	if (newlen < 0) {
+		free(newstr);
+		return -1;
+	}
+
+	*newquoted = newstr;
+
+	return newlen;
+}
+
+int dbi_conn_quote_string(dbi_conn Conn, char **orig) {
+	char *temp = NULL;
+	char *newstr = NULL;
+	int newlen;
+
+	if (!orig || !*orig) {
+		return -1;
+	}
+	
+	newlen = dbi_conn_quote_string_copy(Conn, *orig, &newstr);
+	temp = *orig;
+	*orig = newstr;
+	free(temp); /* original unescaped string */
+
+	return newlen;
 }
 
 /* DRIVER: option manipulation */
@@ -912,6 +954,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||
 			((driver->functions->query_null = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query_null")) == NULL) ||
 			((driver->functions->quote_string = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_string")) == NULL) ||
+			((driver->functions->conn_quote_string = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_conn_quote_string")) == NULL) ||
 			((driver->functions->select_db = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_select_db")) == NULL) ||
 			((driver->functions->geterror = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_geterror")) == NULL) ||
 			((driver->functions->get_seq_last = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_seq_last")) == NULL) ||
