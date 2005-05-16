@@ -48,6 +48,7 @@ int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
 unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence);
 unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence);
 int dbd_ping(dbi_conn_t *conn);
+const char *dbd_get_encoding(dbi_conn_t *conn);
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected);
