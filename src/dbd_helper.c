@@ -87,7 +87,7 @@ void _dbd_result_set_numfields(dbi_result_t *result, unsigned short numfields) {
 	result->numfields = numfields;
 	result->field_names = calloc(numfields, sizeof(char *));
 	result->field_types = calloc(numfields, sizeof(unsigned short));
-	result->field_attribs = calloc(numfields, sizeof(unsigned int));
+	result->field_attribs = calloc(numfields, sizeof(unsigned int *));
 }
 
 void _dbd_result_add_field(dbi_result_t *result, unsigned short idx, char *name, unsigned short type, unsigned int attribs) {
@@ -165,7 +165,7 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned lon
 	result->numfields = numfields;
 	result->field_names = NULL;
 	result->field_types = calloc(numfields, sizeof(unsigned short));
-	result->field_attribs = calloc(numfields, sizeof(unsigned int));
+	result->field_attribs = calloc(numfields, sizeof(unsigned int *));
 	result->result_state = (numrows_matched > 0) ? ROWS_RETURNED : NOTHING_RETURNED;
 	result->rows = calloc(numrows_matched+1, sizeof(dbi_row_t *));
 	result->currowidx = 0;
