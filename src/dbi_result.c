@@ -517,6 +517,7 @@ static void _free_result_rows(dbi_result_t *result) {
 		
 		free(result->rows[rowidx]->field_values);
 		free(result->rows[rowidx]->field_sizes);
+		free(result->rows[rowidx]->field_flags);
 		free(result->rows[rowidx]);
 	}
 	
