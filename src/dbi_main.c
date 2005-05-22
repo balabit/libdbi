@@ -375,6 +375,27 @@ int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
 	return newlen;
 }
 
+const char* dbi_driver_encoding_from_iana(dbi_driver Driver, const char* iana_encoding) {
+  dbi_driver_t *driver = Driver;
+	
+  if (!driver) {
+    return NULL;
+  }
+
+  return driver->functions->encoding_from_iana(iana_encoding);
+}
+
+const char* dbi_driver_encoding_to_iana(dbi_driver Driver, const char* db_encoding) {
+  dbi_driver_t *driver = Driver;
+	
+  if (!driver) {
+    return NULL;
+  }
+
+  return driver->functions->encoding_to_iana(db_encoding);
+}
+
+
 /* XXX DRIVER FUNCTIONS XXX */
 
 dbi_conn dbi_conn_new(const char *name) {
@@ -949,6 +970,8 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->goto_row = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_goto_row")) == NULL) ||
 			((driver->functions->get_socket = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_socket")) == NULL) ||
 			((driver->functions->get_encoding = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_encoding")) == NULL) ||
+			((driver->functions->encoding_from_iana = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_encoding_from_iana")) == NULL) ||
+			((driver->functions->encoding_to_iana = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_encoding_to_iana")) == NULL) ||
 			((driver->functions->list_dbs = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) ||
 			((driver->functions->list_tables = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) ||
 			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||

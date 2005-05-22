@@ -105,6 +105,8 @@ int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
 void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
 int dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
 int dbi_driver_quote_string(dbi_driver Driver, char **orig);
+const char* dbi_driver_encoding_from_iana(dbi_driver Driver, const char* iana_encoding);
+const char* dbi_driver_encoding_to_iana(dbi_driver Driver, const char* db_encoding);
 int dbi_driver_cap_get(dbi_driver Driver, const char *capname);
 
 const char *dbi_driver_get_name(dbi_driver Driver);
