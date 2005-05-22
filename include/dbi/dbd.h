@@ -43,12 +43,15 @@ dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *patt
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
 dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length);
 int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
+const char* dbd_encoding_from_iana(const char *iana_encoding);
+const char* dbd_encoding_to_iana(const char *iana_encoding);
 char *dbd_select_db(dbi_conn_t *conn, const char *db);
 int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
 unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence);
 unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence);
 int dbd_ping(dbi_conn_t *conn);
 const char *dbd_get_encoding(dbi_conn_t *conn);
+int dbd_conn_quote_string(dbi_conn_t *conn, const char *orig, char *dest);
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected);
