@@ -1,0 +1,2718 @@
+<!--
+vim:ft=sgml
+$Id$
+Copyright (C) 2001-2005, David Parker, Neon Goat Productions.
+This document is licensed under the GNU Free Documentation License, version 1.1 or later, as
+published by the Free Software Foundation.
+-->
+  <Chapter id="reference"><Title>libdbi API Reference</Title>
+    <Section id="reference-core"><Title>Core Library Functions</Title>
+      <Section id="dbi-initialize" XRefLabel="dbi_initialize"><Title>dbi_initialize</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbi_initialize</function></funcdef>
+	    <paramdef>const char *<parameter moreinfo="none">driverdir</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Locates all available database drivers and loads them into memory.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>driverdir</Literal>: The directory to search for drivers. If NULL, DBI_DRIVER_DIR (defined at compile time) will be used instead.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of drivers successfully loaded, or -1 if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-shutdown" XRefLabel="dbi_shutdown"><Title>dbi_shutdown</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>dbi_shutdown</function></funcdef>
+	    <void>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Frees all loaded drivers and terminates the DBI system. You should close each connection you opened before shutting down, but libdbi will clean up after you if you don't.</Para>
+      </Section>
+      <Section id="dbi-version" XRefLabel="dbi_version"><Title>dbi_version</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_version</function></funcdef>
+	    <void>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Requests the version of libdbi as a read-only string. The calling program must not attempt to free the returned string.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A string containing the library's name and version.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </Section>
+    <Section id="reference-driver"><Title>Driver Infrastructure</Title>
+      <Section id="dbi-driver-list" XRefLabel="dbi_driver_list"><Title>dbi_driver_list</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_driver <function>dbi_driver_list</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Current</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Enumerates all loaded drivers. If Current is NULL, the first available driver will be returned. If Current is a valid driver, the next available driver will be returned.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Current</Literal>: The current driver in the list of drivers.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The next available driver, or NULL if there is an error or no more are available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-open" XRefLabel="dbi_driver_open"><Title>dbi_driver_open</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_driver <function>dbi_driver_open</function></funcdef>
+	    <paramdef>const char *<parameter>name</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Locate the driver with the specified name.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>name</Literal>: The name of the driver to open.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The requested driver, or NULL if there is an error or it is not found.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-is-reserved-word" XRefLabel="dbi_driver_is_reserved_word"><Title>dbi_driver_is_reserved_word</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_driver_is_reserved_word</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    <paramdef>const char *<parameter>word</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Looks for the specified word in the list of reserved words. The result of this function may vary between databases. Case does not matter.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	      <Para><Literal>word</Literal>: The word to check against the reserved word list.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 if an error occurs, 0 if the word is not reserved, 1 otherwise.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-specific-function" XRefLabel="dbi_driver_specific_function"><Title>dbi_driver_specific_function</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void *<function>dbi_driver_specific_function</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    <paramdef>const char *<parameter>name</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns a function pointer to the specifed custom function. This can be used to access database-specific functionality, but it will restrict your code to one particular database, lessening the benefits of using libdbi.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	      <Para><Literal>name</Literal>: The name of the custom function.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>If the custom function is found, a pointer to that function. If not, returns NULL.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-quote-string" XRefLabel="dbi_driver_quote_string"><Title>dbi_driver_quote_string</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_driver_quote_string</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    <paramdef><parameter>char **orig</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own).</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-conn-quote-string"> instead.</para>
+	</note>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	      <Para><Literal>orig</Literal>: A pointer to the string to quote and escape.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The new string's length.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-quote-string-copy" XRefLabel="dbi_driver_quote_string_copy"><Title>dbi_driver_quote_string_copy</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_driver_quote_string_copy</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    <paramdef>char **<parameter>orig</parameter></paramdef>
+	    <paramdef>char **<parameter>newstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own).</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-conn-quote-string-copy"> instead.</para>
+	</note>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	      <Para><Literal>orig</Literal>: A pointer to the string to quote and escape.</Para>
+	      <Para><Literal>newstr</Literal>: After the function returns, this pointer will point to the quoted and escaped string.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The quoted string's length.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="dbi-driver-encoding-from-iana" xreflabel="dbi_driver_encoding_from_iana">
+	<title>dbi_driver_encoding_from_iana</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_driver_encoding_from_iana</function></funcdef>
+	    <paramdef>dbi_driver <parameter moreinfo="none">Driver</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">iana_encoding</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the database engine specific name of the character encoding identified by its name as known to <ulink url="http://www.iana.org">IANA</ulink>. Use this function to pass the database engine specific name to SQL queries .</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Driver</literal>: The target driver.</para>
+	      <para><literal>iana_encoding</literal>: The IANA name of the character encoding.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>A string containing the database engine specific encoding name. If the encoding name cannot be translated, the IANA name is returned without translation.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-driver-encoding-to-iana" xreflabel="dbi_driver_encoding_to_iana">
+	<title>dbi_driver_encoding_to_iana</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_driver_encoding_to_iana</function></funcdef>
+	    <paramdef>dbi_driver <parameter moreinfo="none">Driver</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">db_encoding</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the <ulink url="http://www.iana.org">IANA</ulink> name of the character encoding identified by its database engine specific name. Use this function to convert the database engine specific name returned by SQL queries  to the corresponding common name.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Driver</literal>: The target driver.</para>
+	      <para><literal>db_encoding</literal>: The database engine specific name of the character encoding.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>A string containing the IANA encoding name. If the encoding name cannot be translated, the database engine specific name is returned without translation.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <Section id="reference-driver-info"><Title>Driver Information</Title>
+	<Section id="dbi-driver-get-name" XRefLabel="dbi_driver_get_name"><Title>dbi_driver_get_name</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_name</function></funcdef>
+	      <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the name of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the driver's name.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-filename" XRefLabel="dbi_driver_get_filename"><Title>dbi_driver_get_filename</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_filename</function></funcdef>
+	      <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the filename of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the driver's full path and file name.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-description" XRefLabel="dbi_driver_get_description"><Title>dbi_driver_get_description</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_description</function></funcdef>
+	      <paramdef>dbi_driver Driver</paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests a description of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the driver's description. It will be one or two short sentences with no newlines.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-maintainer" XRefLabel="dbi_driver_get_maintainer"><Title>dbi_driver_get_maintainer</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_maintainer</function></funcdef>
+	      <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the maintainer of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the driver maintainer's full name and email address.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-url" XRefLabel="dbi_driver_get_url"><Title>dbi_driver_get_url</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_url</function></funcdef>
+	      <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the maintainer's URL for the specified driver. This is useful for drivers maintained by a third party. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-version" XRefLabel="dbi_driver_get_version"><Title>dbi_driver_get_version</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_version</function></funcdef>
+	      <paramdef><parameter>dbi_driver Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the version of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the driver's version.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-driver-get-date-compiled" XRefLabel="dbi_driver_get_date_compiled"><Title>dbi_driver_get_date_compiled</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>const char *<function>dbi_driver_get_date_compiled</function></funcdef>
+	      <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Requests the compilation date of the specified driver. The calling program must not attempt to free the returned string.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Driver</Literal>: The target driver.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>A string containing the date the driver was compiled.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+      </Section>
+    </Section>
+    <Section id="reference-conn"><Title>Connection Infrastructure</Title>
+      <Section id="dbi-conn-new" XRefLabel="dbi_conn_new"><Title>dbi_conn_new</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_conn <function>dbi_conn_new</function></funcdef>
+	    <paramdef>const char *<parameter>name</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Creates a connection instance of the driver specified by "name". This is a shortcut for calling dbi_driver_open() and passing the result to dbi_conn_open().</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>name</Literal>: The name of the desired driver.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A connection instance of the specified driver, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-open" XRefLabel="dbi_conn_open"><Title>dbi_conn_open</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_conn <function>dbi_conn_open</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Creates a connection instance of the specified driver. This connection can be used to perform queries and set options.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A connection instance of the specified driver, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-close" XRefLabel="dbi_conn_close"><Title>dbi_conn_close</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>dbi_conn_close</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Disconnects the specified connection connection from the database and cleans up the connection session.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-driver" XRefLabel="dbi_conn_get_driver"><Title>dbi_conn_get_driver</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_driver <function>dbi_conn_get_driver</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the driver type of the specified connection.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The driver type of the target connection.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-set-option" XRefLabel="dbi_conn_set_option"><Title>dbi_conn_set_option</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_set_option</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	    <paramdef>char *<parameter>value</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Sets a specified connection option to a string value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting. Must only contain alphanumerics and the underscore character.</Para>
+	      <Para><Literal>value</Literal>: The string value of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-set-option-numeric" XRefLabel="dbi_conn_set_option_numeric"><Title>dbi_conn_set_option_numeric</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_set_option_numeric</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	    <paramdef>int <parameter>value</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Sets a specified connection option to a numeric value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting. Must only contain alphanumerics and the underscore character.</Para>
+	      <Para><Literal>value</Literal>: The numeric value of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-option" XRefLabel="dbi_conn_get_option"><Title>dbi_conn_get_option</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_conn_get_option</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves the string value of the specified option set for a connection.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A read-only string with the setting, or NULL if it is not available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-option-numeric" XRefLabel="dbi_conn_get_option_numeric"><Title>dbi_conn_get_option_numeric</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_get_option_numeric</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves the integer value of the specified option set for a connection.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The value of the setting, or -1 if it is not available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-option-list" XRefLabel="dbi_conn_get_option_list"><Title>dbi_conn_get_option_list</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_conn_get_option_list</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>current</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Enumerates the list of available options for a connection. If current is NULL, the first available option will be returned. If current is a valid option name, the next available option will be returned.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>current</Literal>: The key name of the target option.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The key name of the next option, or NULL if there was an error or there are no more options.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-clear-option" XRefLabel="dbi_conn_clear_option"><Title>dbi_conn_clear_option</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>dbi_conn_clear_option</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Removes the target option setting from a connection.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-clear-options" XRefLabel="dbi_conn_clear_options"><Title>dbi_conn_clear_options</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>dbi_conn_clear_options</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Removes all option settings from a connection.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-socket" XRefLabel="dbi_conn_get_socket"><Title>dbi_conn_get_socket</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_get_socket</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Obtain the file descriptor number for the backend connection socket.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on failure, the file descriptor number on success</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="dbi-conn-get-encoding" xreflabel="dbi_conn_get_encoding">
+	<title>dbi_conn_get_encoding</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_conn_get_encoding</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the character encoding used by the current connection. This may be different from the encoding <link linkend="dbi-conn-set-option">requested</link> when the connection was opened, most notably if the connection option was set to "auto".</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal>Conn</literal>: The current encoding.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>A string containing the <ulink url="http://www.iana.org">IANA</ulink> name of the connection encoding. If the encoding option was set to "auto", the function returns the encoding the database was created with. In all other cases, the current connection encoding is returned, which may be different from the database encoding.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <Section id="reference-conn-error"><Title>Error Handling</Title>
+	<Section id="dbi-conn-error" XRefLabel="dbi_conn_error"><Title>dbi_conn_error</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>int <function>dbi_conn_error</function></funcdef>
+	      <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	      <paramdef>const char **<parameter>errmsg_dest</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>Returns a formatted message with the error number and description resulting from the previous database operation.</Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Conn</Literal>: The target connection.</Para>
+		<Para><Literal>errmsg_dest</Literal>: The target string pointer, which will point to the error message. If NULL, no error message will be created, but the error number will still be returned. This string is managed by libdbi, so it must not be modified or freed. The pointer to the string is only valid until the next call to this function, so make a copy in time if you need to keep the error message.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	    <VarListEntry>
+	      <term>Returns</term>
+	      <ListItem><Para>The error number of the most recent database operation if it resulted in an error. If not, this will return -1.</Para></ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<Section id="dbi-conn-error-handler" XRefLabel="dbi_conn_error_handler"><Title>dbi_conn_error_handler</Title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>void <function>dbi_conn_error_handler</function></funcdef>
+	      <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	      <paramdef>dbi_conn_error_handler_func <parameter>function</parameter></paramdef>
+	      <paramdef>void *<parameter>user_argument</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <Para>
+	    Registers an error handler callback to be triggered whenever the database encounters an error. The callback function should perform as little work as possible, since the state in which it is called can be uncertain. The actual function declaration must accept two parameters (and return nothing):
+	  </Para>
+	  <ItemizedList>
+	    <ListItem><Para>dbi_conn Conn: the connection object that triggered the error, from which dbi_conn_error() can be called, and</Para></ListItem>
+	    <ListItem><Para>void *user_argument: a pointer to whatever data (if any) was registered along with the handler.</Para></ListItem>
+	  </ItemizedList>
+	  <Para>
+	    To remove the error handler callback, specify NULL as the function and user_argument.
+	  </Para>
+	  <VariableList>
+	    <VarListEntry>
+	      <term>Arguments</term>
+	      <ListItem>
+		<Para><Literal>Conn</Literal>: The target connection.</Para>
+		<Para><Literal>function</Literal>: A pointer to the function to call when the error handler should be triggered.</Para>
+		<Para><Literal>user_argument</Literal>: Any data to pass along to the function when it is triggered. Set to NULL if unused.</Para>
+	      </ListItem>
+	    </VarListEntry>
+	  </VariableList>
+	</Section>
+	<section id="dbi-conn-error-flag" xreflabel="dbi_conn_error_flag">
+	  <title>dbi_conn_error_flag</title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>dbi_error_flag <function>dbi_conn_error_flag</function></funcdef>
+	      <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <para>The libdbi query functions set an error flag in order to distinguish e.g. the return value "0" from a "0" returned due to an error condition. Use this function after each query that may fail to read out the error status.</para>
+	  <variablelist>
+	    <varlistentry>
+	      <term><emphasis>Arguments</emphasis></term>
+	      <listitem>
+		<Para><Literal>Conn</Literal>: The target connection.</Para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><emphasis>Returns</emphasis></term>
+	      <listitem>
+		<para>"0" (zero) means the previous query finished without errors. A value larger than zero means an error occurred.</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
+	</section>
+      </Section>
+    </Section>
+    <Section id="reference-database"><Title>SQL and Database Infrastructure</Title>
+      <Section id="dbi-conn-connect" XRefLabel="dbi_conn_connect"><Title>dbi_conn_connect</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_connect</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric().  See the documentation for each specific database driver for the options it recognizes and requires.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-db-list" XRefLabel="dbi_conn_get_db_list"><Title>dbi_conn_get_db_list</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result <function>dbi_conn_get_db_list</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>pattern</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Queries the list of available databases on the server.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>pattern</Literal>: A string pattern (SQL regular expression) that each name must match, or NULL to show all available databases.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A query result object, which will contain database names in the first field (for use with the by-index field functions).</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-get-table-list" XRefLabel="dbi_conn_get_table_list"><Title>dbi_conn_get_table_list</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result <function>dbi_conn_get_table_list</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	      <paramdef>const char *<parameter>db</parameter></paramdef>
+	      <paramdef>const char *<parameter>pattern</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Queries the list of available tables in a particular database.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>db</Literal>: The target database name.</Para>
+	      <Para><Literal>pattern</Literal>: A string pattern (SQL regular expression) that each name must match, or NULL to show all available tables.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A query result object, which will contain table names in the first field (for use with the by-index field functions).</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-select-db" XRefLabel="dbi_conn_select_db"><Title>dbi_conn_select_db</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_select_db</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">db</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Switches to a different database on the server.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>db</Literal>: The target database name.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </section>
+    <section id="reference-query">
+      <title>Managing Queries and Results</title>
+      <Section id="dbi-conn-query" XRefLabel="dbi_conn_query"><Title>dbi_conn_query</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result <function>dbi_conn_query</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>statement</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Execute the specified SQL query statement.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>statement</Literal>: A string containing the SQL statement.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A query result object, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-queryf" XRefLabel="dbi_conn_queryf"><Title>dbi_conn_queryf</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result <function>dbi_conn_queryf</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>formatstr</parameter></paramdef>
+	    <paramdef><parameter moreinfo="none">...</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Execute the specified SQL query statement.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>formatstr</Literal>: The format string for the SQL statement. It uses the same format as printf().</Para>
+	      <Para><Literal>ARG</Literal>: (...) Any variables that correspond to the printf-like format string.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A query result object, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-query-null" XRefLabel="dbi_conn_query_null"><Title>dbi_conn_query_null</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result <function>dbi_conn_query_null</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	      <paramdef>const unsigned char *<parameter moreinfo="none">statement</parameter></paramdef>
+	      <paramdef>unsigned long <parameter moreinfo="none">st_length</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Execute the specified SQL query statement, which may contain valid NULL characters.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>statement</Literal>: The SQL statement, which may contain binary data.</Para>
+	      <Para><Literal>st_length</Literal>: The number of characters in the non-null-terminated statement string.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A query result object, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="dbi-conn-sequence-last" xreflabel="dbi_conn_sequence_last">
+	<title>dbi_conn_sequence_last</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_conn_sequence_last</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">name</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the row ID generated by the last <command moreinfo="none">INSERT</command> command. The row ID is most commonly generated by an auto-incrementing column in the table. Use the return value to address the dataset that was last inserted.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">name</literal>: The name of the sequence, or NULL if the database engine does not use explicit sequences.</para>
+	      <note>
+		<para>You may have noted that this function does not sufficiently encapsulate the peculiarities of the underlying database engines. You must keep track of sequence names yourself if your target database engine does use sequences.</para>
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>An integer value corresponding to the ID that was created by the last <command moreinfo="none">INSERT</command> command.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-sequence-next" xreflabel="dbi_conn_sequence_next">
+	<title>dbi_conn_sequence_next</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_conn_sequence_next</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">name</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the row ID that would be generated by the next <command moreinfo="none">INSERT</command> command. The row ID is most commonly generated by an auto-incrementing column in the table.</para>
+	<note>
+	  <para>Not all database engines support this feature. Portable code should use <xref linkend="dbi-conn-sequence-last"> instead.</para>
+	</note>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">name</literal>: The name of the sequence, or NULL if the database engine does not use explicit sequences.</para>
+	      <note>
+		<para>You may have noted that this function does not sufficiently encapsulate the peculiarities of the underlying database engines. You must keep track of sequence names yourself if your target database engine does use sequences.</para>
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>An integer value corresponding to the ID that was created by the last <command moreinfo="none">INSERT</command> command, or 0 (zero) if the database engine does not support this feature.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-ping" xreflabel="dbi_conn_ping">
+	<title>dbi_conn_ping</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_ping</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Checks whether the current connection is still alive. Use this function to decide whether you must reconnect before running a query if your program is designed to keep connections open over prolonged periods of time.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>1 if the connection is alive. Otherwise the function returns 0 (zero).</para>
+	      <note>
+		<para>Database drivers may attempt to reconnect automatically if this function is called. If the reconnect is successful, this function will also return 1, as if the connection never had gone down.</para>
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-quote-string" xreflabel="dbi_conn_quote_string">
+	<title>dbi_conn_quote_string</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_quote_string</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>char **<parameter moreinfo="none">orig</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own). This function is preferred over <xref linkend="dbi-driver-quote-string"> because it takes the character encoding of the current connection into consideration when performing the escaping.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-quote-string-copy" xreflabel="dbi_conn_quote_string_copy">
+	<title>dbi_conn_quote_string_copy</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_quote_string_copy</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	      <paramdef>char **<parameter moreinfo="none">orig</parameter></paramdef>
+	      <paramdef>char **<parameter>newstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own). This function is preferred over <xref linkend="dbi-driver-quote-string-copy"> because it takes the character encoding of the current connection into consideration when performing the escaping.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	      <para><literal>newstr</literal>: After the function returns, this pointer will point to the quoted and escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <Section id="dbi-result-get-conn" XRefLabel="dbi_result_get_conn"><Title>dbi_result_get_conn</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_conn <function>dbi_result_get_conn</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the connection belonging to the specified result object.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The connection belonging to the target query result.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-free" XRefLabel="dbi_result_free"><Title>dbi_result_free</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_free</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Frees the result's query, disables all stored field bindings, and releases internally stored variables.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-seek-row" XRefLabel="dbi_result_seek_row"><Title>dbi_result_seek_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_seek_row</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">row</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jump to a specific row in a result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>row</Literal>: The ordinal number of the row to seek to. The first row is at position 1, not zero.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-first-row" XRefLabel="dbi_result_first_row"><Title>dbi_result_first_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_first_row</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jump to the first row in a result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-last-row" XRefLabel="dbi_result_last_row"><Title>dbi_result_last_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_last_row</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jump to the last row in a result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-prev-row" XRefLabel="dbi_result_prev_row"><Title>dbi_result_prev_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_prev_row</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jump to the previous row in a result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-next-row" XRefLabel="dbi_result_next_row"><Title>dbi_result_next_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_next_row</function></funcdef>
+	    <paramdef>dbi_result <parameter>Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jump to the next row in a result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-numrows" XRefLabel="dbi_result_get_numrows"><Title>dbi_result_get_numrows</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_result_get_numrows</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the number of rows in the specified result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of rows in the result set.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-numrows-affected" XRefLabel="dbi_result_get_numrows_affected"><Title>dbi_result_get_numrows_affected</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_result_get_numrows_affected</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the number of rows in the specified result set that were actually modified. Note that not all database servers support this, in which case it will always be zero. See the documentation for each specific driver for details.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of modified rows in the result set.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </Section>
+    <Section id="reference-field-meta">
+      <Title>Retrieving field meta-data</Title>
+      <Section id="dbi-result-get-field-size" XRefLabel="dbi_result_get_field_size"><Title>dbi_result_get_field_size</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_field_size</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the target field.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The size in bytes of the target field data.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-size-idx" XRefLabel="dbi_result_get_field_size_idx"><Title>dbi_result_get_field_size_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_field_size_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The size in bytes of the target field data.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-length" XRefLabel="dbi_result_get_field_length"><Title>dbi_result_get_field_length</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_field_length</function></funcdef>
+	    <paramdef>dbi_result <parameter>Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">const char *fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the target field.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-length-idx" XRefLabel="dbi_result_get_field_length_idx"><Title>dbi_result_get_field_length_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_field_length_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-idx" XRefLabel="dbi_result_get_field_idx"><Title>dbi_result_get_field_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_get_field_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Given a field's name, return that field's numeric index.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the target field.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The index (starting at 1) of the target field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-name" XRefLabel="dbi_result_get_field_name"><Title>dbi_result_get_field_name</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_result_get_field_name</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Given a field's numeric index, return that field's name.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's name.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-numfields" XRefLabel="dbi_result_get_numfields"><Title>dbi_result_get_numfields</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_numfields</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the number of fields in the query result.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of fields in the query result.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-type" XRefLabel="dbi_result_get_field_type"><Title>dbi_result_get_field_type</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned short <function>dbi_result_get_field_type</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The target field's name.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's data type.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-type-idx" XRefLabel="dbi_result_get_field_type_idx"><Title>dbi_result_get_field_type_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned short <function>dbi_result_get_field_type_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type. The constants returned by this function are defined in dbi.h with the prefix "DBI_TYPE_".</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's data type.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-attrib" XRefLabel="dbi_result_get_field_attrib"><Title>dbi_result_get_field_attrib</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_field_attrib</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	      <paramdef>unsigned long <parameter moreinfo="none">attribmin</parameter></paramdef>
+	      <paramdef>unsigned long <parameter moreinfo="none">attribmax</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The target field's name.</Para>
+	      <Para><Literal>attribmin</Literal>: The first attribute value in the range of attributes to extract.</Para>
+	      <Para><Literal>attribmax</Literal>: The last attribute value in the range of attributes to extract. This may be the same as attribmin if you are only trying to extract a single attribute value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-attrib-idx" XRefLabel="dbi_result_get_field_attrib_idx"><Title>dbi_result_get_field_attrib_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_field_attrib_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">attribmin</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">attribmax</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>attribmin</Literal>: The first attribute value in the range of attributes to extract.</Para>
+	      <Para><Literal>attribmax</Literal>: The last attribute value in the range of attributes to extract. This may be the same as attribmin if you are only trying to extract a single attribute value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-attribs" XRefLabel="dbi_result_get_field_attribs"><Title>dbi_result_get_field_attribs</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_field_attribs</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The target field's name.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's attributes.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-attribs-idx" XRefLabel="dbi_result_get_field_attribs_idx"><Title>dbi_result_get_field_attribs_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_field_attribs_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The target field's attributes.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </section>
+    <section id="reference-field">
+      <title>Retrieving Field Data by Name</title>
+      <Section id="dbi-result-get-fields" XRefLabel="dbi_result_get_fields"><Title>dbi_result_get_fields</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_get_fields</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">format</parameter></paramdef>
+	    <paramdef><parameter moreinfo="none">...</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch multiple fields from the current result set, using a printf-like syntax. The formatter string specified field names and types, and each field's associated destination variable is passed as an argument following the format string. Fields in the formatter string are separated by spaces, and follow the format <Literal>"a.%b"</Literal>, where "a" is the name of the field, and "b" is the field type specifier. Make sure you pass the destination variables' memory addresses by prepending the &amp; operator to each variable's name.</Para>
+	<Para><Emphasis>Field type specifiers:</Emphasis></Para>
+	<ItemizedList>
+	  <ListItem><Para><Literal>%c / %uc</Literal>: A signed/unsigned character</Para></ListItem>
+	  <ListItem><Para><Literal>%h / %uh</Literal>: A signed/unsigned short integer</Para></ListItem>
+	  <ListItem><Para><Literal>%l / %ul</Literal>: A signed/unsigned long integer</Para></ListItem>
+	  <ListItem><Para><Literal>%i / %ui</Literal>: A signed/unsigned long integer</Para></ListItem>
+	  <ListItem><Para><Literal>%L / %uL</Literal>: A signed/unsigned long long integer</Para></ListItem>
+	  <ListItem><Para><Literal>%f</Literal>: A floating point number</Para></ListItem>
+	  <ListItem><Para><Literal>%d</Literal>: A double-precision number</Para></ListItem>
+	  <ListItem><Para><Literal>%s</Literal>: A read-only string</Para></ListItem>
+	  <ListItem><Para><Literal>%S</Literal>: A local copy of a string (must be freed by program)</Para></ListItem>
+	  <ListItem><Para><Literal>%b</Literal>: A read-only pointer to binary data</Para></ListItem>
+	  <ListItem><Para><Literal>%B</Literal>: A local copy of binary data (must be freed by program)</Para></ListItem>
+	  <ListItem><Para><Literal>%m</Literal>: A time_t value representing a DATE and/or TIME</Para></ListItem>
+	</ItemizedList>
+	<Para><Emphasis>Example usage</Emphasis>: <Literal>dbi_result_get_fields(result, "idnum.%ul lastname.%s", &amp;id_number, &amp;name)</Literal></Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>format</Literal>: The field format string as described above.</Para>
+	      <Para><Literal>ARG</Literal>: (...) Pointers to the destination variables corresponding with each field in the format string.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of fields fetched, or -1 if there was an error. If an invalid field name was specified it will not cause -1 to be returned, and the other fetched fields will work as usual.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-fields" XRefLabel="dbi_result_bind_fields"><Title>dbi_result_bind_fields</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_fields</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">format</parameter></paramdef>
+	    <paramdef><parameter moreinfo="none">...</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind multiple fields in the current result set, using a printf-like syntax. See <XRef linkend="dbi-result-get-fields"> for a detailed explanation of the syntax.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>format</Literal>: The field format string as described above.</Para>
+	      <Para><Literal>ARG</Literal>: (...) Pointers to the destination variables corresponding with each field in the format string.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of field binding set up, or -1 if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-char" XRefLabel="dbi_result_get_char"><Title>dbi_result_get_char</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>signed <function>char dbi_result_get_char</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a character (a 1-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-uchar" XRefLabel="dbi_result_get_uchar"><Title>dbi_result_get_uchar</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned <function>char dbi_result_get_uchar</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned character (1-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-short" XRefLabel="dbi_result_get_short"><Title>dbi_result_get_short</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>short <function>dbi_result_get_short</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">const char *fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a short integer (2-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ushort" XRefLabel="dbi_result_get_ushort"><Title>dbi_result_get_ushort</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned short <function>dbi_result_get_ushort</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer (2-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-long" XRefLabel="dbi_result_get_long"><Title>dbi_result_get_long</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>long <function>dbi_result_get_long</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a long integer (4-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ulong" XRefLabel="dbi_result_get_ulong"><Title>dbi_result_get_ulong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_ulong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long integer (4-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-longlong" XRefLabel="dbi_result_get_longlong"><Title>dbi_result_get_longlong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>long long <function>dbi_result_get_longlong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a long long integer (8-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ulonglong" XRefLabel="dbi_result_get_ulonglong"><Title>dbi_result_get_ulonglong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_result_get_ulonglong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer (8-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-float" XRefLabel="dbi_result_get_float"><Title>dbi_result_get_float</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>float <function>dbi_result_get_float</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a floating-point number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-double" XRefLabel="dbi_result_get_double"><Title>dbi_result_get_double</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>double <function>dbi_result_get_double</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a double-precision fractional number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-string" XRefLabel="dbi_result_get_string"><Title>dbi_result_get_string</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_result_get_string</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary" XRefLabel="dbi_result_get_binary"><Title>dbi_result_get_binary</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const unsigned char *<function>dbi_result_get_binary</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-string-copy" XRefLabel="dbi_result_get_string_copy"><Title>dbi_result_get_string_copy</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>char *<function>dbi_result_get_string_copy</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary-copy" XRefLabel="dbi_result_get_binary_copy"><Title>dbi_result_get_binary_copy</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned char *<function>dbi_result_get_binary_copy</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+
+
+      <Section id="dbi-result-get-datetime" XRefLabel="dbi_result_get_datetime"><Title>dbi_result_get_datetime</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>time_t <function>dbi_result_get_datetime</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the specified field, which contains a DATE and/or TIME value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-char" XRefLabel="dbi_result_bind_char"><Title>dbi_result_bind_char</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_char</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a character (1-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-uchar" XRefLabel="dbi_result_bind_uchar"><Title>dbi_result_bind_uchar</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_uchar</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>unsigned char *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned character.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-short" XRefLabel="dbi_result_bind_short"><Title>dbi_result_bind_short</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_short</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>short *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a short integer (2-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-ushort" XRefLabel="dbi_result_bind_ushort"><Title>dbi_result_bind_ushort</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_ushort</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	      <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	      <paramdef>unsigned short *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned short integer (2-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-long" XRefLabel="dbi_result_bind_long"><Title>dbi_result_bind_long</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_long</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a long integer (4-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-ulong" XRefLabel="dbi_result_bind_ulong"><Title>dbi_result_bind_ulong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_ulong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	     <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	      <paramdef>unsigned long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned long integer (4-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-longlong" XRefLabel="dbi_result_bind_longlong"><Title>dbi_result_bind_longlong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_longlong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>long long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a long long integer (8-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-ulonglong" XRefLabel="dbi_result_bind_ulonglong"><Title>dbi_result_bind_ulonglong</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_ulonglong</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>unsigned long long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned long long integer (8-byte integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-float" XRefLabel="dbi_result_bind_float"><Title>dbi_result_bind_float</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_float</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>float *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a floating-point number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-double" XRefLabel="dbi_result_bind_double"><Title>dbi_result_bind_double</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_double</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>double *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a double-precision fractional number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-string" XRefLabel="dbi_result_bind_string"><Title>dbi_result_bind_string</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_string</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>const char **<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a string. The string must not be modified.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-binary" XRefLabel="dbi_result_bind_binary"><Title>dbi_result_bind_binary</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_binary</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>const unsigned char **<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds binary BLOB data. The data must not be modified.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-string-copy" XRefLabel="dbi_result_bind_string_copy"><Title>dbi_result_bind_string_copy</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_string_copy</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>char **<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-binary-copy" XRefLabel="dbi_result_bind_binary_copy"><Title>dbi_result_bind_binary_copy</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_binary_copy</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>unsigned char **<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds binary BLOB data. The newly allocated data may be modified by the host program, but the program is responsible for freeing the data.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+
+
+      <Section id="dbi-result-bind-datetime" XRefLabel="dbi_result_bind_datetime"><Title>dbi_result_bind_datetime</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_datetime</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>time_t *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds a DATE and/or TIME value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </section>
+    <section id="reference-field-idx">
+      <title>Retrieving Field Data by Index</title>
+      <Section id="dbi-result-get-char-idx" XRefLabel="dbi_result_get_char_idx"><Title>dbi_result_get_char_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>signed char <function>dbi_result_get_char_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a character.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-uchar-idx" XRefLabel="dbi_result_get_uchar_idx"><Title>dbi_result_get_uchar_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned char <function>dbi_result_get_uchar_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned character.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-short-idx" XRefLabel="dbi_result_get_short_idx"><Title>dbi_result_get_short_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>short <function>dbi_result_get_short_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a short integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ushort-idx" XRefLabel="dbi_result_get_ushort_idx"><Title>dbi_result_get_ushort_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned short <function>dbi_result_get_ushort_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-long-idx" XRefLabel="dbi_result_get_long_idx"><Title>dbi_result_get_long_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>long <function>dbi_result_get_long_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a long integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ulong-idx" XRefLabel="dbi_result_get_ulong_idx"><Title>dbi_result_get_ulong_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long <function>dbi_result_get_ulong_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-longlong-idx" XRefLabel="dbi_result_get_longlong_idx"><Title>dbi_result_get_longlong_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>long long <function>dbi_result_get_longlong_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a long long integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-ulonglong-idx" XRefLabel="dbi_result_get_ulonglong_idx"><Title>dbi_result_get_ulonglong_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_result_get_ulonglong_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-float-idx" XRefLabel="dbi_result_get_float_idx"><Title>dbi_result_get_float_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>float <function>dbi_result_get_float_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a floating-point number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-double-idx" XRefLabel="dbi_result_get_double_idx"><Title>dbi_result_get_double_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>double <function>dbi_result_get_double_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a double-precision fractional number.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-string-idx" XRefLabel="dbi_result_get_string_idx"><Title>dbi_result_get_string_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_result_get_string_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary-idx" XRefLabel="dbi_result_get_binary_idx"><Title>dbi_result_get_binary_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const unsigned char *<function>dbi_result_get_binary_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-string-copy-idx" XRefLabel="dbi_result_get_string_copy_idx"><Title>dbi_result_get_string_copy_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>char *<function>dbi_result_get_string_copy_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary-copy-idx" XRefLabel="dbi_result_get_binary_copy_idx"><Title>dbi_result_get_binary_copy_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned char *<function>dbi_result_get_binary_copy_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+
+
+      <Section id="dbi-result-get-datetime-idx" XRefLabel="dbi_result_get_datetime_idx"><Title>dbi_result_get_datetime_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>time_t <function>dbi_result_get_datetime_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the specified field, which contains a DATE and/or TIME value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </Section>
+  </Chapter>
+
+<!--
+Local Variables:
+sgml-parent-document: ("programmers-guide.sgml" "BOOK")
+End:
+-->
