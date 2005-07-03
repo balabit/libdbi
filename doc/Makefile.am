@@ -8,16 +8,18 @@ doc_DATA = programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-gui
 
 EXTRA_DIST = $(doc_DATA)
 
+programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-program.sgml libdbi-quickstart.sgml
+
 # jadetex spews out tons of useless crap. shut it up:
-programmers-guide.pdf:
-	@echo "Auto-generating Programmer's Guide reference SGML...";
-	./include/markup_to_docbook.pl libdbi-reference.tmpl api-documentation.src
+programmers-guide.pdf: $(programmers_sources)
+#	@echo "Auto-generating Programmer's Guide reference SGML...";
+#	./include/markup_to_docbook.pl libdbi-reference.tmpl api-documentation.src
 	@echo "Converting programmers-guide.sgml to PostScript...";
 	sgmltools -b ps -s include/doc-print.dsl programmers-guide.sgml > /dev/null 2>&1
 	@echo "Converting programmers-guide.ps to PDF...";
 	ps2pdf programmers-guide.ps
 
-programmers-guide/*:
+programmers-guide/*: $(programmers_sources)
 	@echo "Converting programmers-guide.sgml to HTML...";
 	sgmltools -b html -s include/doc-html.dsl programmers-guide.sgml
 
