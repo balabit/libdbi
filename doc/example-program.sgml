@@ -1,4 +1,6 @@
-<ProgramListing>
+  <Section id="quickstart-code">
+    <Title>Generic Example Program</Title>
+    <ProgramListing>
 <![CDATA[
 #include <stdio.h>
 #include <dbi/dbi.h>
@@ -18,9 +20,10 @@ int main() {
     dbi_conn_set_option(conn, "username", "chug");
     dbi_conn_set_option(conn, "password", "dIP!");
     dbi_conn_set_option(conn, "dbname", "db_name");
+    dbi_conn_set_option(conn, "encoding", "UTF-8");
 
     dbi_conn_connect(conn);
-    result = dbi_conn_query(conn, "SELECT id, name FROM coders "
+    result = dbi_conn_queryf(conn, "SELECT id, name FROM coders "
                                   "WHERE hours_of_sleep > %0.2f", threshold);
     
     while (dbi_result_next_row(result)) {
@@ -45,3 +48,10 @@ int main() {
 	omits error-checking for the sake of clarity. There are also other ways to
 	retrieve data after a successful query. Keep reading on to see the rest.
 </Para>
+    </Section>
+
+<!--
+Local Variables:
+sgml-parent-document: ("programmers-guide.sgml" "BOOK" "CHAPTER")
+End:
+-->

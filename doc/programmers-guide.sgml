@@ -1,4 +1,4 @@
-<!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+<!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
 
 <!ENTITY libdbi-reference SYSTEM "libdbi-reference.sgml">
 <!ENTITY libdbi-quickstart SYSTEM "libdbi-quickstart.sgml">
@@ -10,117 +10,123 @@
 
 <Book id="programmers-guide">
 
-<BookInfo>
-	<Title>Database Independent Abstraction Layer for C</Title>
-	<SubTitle>libdbi Programmer's Guide (OUTDATED SEE README!)</SubTitle>
-	<Author>
-		<Firstname>David</Firstname>
-		<Othername>A.</Othername>
-		<Surname>Parker</Surname>
-		<Affiliation>
-			<OrgName>Neon Goat Productions</OrgName>
-			<Address><EMail>david@neongoat.com</EMail></Address>
-		</Affiliation>
-	</Author>
-	<Edition>Document revision: $Id$</Edition>
-	<PubDate>$Date$</PubDate>
-	<Copyright>
-		<Year>2001-2002</Year>
-		<Holder>David Parker, Neon Goat Productions</Holder>
-	</Copyright>
-	<LegalNotice>
-		<Para>
-			Permission is granted to copy, distribute and/or modify this
-			document under the terms of the <Link linkend="copying-FDL">
-			<CiteTitle>GNU Free Documentation License</CiteTitle></Link>,
-			Version 1.1 or any later version published by the Free Software
-			Foundation; with no Invariant Sections, with no	Front-Cover Texts,
-			and with no Back-Cover Texts.  A copy of the license is included in
-			<XRef linkend="copying-FDL">.
-		</Para>
-	</LegalNotice>
-	<Abstract>
-	<Para>
-		libdbi implements a database-independent abstraction layer in C,
-		similar to the DBI/DBD layer in Perl. Writing one generic set of code,
-		programmers can leverage the power of multiple databases and multiple
-		simultaneous database connections by using this framework.
-	</Para>
-	</Abstract>
-</BookInfo>
+  <BookInfo>
+    <Title>Database Independent Abstraction Layer for C</Title>
+    <SubTitle>libdbi Programmer's Guide</SubTitle>
+    <Author>
+      <Firstname>David</Firstname>
+      <Othername>A.</Othername>
+      <Surname>Parker</Surname>
+      <Affiliation>
+	<OrgName>Neon Goat Productions</OrgName>
+	<Address><EMail>david@neongoat.com</EMail></Address>
+      </Affiliation>
+    </Author>
+    <author>
+      <firstname>Markus</firstname>
+      <surname>Hoenicka</surname>
+      <affiliation>
+	<address format="linespecific"><email>markus@mhoenicka.de</email></address>
+      </affiliation>
+    </author>
+    <Edition>Document revision: $Id$</Edition>
+    <PubDate>$Date$</PubDate>
+    <Copyright>
+      <Year>2001-2005</Year>
+      <Holder>David Parker, Neon Goat Productions</Holder>
+    </Copyright>
+    <LegalNotice>
+      <Para>
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the <Link linkend="copying-FDL">
+	  <CiteTitle>GNU Free Documentation License</CiteTitle></Link>,
+	Version 1.1 or any later version published by the Free Software
+	Foundation; with no Invariant Sections, with no	Front-Cover Texts,
+	and with no Back-Cover Texts.  A copy of the license is included in
+	<XRef linkend="copying-FDL">.
+      </Para>
+    </LegalNotice>
+    <Abstract>
+      <Para>
+	libdbi implements a database-independent abstraction layer in C,
+	similar to the DBI/DBD layer in Perl. Writing one generic set of code,
+	programmers can leverage the power of multiple databases and multiple
+	simultaneous database connections by using this framework.
+      </Para>
+    </Abstract>
+  </BookInfo>
 
-<Chapter id="intro"><Title>Introduction</Title>
-	<Section id="description"><Title>Description</Title>
-		<Para>
-			libdbi provides application developers with a database independent abstraction
-			layer for C. It handles the database-specific implementations for each type of
-			database, so that you can use the same exact code with any type of database server
-			that libdbi supports. You can initiate and use multiple database connections
-			simultaneously, regardless of the types of database servers you are connecting to.
-			The plugin architecture allows for new database drivers to be easily added
-			dynamically by a third party.
-		</Para>
-	</Section>
-	<Section id="terminology"><Title>libdbi Concepts and Terminology</Title>
-		<Para>
-			In this guide, the terms <Quote>user</Quote> and <Quote>programmer</Quote> are used
-			interchangably, since the target audience is the software developer using libdbi in
-			his program. The libdbi architecture provides serveral <Quote>drivers</Quote>, one
-			for each type of database server. All drivers are loaded into memory upon libdbi
-			initiallization and are made available to the programmer. Once a driver is
-			<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
-			called a <Quote>connection</Quote>. Multiple connections may exist for a single driver, and
-			all will function independently of each other. A star character (*) represents a
-			wildcard matching any letters. For example, <Quote>dbi_conn_*</Quote> would
-			represent all functions beginning with <Quote>dbi_conn_</Quote>.
-		</Para>
-	</Section>
-	<Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
-		<Para>
-			libdbi is Copyright &copy; 2001-2002, David Parker and Mark Tobenkin.
-		</Para>
-		<Para>			
-			libdbi is free software; you can redistribute it and/or
-			modify it under the terms of the GNU Lesser General Public
-			License as published by the Free Software Foundation; either
-			version 2.1 of the License, or (at your option) any later version.
-		</Para>
-		<Para>
-			This library is distributed in the hope that it will be useful,
-			but WITHOUT ANY WARRANTY; without even the implied warranty of
-			MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-			Lesser General Public License for more details.
-		</Para>
-		<Para>
-			You should have received a copy of the GNU Lesser General Public
-			License along with this library; if not, write to the Free Software
-			Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-		</Para>
-	</Section>
-	<Section id="contact"><Title>Contact Info</Title>
-		<Para>
-			Please email us with any bugs, ideas, feature requests, or questions. The libdbi
-			website has the latest version of this documentation and the libdbi software, as
-			well as a central database of third-party drivers.
-		</Para>
-		<ItemizedList>
-			<ListItem><Para>&www;</Para></ListItem>
-			<ListItem><Para>David Parker <EMail>david@neongoat.com</EMail></Para></ListItem>
-			<ListItem><Para>Mark Tobenkin <EMail>mark@brentwoodradio.com</EMail></Para></ListItem>
-		</ItemizedList>
-	</Section>
-</Chapter>
+  <Chapter id="intro"><Title>Introduction</Title>
+    <Section id="description"><Title>Description</Title>
+      <Para>
+	libdbi provides application developers with a database independent abstraction
+	layer for C. It handles the database-specific implementations for each type of
+	database, so that you can use the same exact code with any type of database server
+	that libdbi supports. You can initiate and use multiple database connections
+	simultaneously, regardless of the types of database servers you are connecting to.
+	The driver architecture allows for new database drivers to be easily added
+	dynamically.
+      </Para>
+    </Section>
+    <Section id="terminology"><Title>libdbi Concepts and Terminology</Title>
+      <Para>
+	In this guide, the terms <Quote>user</Quote> and <Quote>programmer</Quote> are used
+	interchangably, since the target audience is the software developer using libdbi in
+	his program. The libdbi architecture provides serveral <Quote>drivers</Quote>, one
+	for each type of database server. All drivers are loaded into memory upon libdbi
+	initiallization and are made available to the programmer. Once a driver is
+	<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
+	called a <Quote>connection</Quote>. Multiple connections may exist for a single driver, and
+	all will function independently of each other. A star character (*) represents a
+	wildcard matching any letters. For example, <Quote>dbi_conn_*</Quote> would
+	represent all functions beginning with <Quote>dbi_conn_</Quote>.
+      </Para>
+    </Section>
+    <Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
+      <Para>
+	libdbi is Copyright &copy; 2001-2005, David Parker and Mark Tobenkin.
+      </Para>
+      <Para>			
+	libdbi is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+      </Para>
+      <Para>
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+      </Para>
+      <Para>
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+      </Para>
+    </Section>
+    <Section id="contact"><Title>Contact Info</Title>
+      <Para>
+	Please email us with any bugs, ideas, feature requests, or questions. The libdbi
+	website has the latest version of this documentation and the libdbi software, as
+	well as a central database of third-party drivers.
+      </Para>
+      <ItemizedList>
+	<ListItem><Para>&www;</Para></ListItem>
+	<ListItem><Para>David Parker <EMail>david@neongoat.com</EMail></Para></ListItem>
+	<ListItem><Para>Mark Tobenkin <EMail>mark@brentwoodradio.com</EMail></Para></ListItem>
+	<ListItem><Para>Markus Hoenicka <EMail>markus@mhoenicka.de</EMail></Para></ListItem>
+      </ItemizedList>
+    </Section>
+  </Chapter>
 
-<Chapter id="quickstart"><Title>libdbi in a Nutshell (Quickstart Guide)</Title>
-	<Section id="quickstart-debriefing"><Title>Quick Overview</Title>
-		&libdbi-quickstart;
-	</Section>
-	<Section id="quickstart-code"><Title>Generic Example Program</Title>
-		&example-program;
-	</Section>
-</Chapter>
+  <Chapter id="quickstart"><Title>libdbi in a Nutshell (Quickstart Guide)</Title>
+    <!-- this is a section -->
+      &libdbi-quickstart;
+    <!-- this is another section -->
+      &example-program;
+  </Chapter>
 
-&libdbi-reference;
-&freedoc-license;
+  &libdbi-reference;
+  &freedoc-license;
 
 </Book>
