@@ -17,23 +17,29 @@ int main() {
     conn = dbi_conn_new("mysql");
 
     dbi_conn_set_option(conn, "host", "localhost");
-    dbi_conn_set_option(conn, "username", "chug");
-    dbi_conn_set_option(conn, "password", "dIP!");
-    dbi_conn_set_option(conn, "dbname", "db_name");
+    dbi_conn_set_option(conn, "username", "your_name");
+    dbi_conn_set_option(conn, "password", "your_password");
+    dbi_conn_set_option(conn, "dbname", "your_dbname");
     dbi_conn_set_option(conn, "encoding", "UTF-8");
 
-    dbi_conn_connect(conn);
-    result = dbi_conn_queryf(conn, "SELECT id, name FROM coders "
+    if (dbi_conn_connect(conn) < 0) {
+      printf("Could not connect. Please check the option settings\n");
+    }
+    else {
+      result = dbi_conn_queryf(conn, "SELECT id, name FROM coders "
                                   "WHERE hours_of_sleep > %0.2f", threshold);
     
-    while (dbi_result_next_row(result)) {
-        idnumber = dbi_result_get_ulong(result, "id");
-        fullname = dbi_result_get_string(result, "name");
-        printf("%i. %s\n", idnumber, fullname);
+      if (result) {
+	while (dbi_result_next_row(result)) {
+	  idnumber = dbi_result_get_ulong(result, "id");
+	  fullname = dbi_result_get_string(result, "name");
+	  printf("%i. %s\n", idnumber, fullname);
+	}
+	dbi_result_free(result);
+      }
+      dbi_conn_close(conn);
     }
     
-    dbi_result_free(result);
-    dbi_conn_close(conn);
     dbi_shutdown();
 
     return 0;
