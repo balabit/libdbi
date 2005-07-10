@@ -9,8 +9,8 @@
 ;;(define %paper-type%
 ;;  "USletter")
 
-;;(define %page-height%
-;;  11in)
+(define %page-height%
+  11in)
 
 ;;(define %default-quadding%
 ;;  'justify)
@@ -19,10 +19,10 @@
   7pi)
 
 (define %bottom-margin%
-  0pi)
+  2pi)
 
 (define %footer-margin%
-  2pi)
+  4pi)
 
 (define %header-margin%
   3pi)
