@@ -51,7 +51,7 @@ typedef union dbi_data_u {
 
 typedef struct dbi_row_s {
 	dbi_data_t *field_values;
-	unsigned long long *field_sizes; /* strlen() for strings, 0 otherwise */
+	size_t *field_sizes; /* strlen() for strings, 0 otherwise */
 	unsigned char *field_flags; /* field-specific metadata for this particular row */
 } dbi_row_t;
 
@@ -120,8 +120,9 @@ typedef struct dbi_functions_s {
 	dbi_result_t *(*list_tables)(dbi_conn_t_pointer, const char *, const char *);
 	dbi_result_t *(*query)(dbi_conn_t_pointer, const char *);
 	dbi_result_t *(*query_null)(dbi_conn_t_pointer, const unsigned char *, unsigned long);
-	int (*quote_string)(dbi_driver_t_pointer, const char *, char *);
-	int (*conn_quote_string)(dbi_conn_t_pointer, const char *, char *);
+	size_t (*quote_string)(dbi_driver_t_pointer, const char *, char *);
+	size_t (*conn_quote_string)(dbi_conn_t_pointer, const char *, char *);
+	size_t (*quote_binary)(dbi_conn_t_pointer, const char *, size_t, char **);
         const char* (*encoding_to_iana)(const char *);
         const char* (*encoding_from_iana)(const char *);
 	char *(*select_db)(dbi_conn_t_pointer, const char *);
