@@ -49,6 +49,9 @@ int main() {
 <Para>
 	Compile with: gcc -lm -ldl -ldbi -o foo foo.c
 </Para>
+    <note>
+      <para>The <option>-ldl</option> option is not required on systems that implement the dynamic linking in their libc (like FreeBSD). You may also have to throw in something like <option>-I/usr/local/include</option> and <option>-L/usr/local/lib</option> to help gcc and ld find the libdbi headers and libraries.</para>
+    </note>
 <Para>
 	Of course, a complete program should be checking for errors. This example
 	omits error-checking for the sake of clarity. There are also other ways to
