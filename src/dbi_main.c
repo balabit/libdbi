@@ -334,23 +334,23 @@ const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
 	return driver->info->date_compiled;
 }
 
-int dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newquoted) {
+size_t dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newquoted) {
 	dbi_driver_t *driver = Driver;
 	char *newstr;
 	int newlen;
 	
-	if (!driver || !orig || !newquoted) return -1;
+	if (!driver || !orig || !newquoted) return 0;
 
 	newstr = malloc((strlen(orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 
 	if (!newstr) {
-		return -1;
+		return 0;
 	}
 	
 	newlen = driver->functions->quote_string(driver, orig, newstr);
-	if (newlen < 0) {
+	if (!newlen) {
 		free(newstr);
-		return -1;
+		return 0;
 	}
 
 	*newquoted = newstr;
@@ -358,13 +358,13 @@ int dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **new
 	return newlen;
 }
 
-int dbi_driver_quote_string(dbi_driver Driver, char **orig) {
+size_t dbi_driver_quote_string(dbi_driver Driver, char **orig) {
 	char *temp = NULL;
 	char *newstr = NULL;
-	int newlen;
+	size_t newlen;
 
 	if (!orig || !*orig) {
-		return -1;
+		return 0;
 	}
 	
 	newlen = dbi_driver_quote_string_copy(Driver, *orig, &newstr);
@@ -552,23 +552,23 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) {
 	return len;
 }
 
-int dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newquoted) {
+size_t dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newquoted) {
 	dbi_conn_t *conn = Conn;
 	char *newstr;
-	int newlen;
+	size_t newlen;
 	
-	if (!Conn || !orig || !newquoted) return -1;
+	if (!Conn || !orig || !newquoted) return 0;
 
 	newstr = malloc((strlen(orig)*2)+4+1); /* worst case, we have to escape every character and add 2*2 surrounding quotes */
 
 	if (!newstr) {
-		return -1;
+		return 0;
 	}
 	
 	newlen = conn->driver->functions->conn_quote_string(conn, orig, newstr);
-	if (newlen < 0) {
+	if (!newlen) {
 		free(newstr);
-		return -1;
+		return 0;
 	}
 
 	*newquoted = newstr;
@@ -576,13 +576,13 @@ int dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newquoted
 	return newlen;
 }
 
-int dbi_conn_quote_string(dbi_conn Conn, char **orig) {
+size_t dbi_conn_quote_string(dbi_conn Conn, char **orig) {
 	char *temp = NULL;
 	char *newstr = NULL;
-	int newlen;
+	size_t newlen;
 
 	if (!orig || !*orig) {
-		return -1;
+		return 0;
 	}
 	
 	newlen = dbi_conn_quote_string_copy(Conn, *orig, &newstr);
@@ -591,6 +591,25 @@ int dbi_conn_quote_string(dbi_conn Conn, char **orig) {
 	free(temp); /* original unescaped string */
 
 	return newlen;
+}
+
+size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const char *orig, size_t from_length, char **ptr_dest) {
+  char *temp = NULL;
+  size_t newlen;
+  dbi_conn_t *conn = Conn;
+
+  if (!Conn || !orig || !ptr_dest) {
+    return 0;
+  }
+
+  newlen = conn->driver->functions->quote_binary(conn, orig, from_length, &temp);
+  if (!newlen) {
+    return 0;
+  }
+
+  *ptr_dest = temp;
+
+  return newlen;
 }
 
 /* DRIVER: option manipulation */
@@ -977,6 +996,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||
 			((driver->functions->query_null = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query_null")) == NULL) ||
 			((driver->functions->quote_string = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_string")) == NULL) ||
+			((driver->functions->quote_binary = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_quote_binary")) == NULL) ||
 			((driver->functions->conn_quote_string = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_conn_quote_string")) == NULL) ||
 			((driver->functions->select_db = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_select_db")) == NULL) ||
 			((driver->functions->geterror = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_geterror")) == NULL) ||
@@ -1127,14 +1147,15 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	static const char *errflag_messages[] = {
 		/* DBI_ERROR_USER */		NULL,
 		/* DBI_ERROR_NONE */		NULL,
-		/* DBI_ERROR_DBD */			NULL,
+		/* DBI_ERROR_DBD */		NULL,
 		/* DBI_ERROR_BADOBJECT */	"An invalid or NULL object was passed to libdbi",
 		/* DBI_ERROR_BADTYPE */		"The requested variable type does not match what libdbi thinks it should be",
 		/* DBI_ERROR_BADIDX */		"An invalid or out-of-range index was passed to libdbi",
 		/* DBI_ERROR_BADNAME */		"An invalid name was passed to libdbi",
 		/* DBI_ERROR_UNSUPPORTED */	"This particular libdbi driver or connection does not support this feature",
 		/* DBI_ERROR_NOCONN */		"libdbi could not establish a connection",
-		/* DBI_ERROR_NOMEM */		"libdbi ran out of memory" };
+		/* DBI_ERROR_NOMEM */		"libdbi ran out of memory",
+	        /* DBI_ERROR_BADPTR */          "An invalid pointer was passed to libdbi"};
 	
 	if (conn == NULL) {
 		/* temp hack... if a result is disjoined and encounters an error, conn
