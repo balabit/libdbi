@@ -26,8 +26,8 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_LD
 AC_PROG_INSTALL
-AM_PROG_LIBTOOL
-
+AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL)
 dnl ====================================
 dnl Set some general compile options
 dnl ====================================
