@@ -42,7 +42,7 @@ dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern);
 dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern);
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
 dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length);
-int dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
+size_t dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 const char* dbd_encoding_from_iana(const char *iana_encoding);
 const char* dbd_encoding_to_iana(const char *iana_encoding);
 char *dbd_select_db(dbi_conn_t *conn, const char *db);
@@ -51,7 +51,8 @@ unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence);
 unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence);
 int dbd_ping(dbi_conn_t *conn);
 const char *dbd_get_encoding(dbi_conn_t *conn);
-int dbd_conn_quote_string(dbi_conn_t *conn, const char *orig, char *dest);
+size_t dbd_conn_quote_string(dbi_conn_t *conn, const char *orig, char *dest);
+size_t dbd_quote_binary(dbi_conn_t *conn, const char *orig, size_t from_length, char **ptr_dest);
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected);
@@ -65,6 +66,9 @@ void _dbd_register_driver_cap(dbi_driver_t *driver, const char *capname, int val
 void _dbd_register_conn_cap(dbi_conn_t *conn, const char *capname, int value);
 int _dbd_result_add_to_conn(dbi_result_t *result);
 time_t _dbd_parse_datetime(const char *raw, unsigned long attribs);
+size_t _dbd_quote_chars(char *dest, const char *orig, size_t orig_size, const char *toescape);
+size_t _dbd_encode_binary(const unsigned char *in, size_t n, unsigned char *out);
+size_t _dbd_decode_binary(const unsigned char *in, unsigned char *out);
 
 #ifdef __cplusplus
 }
