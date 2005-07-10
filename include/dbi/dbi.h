@@ -30,6 +30,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
+#include <limits.h> /* for the *_MAX definitions */
 
 /* opaque type definitions */
 typedef void * dbi_driver;
@@ -37,7 +38,7 @@ typedef void * dbi_conn;
 typedef void * dbi_result;
 
 /* other type definitions */
-typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM } dbi_error_flag;
+typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM, DBI_ERROR_BADPTR } dbi_error_flag;
 
 typedef struct {
 	unsigned char month;
@@ -93,6 +94,13 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 /* values for the bitmask in field_flags (unique to each row) */
 #define DBI_VALUE_NULL			(1 << 0)
 
+/* functions with a return type of size_t return this in case of an
+   error if 0 is a valid return value */
+#define DBI_LENGTH_ERROR      SIZE_T_MAX
+
+/* functions with a return type of unsigned long long return this in
+   case of an error if 0 is a valid return value */
+#define DBI_ROW_ERROR         ULLONG_MAX
 
 int dbi_initialize(const char *driverdir);
 void dbi_shutdown();
@@ -103,8 +111,8 @@ dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if curre
 dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
 int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
 void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
-int dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
-int dbi_driver_quote_string(dbi_driver Driver, char **orig);
+size_t dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
+size_t dbi_driver_quote_string(dbi_driver Driver, char **orig);
 const char* dbi_driver_encoding_from_iana(dbi_driver Driver, const char* iana_encoding);
 const char* dbi_driver_encoding_to_iana(dbi_driver Driver, const char* db_encoding);
 int dbi_driver_cap_get(dbi_driver Driver, const char *capname);
@@ -150,8 +158,9 @@ int dbi_conn_select_db(dbi_conn Conn, const char *db);
 unsigned long long dbi_conn_sequence_last(dbi_conn Conn, const char *name); /* name of the sequence or table */
 unsigned long long dbi_conn_sequence_next(dbi_conn Conn, const char *name);
 int dbi_conn_ping(dbi_conn Conn);
-int dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newstr);
-int dbi_conn_quote_string(dbi_conn Conn, char **orig);
+size_t dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newstr);
+size_t dbi_conn_quote_string(dbi_conn Conn, char **orig);
+size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const char *orig, size_t from_length, char **newstr);
 
 dbi_conn dbi_result_get_conn(dbi_result Result);
 int dbi_result_free(dbi_result Result);
@@ -165,10 +174,10 @@ int dbi_result_next_row(dbi_result Result);
 unsigned long long dbi_result_get_currow(dbi_result Result);
 unsigned long long dbi_result_get_numrows(dbi_result Result);
 unsigned long long dbi_result_get_numrows_affected(dbi_result Result);
-unsigned long long dbi_result_get_field_size(dbi_result Result, const char *fieldname);
-unsigned long long dbi_result_get_field_size_idx(dbi_result Result, unsigned long idx);
-unsigned long long dbi_result_get_field_length(dbi_result Result, const char *fieldname); /* size-1 */
-unsigned long long dbi_result_get_field_length_idx(dbi_result Result, unsigned long idx);
+size_t dbi_result_get_field_size(dbi_result Result, const char *fieldname);
+size_t dbi_result_get_field_size_idx(dbi_result Result, unsigned long idx);
+size_t dbi_result_get_field_length(dbi_result Result, const char *fieldname);
+size_t dbi_result_get_field_length_idx(dbi_result Result, unsigned long idx);
 unsigned long dbi_result_get_field_idx(dbi_result Result, const char *fieldname);
 const char *dbi_result_get_field_name(dbi_result Result, unsigned long idx);
 unsigned long dbi_result_get_numfields(dbi_result Result);
@@ -182,8 +191,8 @@ int dbi_result_field_is_null(dbi_result Result, const char *fieldname);
 int dbi_result_field_is_null_idx(dbi_result Result, unsigned long idx);
 int dbi_result_disjoin(dbi_result Result);
 
-int dbi_result_get_fields(dbi_result Result, const char *format, ...);
-int dbi_result_bind_fields(dbi_result Result, const char *format, ...);
+unsigned long dbi_result_get_fields(dbi_result Result, const char *format, ...);
+unsigned long dbi_result_bind_fields(dbi_result Result, const char *format, ...);
 
 signed char dbi_result_get_char(dbi_result Result, const char *fieldname);
 unsigned char dbi_result_get_uchar(dbi_result Result, const char *fieldname);
