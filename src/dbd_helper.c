@@ -83,20 +83,20 @@ dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long l
 	return result;
 }
 
-void _dbd_result_set_numfields(dbi_result_t *result, unsigned long numfields) {
+void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields) {
 	result->numfields = numfields;
 	result->field_names = calloc(numfields, sizeof(char *));
 	result->field_types = calloc(numfields, sizeof(unsigned short));
 	result->field_attribs = calloc(numfields, sizeof(unsigned int *));
 }
 
-void _dbd_result_add_field(dbi_result_t *result, unsigned long idx, char *name, unsigned short type, unsigned int attribs) {
+void _dbd_result_add_field(dbi_result_t *result, unsigned int idx, char *name, unsigned short type, unsigned int attribs) {
 	if (name) result->field_names[idx] = strdup(name);
 	result->field_types[idx] = type;
 	result->field_attribs[idx] = attribs;
 }
 
-dbi_row_t *_dbd_row_allocate(unsigned long numfields) {
+dbi_row_t *_dbd_row_allocate(unsigned int numfields) {
 	dbi_row_t *row = malloc(sizeof(dbi_row_t));
 	if (!row) return NULL;
 	row->field_values = calloc(numfields, sizeof(dbi_data_t));
@@ -105,9 +105,9 @@ dbi_row_t *_dbd_row_allocate(unsigned long numfields) {
 	return row;
 }
 
-void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned long long idx) {
+void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx) {
 	/* rowidx is one-based in the DBI user level */
-	result->rows[idx+1] = row;
+	result->rows[rowidx+1] = row;
 }
 
 size_t _dbd_quote_chars(char *dest, const char *orig, size_t orig_size, const char *toescape) {
@@ -152,7 +152,7 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned long long numrows_matched, const char **stringarray) {
 	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
 	unsigned long long currow = 0;
-	const long numfields = 1;
+	const int numfields = 1;
 	
 	if (!result) return NULL;
 	
