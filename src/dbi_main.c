@@ -337,7 +337,7 @@ const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
 size_t dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newquoted) {
 	dbi_driver_t *driver = Driver;
 	char *newstr;
-	int newlen;
+	size_t newlen;
 	
 	if (!driver || !orig || !newquoted) return 0;
 
@@ -368,6 +368,11 @@ size_t dbi_driver_quote_string(dbi_driver Driver, char **orig) {
 	}
 	
 	newlen = dbi_driver_quote_string_copy(Driver, *orig, &newstr);
+	if (!newlen) {
+	  /* in case of an error, leave the original string alone */
+	  return 0;
+	}
+
 	temp = *orig;
 	*orig = newstr;
 	free(temp); /* original unescaped string */
@@ -586,6 +591,10 @@ size_t dbi_conn_quote_string(dbi_conn Conn, char **orig) {
 	}
 	
 	newlen = dbi_conn_quote_string_copy(Conn, *orig, &newstr);
+	if (!newlen) {
+	  /* leave original string alone in case of an error */
+	  return 0;
+	}
 	temp = *orig;
 	*orig = newstr;
 	free(temp); /* original unescaped string */
@@ -885,7 +894,7 @@ dbi_result dbi_conn_queryf(dbi_conn Conn, const char *formatstr, ...) {
 	return (dbi_result)result;
 }
 
-dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, unsigned long st_length) {
+dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, size_t st_length) {
 	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
 
@@ -1191,11 +1200,11 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	}
 }
 
-unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned long rangemax) {
+unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax) {
 	/* hahaha! who woulda ever thunk strawberry's code would come in handy? */
 	unsigned short startbit = log(rangemin)/log(2);
 	unsigned short endbit = log(rangemax)/log(2);
-	unsigned long attrib_mask = 0;
+	unsigned int attrib_mask = 0;
 	int x;
 	
 	for (x = startbit; x <= endbit; x++)
