@@ -41,7 +41,7 @@ typedef struct _field_binding_s *_field_binding_t_pointer;
 typedef union dbi_data_u {
 	char d_char;
 	short d_short;
-	long d_long;
+        int d_long; /* misnomer */
 	long long d_longlong;
 	float d_float;
 	double d_double;
@@ -62,10 +62,10 @@ typedef struct dbi_result_s {
 	unsigned long long numrows_affected;
 	_field_binding_t_pointer field_bindings;
 	
-	unsigned long numfields; /* can be zero or NULL until first fetchrow */
+	unsigned int numfields; /* can be zero or NULL until first fetchrow */
 	char **field_names;
 	unsigned short *field_types;
-	unsigned long *field_attribs;
+	unsigned int *field_attribs;
 
 	enum { NOTHING_RETURNED, ROWS_RETURNED } result_state;
 	dbi_row_t **rows; /* array of filled rows, elements set to NULL if not fetched yet */
@@ -119,7 +119,7 @@ typedef struct dbi_functions_s {
 	dbi_result_t *(*list_dbs)(dbi_conn_t_pointer, const char *);
 	dbi_result_t *(*list_tables)(dbi_conn_t_pointer, const char *, const char *);
 	dbi_result_t *(*query)(dbi_conn_t_pointer, const char *);
-	dbi_result_t *(*query_null)(dbi_conn_t_pointer, const unsigned char *, unsigned long);
+	dbi_result_t *(*query_null)(dbi_conn_t_pointer, const unsigned char *, size_t);
 	size_t (*quote_string)(dbi_driver_t_pointer, const char *, char *);
 	size_t (*conn_quote_string)(dbi_conn_t_pointer, const char *, char *);
 	size_t (*quote_binary)(dbi_conn_t_pointer, const char *, size_t, char **);
@@ -166,11 +166,11 @@ typedef struct dbi_conn_s {
 	struct dbi_conn_s *next; /* so libdbi can unload all conns at exit */
 } dbi_conn_t;
 
-unsigned long _isolate_attrib(unsigned long attribs, unsigned long rangemin, unsigned long rangemax);
+unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 int _disjoin_from_conn(dbi_result_t *result);
-void _set_field_flag(dbi_row_t *row, unsigned long fieldidx, unsigned char flag, unsigned char value);
-int _get_field_flag(dbi_row_t *row, unsigned long fieldidx, unsigned char flag);
+void _set_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag, unsigned char value);
+int _get_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag);
 
 #ifdef __cplusplus
 }
