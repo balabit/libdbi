@@ -20,6 +20,7 @@
  * $Id$
  */
 
+
 #ifndef __DBD_H__
 #define __DBD_H__
 
@@ -35,13 +36,13 @@ void dbd_register_driver(const dbi_info_t **_driver_info, const char ***_custom_
 int dbd_initialize(dbi_driver_t *driver);
 int dbd_connect(dbi_conn_t *conn);
 int dbd_disconnect(dbi_conn_t *conn);
-int dbd_fetch_row(dbi_result_t *result, unsigned long long rownum);
+int dbd_fetch_row(dbi_result_t *result, unsigned long long rowidx);
 int dbd_free_query(dbi_result_t *result);
-int dbd_goto_row(dbi_result_t *result, unsigned long long row);
+int dbd_goto_row(dbi_result_t *result, unsigned long long rowidx);
 dbi_result_t *dbd_list_dbs(dbi_conn_t *conn, const char *pattern);
 dbi_result_t *dbd_list_tables(dbi_conn_t *conn, const char *db, const char *pattern);
 dbi_result_t *dbd_query(dbi_conn_t *conn, const char *statement);
-dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, unsigned long st_length);
+dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, size_t st_length);
 size_t dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 const char* dbd_encoding_from_iana(const char *iana_encoding);
 const char* dbd_encoding_to_iana(const char *iana_encoding);
@@ -56,10 +57,10 @@ size_t dbd_quote_binary(dbi_conn_t *conn, const char *orig, size_t from_length, 
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected);
-void _dbd_result_set_numfields(dbi_result_t *result, unsigned long numfields);
-void _dbd_result_add_field(dbi_result_t *result, unsigned short idx, char *name, unsigned short type, unsigned int attribs);
-dbi_row_t *_dbd_row_allocate(unsigned long numfields);
-void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned long long idx);
+void _dbd_result_set_numfields(dbi_result_t *result, unsigned int numfields);
+void _dbd_result_add_field(dbi_result_t *result, unsigned int fieldidx, char *name, unsigned short type, unsigned int attribs);
+dbi_row_t *_dbd_row_allocate(unsigned int numfields);
+void _dbd_row_finalize(dbi_result_t *result, dbi_row_t *row, unsigned long long rowidx);
 void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno);
 dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned long long numrows_matched, const char **stringarray);
 void _dbd_register_driver_cap(dbi_driver_t *driver, const char *capname, int value);
