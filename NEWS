@@ -1,0 +1,130 @@
+libdbi NEWS file
+================
+
+$Id$
+
+________________________
+libdbi 0.8.0 (July 2005)
+
+Major internal fixes. Remember that the integer type changes are
+mostly silent on 32bit platforms, but you should check in detail. The
+changes in the return codes of some functions require particular
+attention.
+
+
+- Functions that return string sizes or accept string sizes as an
+argument now use size_t throughout. Affected functions are:
+
+dbi_driver_quote_string()
+dbi_driver_quote_string_copy()
+dbi_conn_query_null()
+dbi_result_get_field_size()
+
+as well as the new dbi_conn_quote_* functions
+
+
+- Functions that deal with field indexes or field counts now use
+unsigned int throughout. Affected functions are:
+
+dbi_result_get_field_idx()
+dbi_result_get_field_name()
+dbi_result_get_numfields()
+dbi_result_get_field_type_idx()
+dbi_result_get_field_attrib_idx()
+dbi_result_get_field_attribs_idx()
+dbi_result_field_is_null_idx()
+dbi_result_get_fields()
+dbi_result_bind_fields()
+dbi_result_get_char_idx()
+dbi_result_get_uchar_idx()
+dbi_result_get_short_idx()
+dbi_result_get_ushort_idx()
+dbi_result_get_long_idx()
+dbi_result_get_int_idx()
+dbi_result_get_uint_idx()
+dbi_result_get_ulong_idx()
+dbi_result_get_longlong_idx()
+dbi_result_get_ulonglong_idx()
+dbi_result_get_float_idx()
+dbi_result_get_double_idx()
+dbi_result_get_string_idx()
+dbi_result_get_binary_idx()
+dbi_result_get_string_copy_idx()
+dbi_result_get_binary_copy_idx()
+dbi_result_get_datetime_idx()
+
+
+- Functions that get or bind 4-byte integers were renamed and their
+return type was changed from long to int, because long is an 8byte
+value on 64bit platforms. The old versions are still around, but they
+also use int as the return type.
+
+long dbi_result_get_long() -> int dbi_result_get_int()
+long dbi_result_get_ulong() -> int dbi_result_get_uint()
+long dbi_result_get_long_idx() -> int dbi_result_get_int_idx()
+long dbi_result_get_ulong_idx() -> int dbi_result_get_uint_idx()
+dbi_result_bind_long() -> dbi_result_bind_int()
+dbi_result_bind_ulong() -> dbi_result_bind_uint()
+
+
+- Field attributes are now implemented using unsigned int instead of
+unsigned long. Functions that deal with attributes were adapted
+accordingly:
+
+dbi_result_get_field_attrib()
+dbi_result_get_field_attrib_idx()
+dbi_result_get_field_attribs()
+dbi_result_get_field_attribs_idx()
+
+
+- The return values in case of an error were changed in the following
+functions:
+
+dbi_result_get_field_length(): DBI_LENGTH_ERROR instead of 0
+dbi_driver_quote_string(), dbi_driver_quote_string_copy(): 0 instead
+  of -1 
+dbi_result_seek_row(): 0 instead of 0 or -1
+dbi_result_get_numrows(): DBI_ROW_ERROR instead of 0
+dbi_result_get_field_length(), dbi_result_get_field_length_idx(),
+  dbi_result_get_field_size(), dbi_result_get_field_size_idx():
+  DBI_LENGTH_ERROR instead of 0
+dbi_result_get_field_type(),dbi_result_get_field_type_idx():
+  DBI_TYPE_ERROR instead of 0 (the same numerical value!)
+dbi_result_get_field_attrib(), dbi_result_get_field_attrib_idx(),
+  dbi_result_get_field_attribs(), dbi_result_get_field_attribs_idx():
+  DBI_ATTRIBUTE_ERROR instead of 0
+dbi_result_field_is_null(), dbi_result_field_is_null_idx():
+  DBI_FIELD_FLAG_ERROR instead of 0
+dbi_result_bind_fields(): DBI_FIELD_ERROR instead of -1
+dbi_result_bind_*(): DBI_BIND_ERROR instead of -1 (same numerical
+  value!)
+
+
+- New functions were added to improve the support for character
+encodings:
+
+dbi_conn_quote_string()
+dbi_conn_quote_string_copy()
+dbi_driver_encoding_to_iana()
+dbi_driver_encoding_from_iana()
+
+
+- A new function was added to improve support for binary strings:
+
+dbi_conn_quote_binary_copy()
+
+
+- The following functions were labelled "deprecated". They are still
+implemented in the current version, but you should use their
+replacements as these functions are likely to be dropped in a future
+release:
+:
+dbi_result_get_field_size()
+dbi_result_get_field_size_idx()
+dbi_result_get_long()
+dbi_result_get_ulong()
+dbi_result_get_long_idx()
+dbi_result_get_ulong_idx()
+dbi_result_bind_long()
+dbi_result_bind_ulong()
+
