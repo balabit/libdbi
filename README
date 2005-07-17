@@ -18,18 +18,6 @@ third party with flexbile licensing. See the libdbi-drivers project
 supported by libdbi.
 
 
-WARNING:
---------
-
-The documentation included with this release is outdated. If you find a
-discrepancy between documentation and implementation and would rather not read
-source code to clarify the inconsistency, please e-mail the libdbi-users
-mailing list (see below). Since this is a long overdue bugfix release and
-since the API will undergo significant changes soon with the addition of
-prepared statements, the developers justified their laziness in documentation
-in the interest of a timely release ;)
-
-
 INSTALLATION:
 -------------
 
@@ -94,7 +82,7 @@ has been successfully tested with:
 
 Linux: Debian, RedHat, Slackware, Gentoo
 Windows: 98, NT4, 2000, XP
-FreeBSD: 4.3 through 4.7
+FreeBSD: 4.3 through 5.4
 SunOS: 2.8
 Solaris: 7
 AIX: 4.2, 4.3 and 5.1
