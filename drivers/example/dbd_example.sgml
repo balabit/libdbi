@@ -1,0 +1,47 @@
+<!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
+<!-- $Id$ -->
+<book>
+  <bookinfo>
+    <title>example driver manual</title>
+    <subtitle>A libdbi driver providing connectivity to Example databases using libexampleclient.</subtitle>
+  <author>
+      <firstname>E.</firstname>
+      <firstname>X.</firstname>
+      <surname>Ample</surname>
+      <affiliation>
+	<address><email>example@users.sourceforge.net</email></address>
+      </affiliation>
+    </author>
+    <revhistory>
+      <revision>
+	<revnumber>0.1</revnumber>
+	<date>2002-11-5</date>
+      </revision>
+    </revhistory>
+  </bookinfo>
+  <preface>
+    <title>Preface</title>
+    <para><ulink url="http://libdbi.sourceforge.net">libdbi</ulink> is a database abstraction layer written in C. It implements a framework that can utilize separate driver libraries for specific database servers. The <ulink url="http://libdbi-drivers.sourceforge.net">libdbi-drivers</ulink> project provides the drivers necessary to talk to the supported database servers.</para>
+    <para>This manual provides information about the Example driver. The manual is intended for programmers who write applications linked against libdbi and who want their applications to work with the Example driver.</para>
+    <para>Questions and comments about the Example driver should be sent to the <ulink url="mailto:libdbi-drivers-devel@lists.sourceforge.net">libdbi-drivers-devel</ulink> mailing list. Visit the <ulink url="http://lists.sourceforge.net/lists/listinfo/libdbi-drivers-devel">libdbi-drivers-devel list page</ulink> to subscribe and for further information. Questions and comments about the libdbi library should be sent to the appropriate libdbi mailing list.</para>
+    <para>The Example driver is maintained by <ulink url="mailto:example@users.sourceforge.net">E.X. Ample</ulink>.</para>
+  </preface>
+  <chapter>
+    <title>Introduction</title>
+    <para></para>
+  </chapter>
+  <chapter>
+    <title>Installation</title>
+    <para></para>
+    </sect1>
+    </sect1>
+  </chapter>
+  <chapter>
+    <title>Driver options</title>
+    <para></para>
+  </chapter>
+  <chapter>
+    <title>Peculiarities you should know about</title>
+    <para></para>
+  </chapter>
+</book>

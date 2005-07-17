@@ -1,0 +1,28 @@
+
+libdbi-drivers - drivers for libdbi, the Database
+Independent Abstraction Layer for C
+
+Copyright (C) 2005, E.X. Ample <example at users.sourceforge.net>
+http://libdbi-drivers.sourceforge.net
+
+
+EXAMPLE DRIVER:
+--------------
+
+A driver providing connectivity to Example databases using libexampleclient
+(http://www.example.org)
+
+NOTES:
+------
+
+
+
+CONTACT INFO:
+-------------
+
+libdbi-drivers-devel@lists.sourceforge.net
+http://libdbi-drivers.sourceforge.net
+E.X. Ample <example@users.sourceforge.net>
+
+$Id$
+
