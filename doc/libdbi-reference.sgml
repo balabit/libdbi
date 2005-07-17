@@ -5,6 +5,8 @@ Copyright (C) 2001-2005, David Parker, Neon Goat Productions.
 This document is licensed under the GNU Free Documentation License, version 1.1 or later, as
 published by the Free Software Foundation.
 -->
+
+<!-- change idx to unsigned int instead of unsigned long -->
   <Chapter id="reference"><Title>libdbi API Reference</Title>
     <Section id="reference-core"><Title>Core Library Functions</Title>
       <Section id="dbi-initialize" XRefLabel="dbi_initialize"><Title>dbi_initialize</Title>
@@ -150,7 +152,7 @@ published by the Free Software Foundation.
 	    <paramdef><parameter>char **orig</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own).</Para>
+	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own). If an error occurs, the original string will not be freed.</Para>
 	<note>
 	  <para>This function is deprecated. Use <xref linkend="dbi-conn-quote-string"> instead.</para>
 	</note>
@@ -164,7 +166,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The new string's length.</Para></ListItem>
+	    <ListItem><Para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -177,7 +179,7 @@ published by the Free Software Foundation.
 	    <paramdef>char **<parameter>newstr</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own).</Para>
+	<Para>Encloses the target string in the types of quotes that the database expects, and escapes any special characters. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own). In case of an error, <parameter moreinfo="none">newstr</parameter> is an invalid pointer which you must not attempt to deallocate.</Para>
 	<note>
 	  <para>This function is deprecated. Use <xref linkend="dbi-conn-quote-string-copy"> instead.</para>
 	</note>
@@ -192,7 +194,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The quoted string's length.</Para></ListItem>
+	    <ListItem><Para>The quoted string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -205,7 +207,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">iana_encoding</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<para>Requests the database engine specific name of the character encoding identified by its name as known to <ulink url="http://www.iana.org">IANA</ulink>. Use this function to pass the database engine specific name to SQL queries .</para>
+	<para>Requests the database engine specific name of the character encoding identified by its name as known to <ulink url="http://www.iana.org">IANA</ulink>. Use this function to pass the database engine specific encoding name to SQL queries , e.g. as part of a <command moreinfo="none">CREATE DATABASE</command> command.</para>
 	<variablelist>
 	  <varlistentry>
 	    <term>Arguments</term>
@@ -670,7 +672,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>A string containing the <ulink url="http://www.iana.org">IANA</ulink> name of the connection encoding. If the encoding option was set to "auto", the function returns the encoding the database was created with. In all other cases, the current connection encoding is returned, which may be different from the database encoding.</para>
+	      <para>A string containing the <ulink url="http://www.iana.org">IANA</ulink> name of the connection encoding. If the encoding option was set to "auto", the function returns the encoding the database was created with. In all other cases, the current connection encoding is returned, which may be different from the database encoding. Use the <xref linkend="dbi-driver-encoding-from-iana"> function to translate the encoding name to that of the currently used database engine if necessary.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -748,7 +750,7 @@ published by the Free Software Foundation.
 	    <varlistentry>
 	      <term><emphasis>Returns</emphasis></term>
 	      <listitem>
-		<para>"0" (zero) means the previous query finished without errors. A value larger than zero means an error occurred.</para>
+		<para>0 (zero) means the previous query finished without errors. A value larger than zero means an error occurred.</para>
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
@@ -909,6 +911,9 @@ published by the Free Software Foundation.
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Execute the specified SQL query statement, which may contain valid NULL characters.</Para>
+	<note>
+	  <para>This function is not implemented by all database drivers. For a portable way of including binary strings into SQL queries, see the function <xref linkend="dbi-conn-quote-binary-copy">.</para>
+	</note>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1016,12 +1021,12 @@ published by the Free Software Foundation.
 	<title>dbi_conn_quote_string</title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>int <function>dbi_conn_quote_string</function></funcdef>
+	    <funcdef>size_t <function>dbi_conn_quote_string</function></funcdef>
 	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
 	    <paramdef>char **<parameter moreinfo="none">orig</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own). This function is preferred over <xref linkend="dbi-driver-quote-string"> because it takes the character encoding of the current connection into consideration when performing the escaping.</para>
+	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be freed and <parameter moreinfo="none">orig</parameter> will point to a newly allocated one (which you still must free on your own). If an error occurs, the original string will be left alone. This function is preferred over <xref linkend="dbi-driver-quote-string"> because it takes the character encoding of the current connection into account when performing the escaping.</para>
 	<variablelist>
 	  <varlistentry>
 	    <term>Arguments</term>
@@ -1033,7 +1038,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1042,13 +1047,13 @@ published by the Free Software Foundation.
 	<title>dbi_conn_quote_string_copy</title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>int <function>dbi_conn_quote_string_copy</function></funcdef>
+	    <funcdef>size_t <function>dbi_conn_quote_string_copy</function></funcdef>
 	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
-	      <paramdef>char **<parameter moreinfo="none">orig</parameter></paramdef>
+	      <paramdef>char *<parameter moreinfo="none">orig</parameter></paramdef>
 	      <paramdef>char **<parameter>newstr</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own). This function is preferred over <xref linkend="dbi-driver-quote-string-copy"> because it takes the character encoding of the current connection into consideration when performing the escaping.</para>
+	<para>Escapes any special characters in a string and places the string itself in quotes so the string can be sent to the database engine as a query string, using either <xref linkend="dbi-conn-query"> or <xref linkend="dbi-conn-queryf">. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own). If the function fails, <parameter moreinfo="none">newstr</parameter> is an invalid pointer that must not be freed. This function is preferred over <xref linkend="dbi-driver-quote-string-copy"> because it takes the character encoding of the current connection into account when performing the escaping.</para>
 	<variablelist>
 	  <varlistentry>
 	    <term>Arguments</term>
@@ -1061,7 +1066,37 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-quote-binary-copy" xreflabel="dbi_conn_quote_binary_copy">
+	<title>dbi_conn_quote_binary_copy</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_conn_quote_binary_copy</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	      <paramdef>char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">from_length</parameter></paramdef>
+	      <paramdef>char **<parameter>newstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Escapes any special characters, including null bytes, in a binary string and places the resulting string in quotes so it can be used in an SQL query. The original string will be left alone, and <parameter moreinfo="none">newstr</parameter> will point to a newly allocated string containing the quoted string (which you still must free on your own). If an error occurs, <parameter moreinfo="none">newstr</parameter> is an invalid pointer which must not be freed.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	      <para><literal moreinfo="none">from_length</literal>: The length of the binary string in bytes.</para>
+	      <para><literal>newstr</literal>: After the function returns, this pointer will point to the quoted and escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1113,7 +1148,7 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>int <function>dbi_result_seek_row</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned int <parameter moreinfo="none">row</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">rowidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Jump to a specific row in a result set.</Para>
@@ -1122,12 +1157,12 @@ published by the Free Software Foundation.
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>row</Literal>: The ordinal number of the row to seek to. The first row is at position 1, not zero.</Para>
+	      <Para><Literal>rowidx</Literal>: The ordinal number of the row to seek to. The first row is at position 1, not zero.</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1148,7 +1183,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1169,7 +1204,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1190,7 +1225,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 (zero) if there is an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1211,7 +1246,28 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The row number that was fetched, or 0 if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-currow" XRefLabel="dbi_result_get_currow"><Title>dbi_result_get_currow</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function>dbi_result_get_currow</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the ordinal number of the current row in the specified result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The ordinal number of the row, or 0 (zero) if there was an error. The first row has the number 1.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1232,7 +1288,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of rows in the result set.</Para></ListItem>
+	    <ListItem><Para>The number of rows in the result set, which may be 0 (zero) if the query did not return any datasets, or DBI_ROW_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1253,68 +1309,24 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of modified rows in the result set.</Para></ListItem>
+	    <ListItem><Para>The number of modified rows in the result set which may be 0 (zero) if no row was affected by the previous query. Also returns 0 if the database engine does not support this feature. The return value will be DBI_ROW_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
     </Section>
+
+
     <Section id="reference-field-meta">
-      <Title>Retrieving field meta-data</Title>
-      <Section id="dbi-result-get-field-size" XRefLabel="dbi_result_get_field_size"><Title>dbi_result_get_field_size</Title>
-	<funcsynopsis>
-	  <funcprototype>
-	    <funcdef>unsigned int <function>dbi_result_get_field_size</function></funcdef>
-	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
-	  </funcprototype>
-	</funcsynopsis>
-	<Para>Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the target field.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The size in bytes of the target field data.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
-      </Section>
-      <Section id="dbi-result-get-field-size-idx" XRefLabel="dbi_result_get_field_size_idx"><Title>dbi_result_get_field_size_idx</Title>
-	<funcsynopsis>
-	  <funcprototype>
-	    <funcdef>unsigned int <function>dbi_result_get_field_size_idx</function></funcdef>
-	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
-	  </funcprototype>
-	</funcsynopsis>
-	<Para>Returns the size in bytes of the value stored in the specified field. This is especially useful for string and binary data fields, which may have a dynamic size.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The size in bytes of the target field data.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
-      </Section>
+      <Title>Retrieving Field Meta-data</Title>
       <Section id="dbi-result-get-field-length" XRefLabel="dbi_result_get_field_length"><Title>dbi_result_get_field_length</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned int <function>dbi_result_get_field_length</function></funcdef>
+	    <funcdef>size_t <function>dbi_result_get_field_length</function></funcdef>
 	    <paramdef>dbi_result <parameter>Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">const char *fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
+	<Para>Returns the length of the value stored in the specified field which contains a string or a binary string.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1325,19 +1337,19 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 (zero) for field types other than string or binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-field-length-idx" XRefLabel="dbi_result_get_field_length_idx"><Title>dbi_result_get_field_length_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned int <function>dbi_result_get_field_length_idx</function></funcdef>
+	    <funcdef>size_t <function>dbi_result_get_field_length_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Returns the length in bytes of the value stored in the specified field. This is always one less than the size, and is probably only useful for fields containing strings.</Para>
+	<Para>Returns the length of the value stored in the specified field which contains a string or a binary string.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1348,14 +1360,40 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The length in bytes of the target field data.</Para></ListItem>
+	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 (zero) for field types other than string or binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-field-size" XRefLabel="dbi_result_get_field_size"><Title>dbi_result_get_field_size</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_result_get_field_size</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the size in bytes of the value stored in the specified field.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-result-get-field-length"> instead.</para>
+	</note>
+      </Section>
+      <Section id="dbi-result-get-field-size-idx" XRefLabel="dbi_result_get_field_size_idx"><Title>dbi_result_get_field_size_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_result_get_field_size_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Returns the size in bytes of the value stored in the specified field.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-result-get-field-length-idx"> instead.</para>
+	</note>
       </Section>
       <Section id="dbi-result-get-field-idx" XRefLabel="dbi_result_get_field_idx"><Title>dbi_result_get_field_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>int <function>dbi_result_get_field_idx</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_field_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
@@ -1371,7 +1409,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The index (starting at 1) of the target field.</Para></ListItem>
+	    <ListItem><Para>The index (starting at 1) of the target field, or 0 (zero) in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1385,8 +1423,7 @@ published by the Free Software Foundation.
 	</funcsynopsis>
 	<Para>Given a field's numeric index, return that field's name.</Para>
 	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
+	  <VarListEntry><term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
 	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
@@ -1394,7 +1431,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's name.</Para></ListItem>
+	    <ListItem><Para>The target field's name, or NULL in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1415,7 +1452,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of fields in the query result.</Para></ListItem>
+	    <ListItem><Para>The number of fields in the query result, or DBI_FIELD_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1438,7 +1475,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's data type.</Para></ListItem>
+	    <ListItem><Para>The target field's data type, or DBI_TYPE_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1461,18 +1498,18 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's data type.</Para></ListItem>
+	    <ListItem><Para>The target field's data type, or DBI_TYPE_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-field-attrib" XRefLabel="dbi_result_get_field_attrib"><Title>dbi_result_get_field_attrib</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_field_attrib</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_field_attrib</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
-	      <paramdef>unsigned long <parameter moreinfo="none">attribmin</parameter></paramdef>
-	      <paramdef>unsigned long <parameter moreinfo="none">attribmax</parameter></paramdef>
+	      <paramdef>unsigned int <parameter moreinfo="none">attribmin</parameter></paramdef>
+	      <paramdef>unsigned int <parameter moreinfo="none">attribmax</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
@@ -1488,18 +1525,18 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+	    <ListItem><Para>The target field's requested attribute range, or DBI_ATTRIBUTE_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-field-attrib-idx" XRefLabel="dbi_result_get_field_attrib_idx"><Title>dbi_result_get_field_attrib_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_field_attrib_idx</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_field_attrib_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">attribmin</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">attribmax</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">attribmin</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">attribmax</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Returns the target field's data type attributes in the specified range. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
@@ -1515,14 +1552,14 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's requested attribute range.</Para></ListItem>
+	    <ListItem><Para>The target field's requested attribute range, or DBI_ATTRIBUTE_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-field-attribs" XRefLabel="dbi_result_get_field_attribs"><Title>dbi_result_get_field_attribs</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_field_attribs</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_field_attribs</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
@@ -1538,16 +1575,16 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's attributes.</Para></ListItem>
+	    <ListItem><Para>The target field's attributes, or DBI_ATTRIBUTE_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-field-attribs-idx" XRefLabel="dbi_result_get_field_attribs_idx"><Title>dbi_result_get_field_attribs_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_field_attribs_idx</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_field_attribs_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Returns the target field's data type attributes. The constants returned by this function are defined in dbi.h with the prefix "DBI_", followed by the name of the field's datatype.</Para>
@@ -1556,22 +1593,70 @@ published by the Free Software Foundation.
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The target field's attributes.</Para></ListItem>
+	    <ListItem><Para>The target field's attributes, or DBI_ATTRIBUTE_ERROR in case of an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-field-is-null" XRefLabel="dbi_result_field_is_null"><Title>dbi_result_field_is_null</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_field_is_null</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Determines whether the indicated field contains a NULL value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the target field.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0 (zero), or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-field-is-null-idx" XRefLabel="dbi_result_field_is_null_idx"><Title>dbi_result_field_is_null_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_field_is_null_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Determines whether the indicated field contains a NULL value.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0 (zero), or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
     </section>
+
+
     <section id="reference-field">
       <title>Retrieving Field Data by Name</title>
       <Section id="dbi-result-get-fields" XRefLabel="dbi_result_get_fields"><Title>dbi_result_get_fields</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>int <function>dbi_result_get_fields</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_fields</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">format</parameter></paramdef>
 	    <paramdef><parameter moreinfo="none">...</parameter></paramdef>
@@ -1580,11 +1665,12 @@ published by the Free Software Foundation.
 	<Para>Fetch multiple fields from the current result set, using a printf-like syntax. The formatter string specified field names and types, and each field's associated destination variable is passed as an argument following the format string. Fields in the formatter string are separated by spaces, and follow the format <Literal>"a.%b"</Literal>, where "a" is the name of the field, and "b" is the field type specifier. Make sure you pass the destination variables' memory addresses by prepending the &amp; operator to each variable's name.</Para>
 	<Para><Emphasis>Field type specifiers:</Emphasis></Para>
 	<ItemizedList>
-	  <ListItem><Para><Literal>%c / %uc</Literal>: A signed/unsigned character</Para></ListItem>
-	  <ListItem><Para><Literal>%h / %uh</Literal>: A signed/unsigned short integer</Para></ListItem>
-	  <ListItem><Para><Literal>%l / %ul</Literal>: A signed/unsigned long integer</Para></ListItem>
-	  <ListItem><Para><Literal>%i / %ui</Literal>: A signed/unsigned long integer</Para></ListItem>
-	  <ListItem><Para><Literal>%L / %uL</Literal>: A signed/unsigned long long integer</Para></ListItem>
+	  <ListItem><Para><Literal>%c / %uc</Literal>: A signed/unsigned character (1-byte)</Para></ListItem>
+	  <ListItem><Para><Literal>%h / %uh</Literal>: A signed/unsigned short integer (2-byte)</Para></ListItem>
+	  <!-- longs are 4-byte ints , but d is already taken -->
+	  <ListItem><Para><Literal>%l / %ul</Literal>: A signed/unsigned integer (4-byte)</Para></ListItem>
+	  <ListItem><Para><Literal>%i / %ui</Literal>: A signed/unsigned integer (4-byte)</Para></ListItem>
+	  <ListItem><Para><Literal>%L / %uL</Literal>: A signed/unsigned long long integer (8-byte)</Para></ListItem>
 	  <ListItem><Para><Literal>%f</Literal>: A floating point number</Para></ListItem>
 	  <ListItem><Para><Literal>%d</Literal>: A double-precision number</Para></ListItem>
 	  <ListItem><Para><Literal>%s</Literal>: A read-only string</Para></ListItem>
@@ -1605,14 +1691,14 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of fields fetched, or -1 if there was an error. If an invalid field name was specified it will not cause -1 to be returned, and the other fetched fields will work as usual.</Para></ListItem>
+	    <ListItem><Para>The number of fields fetched, or DBI_FIELD_ERROR if there was an error. If an invalid field name was specified it will not raise an error, and the other fetched fields will work as usual.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-bind-fields" XRefLabel="dbi_result_bind_fields"><Title>dbi_result_bind_fields</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>int <function>dbi_result_bind_fields</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_bind_fields</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">format</parameter></paramdef>
 	    <paramdef><parameter moreinfo="none">...</parameter></paramdef>
@@ -1630,19 +1716,19 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of field binding set up, or -1 if there was an error.</Para></ListItem>
+	    <ListItem><Para>The number of field binding set up, or DBI_FIELD_ERROR if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
       <Section id="dbi-result-get-char" XRefLabel="dbi_result_get_char"><Title>dbi_result_get_char</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>signed <function>char dbi_result_get_char</function></funcdef>
+	    <funcdef>signed char <function>dbi_result_get_char</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a character (a 1-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a character (a 1-byte signed integer). This is the default for the "char" type on the x86 platform, as well as on Mac OS X.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1665,7 +1751,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned character (1-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned character (1-byte unsigned integer). This is the default for the "char" type on Linux for PowerPC.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1688,7 +1774,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">const char *fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a short integer (2-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a short integer (2-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1711,7 +1797,53 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer (2-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer (2-byte unsigned integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-int" XRefLabel="dbi_result_get_int"><Title>dbi_result_get_int</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_get_int</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an integer (4-byte signed integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-uint" XRefLabel="dbi_result_get_uint"><Title>dbi_result_get_uint</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_uint</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned integer (4-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1729,48 +1861,22 @@ published by the Free Software Foundation.
       <Section id="dbi-result-get-long" XRefLabel="dbi_result_get_long"><Title>dbi_result_get_long</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>long <function>dbi_result_get_long</function></funcdef>
+	    <funcdef>int <function>dbi_result_get_long</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a long integer (4-byte integer).</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>This is the same as <xref linkend="dbi-result-get-int">. The use of this function is deprecated as the name implies the wrong return type on 64-bit platforms.</Para>
       </Section>
       <Section id="dbi-result-get-ulong" XRefLabel="dbi_result_get_ulong"><Title>dbi_result_get_ulong</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_ulong</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_ulong</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned long integer (4-byte integer).</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>This is the same as <xref linkend="dbi-result-get-uint">. The use of this function is deprecated as the name implies the wrong return type on 64-bit platforms.</Para>
       </Section>
       <Section id="dbi-result-get-longlong" XRefLabel="dbi_result_get_longlong"><Title>dbi_result_get_longlong</Title>
 	<funcsynopsis>
@@ -1780,7 +1886,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a long long integer (8-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a long long integer (8-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1803,7 +1909,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer (8-byte integer).</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer (8-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1837,7 +1943,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field, which contains a fractional number.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1872,7 +1978,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a zero-terminated string. If the field contains a NULL value, the function returns a NULL pointer. The string may not be modified, and may not necessairly persist between row fetches. In case of an error, this function returns the string "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1883,30 +1989,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
-      </Section>
-      <Section id="dbi-result-get-binary" XRefLabel="dbi_result_get_binary"><Title>dbi_result_get_binary</Title>
-	<funcsynopsis>
-	  <funcprototype>
-	    <funcdef>const unsigned char *<function>dbi_result_get_binary</function></funcdef>
-	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
-	  </funcprototype>
-	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field, which is a zero-terminated string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1918,7 +2001,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a zero-terminated string. If the field contains a NULL value, the function returns a NULL pointer, and no memory is allocated. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string. In case of an error, this function returns an allocated string reading "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1929,7 +2012,30 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field as a zero-terminated allocated string.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary" XRefLabel="dbi_result_get_binary"><Title>dbi_result_get_binary</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const unsigned char *<function>dbi_result_get_binary</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary data. The data may not be modified, and may not necessarily persist between row fetches. If the field contains a NULL value, the function returns a NULL pointer. In case of an error, this function returns the string "ERROR".</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to fetch.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field. The binary data may contain zero bytes and non-printable characters. Use <xref linkend="dbi-result-get-field-length"> or <xref linkend="dbi-result-get-field-length-idx"> to determine the number of bytes contained in the resulting binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1941,7 +2047,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains binary data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data. If the field contains a NULL value, the function returns a NULL pointer. In case of an error, this function returns the string "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -1952,7 +2058,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field. The binary data may contain zero bytes and non-printable characters. Use <xref linkend="dbi-result-get-field-length"> or <xref linkend="dbi-result-get-field-length-idx"> to determine the number of bytes contained in the resulting binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1977,7 +2083,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field as a time_t value. To convert this into human-readable dates or times, use the C library functions gmtime (3) and localtime (3).</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1990,7 +2096,7 @@ published by the Free Software Foundation.
 	    <paramdef>char *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds a character (1-byte integer).</Para>
+	<Para>Bind the specified variable to the specified field, which holds a character (a 1-byte signed integer). This is the default for the "char" type on the x86 platform, as well as on Mac OS X.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2002,7 +2108,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2015,7 +2121,7 @@ published by the Free Software Foundation.
 	    <paramdef>unsigned char *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds an unsigned character.</Para>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned character (1-byte unsigned integer). This is the default for the "char" type on Linux for PowerPC.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2027,7 +2133,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2040,7 +2146,7 @@ published by the Free Software Foundation.
 	    <paramdef>short *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds a short integer (2-byte integer).</Para>
+	<Para>Bind the specified variable to the specified field, which holds a short integer (2-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2052,7 +2158,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2065,7 +2171,7 @@ published by the Free Software Foundation.
 	      <paramdef>unsigned short *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds an unsigned short integer (2-byte integer).</Para>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned short integer (2-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2077,7 +2183,57 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-int" XRefLabel="dbi_result_bind_int"><Title>dbi_result_bind_int</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_int</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	    <paramdef>long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an integer (4-byte signed integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-bind-uint" XRefLabel="dbi_result_bind_uint"><Title>dbi_result_bind_uint</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_bind_uint</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	     <paramdef>const char *<parameter moreinfo="none">fieldname</parameter></paramdef>
+	      <paramdef>unsigned long *<parameter moreinfo="none">bindto</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned long integer (4-byte unsigned integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
+	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2090,21 +2246,7 @@ published by the Free Software Foundation.
 	    <paramdef>long *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds a long integer (4-byte integer).</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
-	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>The same as <xref linkend="dbi-result-bind-int">. The use of this function is deprecated as the name implies the wrong return type on 64-bit platforms.</Para>
       </Section>
       <Section id="dbi-result-bind-ulong" XRefLabel="dbi_result_bind_ulong"><Title>dbi_result_bind_ulong</Title>
 	<funcsynopsis>
@@ -2115,21 +2257,7 @@ published by the Free Software Foundation.
 	      <paramdef>unsigned long *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds an unsigned long integer (4-byte integer).</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>fieldname</Literal>: The name of the field to bind to.</Para>
-	      <Para><Literal>bindto</Literal>: A pointer to the variable that will be updated with the specified field's value.</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>The same as <xref linkend="dbi-result-bind-uint">. The use of this function is deprecated as the name implies the wrong return type on 64-bit platforms.</Para>
       </Section>
       <Section id="dbi-result-bind-longlong" XRefLabel="dbi_result_bind_longlong"><Title>dbi_result_bind_longlong</Title>
 	<funcsynopsis>
@@ -2140,7 +2268,7 @@ published by the Free Software Foundation.
 	    <paramdef>long long *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds a long long integer (8-byte integer).</Para>
+	<Para>Bind the specified variable to the specified field, which holds a long long integer (8-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2152,7 +2280,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2165,7 +2293,7 @@ published by the Free Software Foundation.
 	    <paramdef>unsigned long long *<parameter moreinfo="none">bindto</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Bind the specified variable to the specified field, which holds an unsigned long long integer (8-byte integer).</Para>
+	<Para>Bind the specified variable to the specified field, which holds an unsigned long long integer (8-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -2177,7 +2305,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2202,7 +2330,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2227,7 +2355,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2252,7 +2380,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_ERROR if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2277,7 +2405,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_BINARY if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2302,7 +2430,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_BINARY if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2327,7 +2455,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_BINARY if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -2354,11 +2482,13 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 upon success, -1 if there was an error</Para></ListItem>
+	    <ListItem><Para>0 upon success, DBI_BIND_BINARY if there was an error</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
     </section>
+
+
     <section id="reference-field-idx">
       <title>Retrieving Field Data by Index</title>
       <Section id="dbi-result-get-char-idx" XRefLabel="dbi_result_get_char_idx"><Title>dbi_result_get_char_idx</Title>
@@ -2366,16 +2496,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>signed char <function>dbi_result_get_char_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a character.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a character (a 1-byte signed integer). This is the default for the "char" type on the x86 platform, as well as on Mac OS X.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2389,16 +2519,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>unsigned char <function>dbi_result_get_uchar_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned character.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned character (1-byte unsigned integer). This is the default for the "char" type on Linux for PowerPC.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2412,16 +2542,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>short <function>dbi_result_get_short_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a short integer.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a short integer (2-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2435,16 +2565,62 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>unsigned short <function>dbi_result_get_ushort_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned short integer (2-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-int-idx" XRefLabel="dbi_result_get_int_idx"><Title>dbi_result_get_int_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_result_get_int_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an integer (4-byte signed integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-uint-idx" XRefLabel="dbi_result_get_uint_idx"><Title>dbi_result_get_uint_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_result_get_uint_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned integer (4-byte signed integer).</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2456,64 +2632,38 @@ published by the Free Software Foundation.
       <Section id="dbi-result-get-long-idx" XRefLabel="dbi_result_get_long_idx"><Title>dbi_result_get_long_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>long <function>dbi_result_get_long_idx</function></funcdef>
+	    <funcdef>int <function>dbi_result_get_long_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a long integer.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>Same as <xref linkend="dbi-result-get-int-idx">. This function is deprecated as the name implies the wrong return type on 64bit platforms.</Para>
       </Section>
       <Section id="dbi-result-get-ulong-idx" XRefLabel="dbi_result_get_ulong_idx"><Title>dbi_result_get_ulong_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned long <function>dbi_result_get_ulong_idx</function></funcdef>
+	    <funcdef>unsigned int <function>dbi_result_get_ulong_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned long integer.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
+	<Para>Same as <xref linkend="dbi-result-get-uint-idx">. This function is deprecated as the name implies the wrong return type on 64bit platforms.</Para>
       </Section>
       <Section id="dbi-result-get-longlong-idx" XRefLabel="dbi_result_get_longlong_idx"><Title>dbi_result_get_longlong_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
 	    <funcdef>long long <function>dbi_result_get_longlong_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a long long integer.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a long long integer (8-byte signed integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2527,16 +2677,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>unsigned long long <function>dbi_result_get_ulonglong_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains an unsigned long long integer (8-byte unsigned integer).</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2550,7 +2700,7 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>float <function>dbi_result_get_float_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Fetch the data stored in the speficied field, which contains a floating-point number.</Para>
@@ -2559,7 +2709,7 @@ published by the Free Software Foundation.
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2573,7 +2723,7 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>double <function>dbi_result_get_double_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Fetch the data stored in the speficied field, which contains a double-precision fractional number.</Para>
@@ -2582,7 +2732,7 @@ published by the Free Software Foundation.
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2596,39 +2746,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>const char *<function>dbi_result_get_string_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a string. The string may not be modified, and may not necessairly persist between row fetches.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a zero-terminated string. If the field contains a NULL value, the function returns a NULL pointer. The string may not be modified, and may not necessairly persist between row fetches. In case of an error, this function returns the string "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
-	    </ListItem>
-	  </VarListEntry>
-	  <VarListEntry>
-	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
-	  </VarListEntry>
-	</VariableList>
-      </Section>
-      <Section id="dbi-result-get-binary-idx" XRefLabel="dbi_result_get_binary_idx"><Title>dbi_result_get_binary_idx</Title>
-	<funcsynopsis>
-	  <funcprototype>
-	    <funcdef>const unsigned char *<function>dbi_result_get_binary_idx</function></funcdef>
-	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
-	  </funcprototype>
-	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The data may not be modified, and may not necessarily persist between row fetches.</Para>
-	<VariableList>
-	  <VarListEntry>
-	    <term>Arguments</term>
-	    <ListItem>
-	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2642,16 +2769,16 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>char *<function>dbi_result_get_string_copy_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains a string. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains a zero-terminated string. If the field contains a NULL value, the function returns a NULL pointer, and no memory is allocated. The newly allocated string may be modified by the host program, but the program is responsible for freeing the string. In case of an error, this function returns an allocated string reading "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2660,21 +2787,44 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	</VariableList>
       </Section>
-      <Section id="dbi-result-get-binary-copy-idx" XRefLabel="dbi_result_get_binary_copy_idx"><Title>dbi_result_get_binary_copy_idx</Title>
+      <Section id="dbi-result-get-binary-idx" XRefLabel="dbi_result_get_binary_idx"><Title>dbi_result_get_binary_idx</Title>
 	<funcsynopsis>
 	  <funcprototype>
-	    <funcdef>unsigned char *<function>dbi_result_get_binary_copy_idx</function></funcdef>
+	    <funcdef>const unsigned char *<function>dbi_result_get_binary_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Fetch the data stored in the speficied field, which contains binary BLOB data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data.</Para>
+	<Para>Fetch the data stored in the speficied field, which contains binary data. The data may not be modified, and may not necessarily persist between row fetches. If the field contains a NULL value, the function returns a NULL pointer. In case of an error, this function returns the string "ERROR".</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The data stored in the specified field. The binary data may contain zero bytes and non-printable characters. Use <xref linkend="dbi-result-get-field-length"> or <xref linkend="dbi-result-get-field-length-idx"> to determine the number of bytes contained in the resulting binary string.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-result-get-binary-copy-idx" XRefLabel="dbi_result_get_binary_copy_idx"><Title>dbi_result_get_binary_copy_idx</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned char *<function>dbi_result_get_binary_copy_idx</function></funcdef>
+	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetch the data stored in the speficied field, which contains binary data. The newly allocated memory may be modified by the host program, but the program is responsible for freeing the data. If the field contains a NULL value, the function returns a NULL pointer. In case of an error, this function returns the string "ERROR".</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Result</Literal>: The target query result.</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
@@ -2690,7 +2840,7 @@ published by the Free Software Foundation.
 	  <funcprototype>
 	    <funcdef>time_t <function>dbi_result_get_datetime_idx</function></funcdef>
 	    <paramdef>dbi_result <parameter moreinfo="none">Result</parameter></paramdef>
-	    <paramdef>unsigned long <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">fieldidx</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Fetch the data stored in the specified field, which contains a DATE and/or TIME value.</Para>
@@ -2699,12 +2849,12 @@ published by the Free Software Foundation.
 	    <term>Arguments</term>
 	    <ListItem>
 	      <Para><Literal>Result</Literal>: The target query result.</Para>
-	      <Para><Literal>idx</Literal>: The index of the target field (starting at 1).</Para>
+	      <Para><Literal>fieldidx</Literal>: The index of the target field (starting at 1).</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The data stored in the specified field.</Para></ListItem>
+	    <ListItem><Para>The data stored in the specified field as a time_t value. To convert this into human-readable dates or times, use the C library functions gmtime (3) and localtime (3).</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
