@@ -46,7 +46,7 @@ dbi_result_t *dbd_query_null(dbi_conn_t *conn, const unsigned char *statement, s
 size_t dbd_quote_string(dbi_driver_t *driver, const char *orig, char *dest);
 const char* dbd_encoding_from_iana(const char *iana_encoding);
 const char* dbd_encoding_to_iana(const char *iana_encoding);
-char *dbd_select_db(dbi_conn_t *conn, const char *db);
+const char *dbd_select_db(dbi_conn_t *conn, const char *db);
 int dbd_geterror(dbi_conn_t *conn, int *errno, char **errstr);
 unsigned long long dbd_get_seq_last(dbi_conn_t *conn, const char *sequence);
 unsigned long long dbd_get_seq_next(dbi_conn_t *conn, const char *sequence);
@@ -66,8 +66,8 @@ dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned lon
 void _dbd_register_driver_cap(dbi_driver_t *driver, const char *capname, int value);
 void _dbd_register_conn_cap(dbi_conn_t *conn, const char *capname, int value);
 int _dbd_result_add_to_conn(dbi_result_t *result);
-time_t _dbd_parse_datetime(const char *raw, unsigned long attribs);
-size_t _dbd_quote_chars(char *dest, const char *orig, size_t orig_size, const char *toescape);
+time_t _dbd_parse_datetime(const char *raw, unsigned int attribs);
+size_t _dbd_escape_chars(char *dest, const char *orig, size_t orig_size, const char *toescape);
 size_t _dbd_encode_binary(const unsigned char *in, size_t n, unsigned char *out);
 size_t _dbd_decode_binary(const unsigned char *in, unsigned char *out);
 
