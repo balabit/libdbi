@@ -911,7 +911,7 @@ dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, si
 
 int dbi_conn_select_db(dbi_conn Conn, const char *db) {
 	dbi_conn_t *conn = Conn;
-	char *retval;
+	const char *retval;
 	
 	if (!conn) return -1;
 	
