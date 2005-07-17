@@ -7,23 +7,117 @@
     </Para>
     <para>String data may be sent to and retrieved from a database using character encodings if they contain characters not covered by the ASCII character set. Most database engines support character encodings like ISO-8859-1, suitable for many European languages, or even the multibyte Unicode character sets like UTF-8. The character set used to store your data in your database is usually set by the <command moreinfo="none">CREATE DATABASE</command> command, which you have to take care of yourself. libdbi uses the connection option "encoding" to select a particular character encoding for the current connection. If you set the value to "auto", libdbi will automatically use the database character encoding as the connection encoding. If you request a different character encoding, as defined by its <ulink url="http://www.iana.org">IANA</ulink> name, libdbi will convert the data on the fly.</para>
     <Para>
-      There are two methods for fetching field data, and two ways to perform each method. You can either "pull" the data from DBI using the <Literal>dbi_result_get_*</Literal> family of functions, or have DBI automatically "push" the data into predefined variables with the <Literal>dbi_result_bind_*</Literal> family of functions.
+      There are two methods for fetching field data, and two ways to perform each method. You can either "pull" the data from DBI using the <Literal>dbi_result_get_*</Literal> family of functions, or have DBI automatically "push" the data into predefined variables with the <Literal>dbi_result_bind_*</Literal> family of functions. Both families of functions are as strongly typed as most SQL database engines are. That is, you must use the <Literal>dbi_result_get_*</Literal> or <Literal>dbi_result_bind_*</Literal> function that matches the type of the requested field. <xref linkend="table-get-bind-functions"> shows an overview of these functions sorted by the field type they retrieve.
     </Para>
     <Para>
-      Pulling the data from the database can be done with one of the "get" functions such as <XRef linkend="dbi-result-get-long"> or <XRef linkend="dbi-result-get-string">, which simply return the data in the field you asked for. You can also get more than one field at a time with <XRef linkend="dbi-result-get-fields">, which uses a printf-like syntax.
+      Pulling the data from the database can be done with one of the "get" functions such as <XRef linkend="dbi-result-get-long"> or <XRef linkend="dbi-result-get-string">, which simply return the data in the field you asked for. You should run the function <xref linkend="dbi-conn-error-flag"> immediately after each call to a "get" function to check for errors. You can also get more than one field at a time with <XRef linkend="dbi-result-get-fields">, which uses a printf-like syntax.
     </Para>
     <Para>
       If you want DBI to automatically fill your program's variables with field values whenever a new row is fetched, you can "bind" fields to your variables. Bindings are set up with <XRef linkend="dbi-result-bind-long">, <XRef linkend="dbi-result-bind-string">, and the rest of the bind family of functions. Like the associated "get" function, you can set up multiple bindings at once with the <XRef linkend="dbi-result-bind-fields"> function.
     </Para>
+    <para>String data can be safely included into query strings by using the <xref linkend="dbi-conn-quote-string"> and <xref linkend="dbi-conn-quote-string-copy"> functions. Binary data can be included into query strings by using the <xref linkend="dbi-conn-quote-binary-copy"> function. All of these functions return zero-terminated strings enclosed in the appropriate quoting characters. Binary strings are returned in their binary representation. That is, they may contain null bytes and other non-printable characters. It is mandatory to use the <xref linkend="dbi-result-get-field-length"> or <xref linkend="dbi-result-get-field-length-idx"> functions to determine the number of bytes contained in the binary string.</para>
     <Para><Emphasis>Caveats:</Emphasis></Para>
     <ItemizedList>
       <ListItem><Para>For fields holding integers (not fractional numbers), DBI differentiates between signed and unsigned variables. By default, DBI returns signed values. If you want an unsigned value, prepend a "u" to the name of the target type. For example, dbi_result_bind_short becomes dbi_result_bind_ushort.</Para></ListItem>
-      <ListItem><Para>You must set up any bindings AFTER a successful query but BEFORE you fetch any rows. Even if you are using field bindings, you can still use the dbi_result_get_* functions as usual. (actually, I lied... setting up a binding should theoretically work at any time, but don't plan on this behavior in future versions)</Para></ListItem>
-      <ListItem><Para>All string and binary data returned or bound from DBI is READ-ONLY. If you want your own local copy that can be modified at will, use <XRef linkend="dbi-result-get-string-copy">, <XRef linkend="dbi-result-get-binary-copy">, <XRef linkend="dbi-result-bind-string-copy">, or <XRef linkend="dbi-result-bind-binary-copy">. You will be responsible for freeing the memory allocated by these functions.</Para></ListItem>
+      <ListItem><Para>You must set up any bindings <emphasis>after</emphasis> a successful query but <emphasis>before</emphasis> you fetch any rows. Even if you are using field bindings, you can still use the dbi_result_get_* functions as usual. (actually, I lied... setting up a binding should theoretically work at any time, but don't plan on this behavior in future versions)</Para></ListItem>
+      <ListItem><Para>All string and binary data returned or bound from DBI is <emphasis>read-only</emphasis>. If you want your own local copy that can be modified at will, use <XRef linkend="dbi-result-get-string-copy">, <XRef linkend="dbi-result-get-binary-copy">, <XRef linkend="dbi-result-bind-string-copy">, or <XRef linkend="dbi-result-bind-binary-copy">. You will be responsible for freeing the memory allocated by these functions.</Para></ListItem>
     </ItemizedList>
     <Para>
       <XRef linkend="dbi-result-next-row"> and the other row-seeking functions will return zero when there are no more rows available. Before the next database operation is performed, you must call <XRef linkend="dbi-result-free">.  Before the program terminates, the connection must be disconnected and unloaded with <XRef linkend="dbi-conn-close"> and libdbi must be unloaded with <XRef linkend="dbi-shutdown">.
     </Para>
+    <table id="table-get-bind-functions">
+      <title>get* and bind* functions sorted by field type</title>
+      <tgroup cols="4">
+	<thead>
+	  <row>
+	    <entry>field type</entry>
+	    <entry>get by name</entry>
+	    <entry>get by field index</entry>
+	    <entry>bind</entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>signed char</entry>
+	    <entry><xref linkend="dbi-result-get-char"></entry>
+	    <entry><xref linkend="dbi-result-get-char-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-char"></entry>
+	  </row>
+	  <row>
+	    <entry>unsigned char</entry>
+	    <entry><xref linkend="dbi-result-get-uchar"></entry>
+	    <entry><xref linkend="dbi-result-get-uchar-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-uchar"></entry>
+	  </row>
+	  <row>
+	    <entry>short</entry>
+	    <entry><xref linkend="dbi-result-get-short"></entry>
+	    <entry><xref linkend="dbi-result-get-short-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-short"></entry>
+	  </row>
+	  <row>
+	    <entry>unsigned short</entry>
+	    <entry><xref linkend="dbi-result-get-ushort"></entry>
+	    <entry><xref linkend="dbi-result-get-ushort-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-ushort"></entry>
+	  </row>
+	  <row>
+	    <entry>int</entry>
+	    <entry><xref linkend="dbi-result-get-int"></entry>
+	    <entry><xref linkend="dbi-result-get-int-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-int"></entry>
+	  </row>
+	  <row>
+	    <entry>unsigned int</entry>
+	    <entry><xref linkend="dbi-result-get-uint"></entry>
+	    <entry><xref linkend="dbi-result-get-uint-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-uint"></entry>
+	  </row>
+	  <row>
+	    <entry>long long</entry>
+	    <entry><xref linkend="dbi-result-get-longlong"></entry>
+	    <entry><xref linkend="dbi-result-get-longlong-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-longlong"></entry>
+	  </row>
+	  <row>
+	    <entry>unsigned long long</entry>
+	    <entry><xref linkend="dbi-result-get-ulonglong"></entry>
+	    <entry><xref linkend="dbi-result-get-ulonglong-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-ulonglong"></entry>
+	  </row>
+	  <row>
+	    <entry>float</entry>
+	    <entry><xref linkend="dbi-result-get-float"></entry>
+	    <entry><xref linkend="dbi-result-get-float-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-float"></entry>
+	  </row>
+	  <row>
+	    <entry>double</entry>
+	    <entry><xref linkend="dbi-result-get-double"></entry>
+	    <entry><xref linkend="dbi-result-get-double-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-double"></entry>
+	  </row>
+	  <row>
+	    <entry>character string</entry>
+	    <entry><xref linkend="dbi-result-get-string">, <xref linkend="dbi-result-get-string-copy"></entry>
+	    <entry><xref linkend="dbi-result-get-string-idx">, <xref linkend="dbi-result-get-string-copy-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-string"></entry>
+	  </row>
+	  <row>
+	    <entry>binary string</entry>
+	    <entry><xref linkend="dbi-result-get-binary">, <xref linkend="dbi-result-get-binary-copy"></entry>
+	    <entry><xref linkend="dbi-result-get-binary-idx">, <xref linkend="dbi-result-get-binary-copy-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-binary"></entry>
+	  </row>
+	  <row>
+	    <entry>date/time</entry>
+	    <entry><xref linkend="dbi-result-get-datetime"></entry>
+	    <entry><xref linkend="dbi-result-get-datetime-idx"></entry>
+	    <entry><xref linkend="dbi-result-bind-datetime"></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
   </Section>
 
 <!--
