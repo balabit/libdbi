@@ -123,9 +123,9 @@ typedef struct dbi_functions_s {
 	size_t (*quote_string)(dbi_driver_t_pointer, const char *, char *);
 	size_t (*conn_quote_string)(dbi_conn_t_pointer, const char *, char *);
 	size_t (*quote_binary)(dbi_conn_t_pointer, const char *, size_t, char **);
-        const char* (*encoding_to_iana)(const char *);
-        const char* (*encoding_from_iana)(const char *);
-	char *(*select_db)(dbi_conn_t_pointer, const char *);
+        const char *(*encoding_to_iana)(const char *);
+        const char *(*encoding_from_iana)(const char *);
+	const char *(*select_db)(dbi_conn_t_pointer, const char *);
 	int (*geterror)(dbi_conn_t_pointer, int *, char **);
 	unsigned long long (*get_seq_last)(dbi_conn_t_pointer, const char *);
 	unsigned long long (*get_seq_next)(dbi_conn_t_pointer, const char *);
