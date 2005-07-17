@@ -166,7 +166,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
+	    <ListItem><Para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -194,7 +194,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The quoted string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
+	    <ListItem><Para>The quoted string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -750,7 +750,7 @@ published by the Free Software Foundation.
 	    <varlistentry>
 	      <term><emphasis>Returns</emphasis></term>
 	      <listitem>
-		<para>0 (zero) means the previous query finished without errors. A value larger than zero means an error occurred.</para>
+		<para>0 means the previous query finished without errors. A value larger than zero means an error occurred.</para>
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
@@ -985,7 +985,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>An integer value corresponding to the ID that was created by the last <command moreinfo="none">INSERT</command> command, or 0 (zero) if the database engine does not support this feature.</para>
+	      <para>An integer value corresponding to the ID that was created by the last <command moreinfo="none">INSERT</command> command, or 0 if the database engine does not support this feature.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1009,7 +1009,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>1 if the connection is alive. Otherwise the function returns 0 (zero).</para>
+	      <para>1 if the connection is alive. Otherwise the function returns 0.</para>
 	      <note>
 		<para>Database drivers may attempt to reconnect automatically if this function is called. If the reconnect is successful, this function will also return 1, as if the connection never had gone down.</para>
 	      </note>
@@ -1038,7 +1038,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error. The length of a quoted empty string is 2 bytes.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1066,7 +1066,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1096,7 +1096,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 (zero) in case of an error.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1162,7 +1162,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1183,7 +1183,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1204,7 +1204,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1225,7 +1225,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if successful, or 0 (zero) if there is an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 if there is an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1246,7 +1246,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if successful, or 0 (zero) if there was an error.</Para></ListItem>
+	    <ListItem><Para>1 if successful, or 0 if there was an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1267,7 +1267,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The ordinal number of the row, or 0 (zero) if there was an error. The first row has the number 1.</Para></ListItem>
+	    <ListItem><Para>The ordinal number of the row, or 0 if there was an error. The first row has the number 1.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1288,7 +1288,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of rows in the result set, which may be 0 (zero) if the query did not return any datasets, or DBI_ROW_ERROR in case of an error.</Para></ListItem>
+	    <ListItem><Para>The number of rows in the result set, which may be 0 if the query did not return any datasets, or DBI_ROW_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1309,7 +1309,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The number of modified rows in the result set which may be 0 (zero) if no row was affected by the previous query. Also returns 0 if the database engine does not support this feature. The return value will be DBI_ROW_ERROR in case of an error.</Para></ListItem>
+	    <ListItem><Para>The number of modified rows in the result set which may be 0 if no row was affected by the previous query. Also returns 0 if the database engine does not support this feature. The return value will be DBI_ROW_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1337,7 +1337,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 (zero) for field types other than string or binary string.</Para></ListItem>
+	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 for field types other than string or binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1360,7 +1360,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 (zero) for field types other than string or binary string.</Para></ListItem>
+	    <ListItem><Para>The length in bytes of the target field data, excluding the terminating zero byte, or DBI_LENGTH_ERROR in case of an error. The return value is 0 for field types other than string or binary string.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1409,7 +1409,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The index (starting at 1) of the target field, or 0 (zero) in case of an error.</Para></ListItem>
+	    <ListItem><Para>The index (starting at 1) of the target field, or 0 in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1621,7 +1621,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0 (zero), or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
+	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0, or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1644,7 +1644,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0 (zero), or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
+	    <ListItem><Para>1 if the field contains a NULL value, otherwise 0, or DBI_FIELD_FLAG_ERROR in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
