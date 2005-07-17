@@ -19,7 +19,7 @@
   7pi)
 
 (define %bottom-margin%
-  2pi)
+  10pi)
 
 (define %footer-margin%
   4pi)
@@ -90,6 +90,18 @@
 ;;Define the body width. (Change the elements in the formula rather
 ;;than the formula itself)
 ;;(define %body-width% (- %text-width% %body-start-indent%))
+
+;; print varlistentry terms boldface so they stand out
+(element (varlistentry term)
+    (make paragraph
+	  space-before: (if (first-sibling?)
+			    %block-sep%
+			    0pt)
+	  keep-with-next?: #t
+	  first-line-start-indent: 0pt
+	  start-indent: (inherited-start-indent)
+	  font-weight: 'bold
+	  (process-children)))
 
 </style-specification-body>
 </style-specification>
