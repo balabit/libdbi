@@ -40,6 +40,14 @@ typedef void * dbi_result;
 /* other type definitions */
 typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM, DBI_ERROR_BADPTR } dbi_error_flag;
 
+/* some _MAX definitions. The size_t hack may not be portable */
+#ifndef SIZE_T_MAX
+#  define SIZE_T_MAX UINT_MAX
+#endif
+#ifndef ULLONG_MAX
+#  define ULLONG_MAX ULONG_LONG_MAX
+#endif
+
 typedef struct {
 	unsigned char month;
 	unsigned char day;
