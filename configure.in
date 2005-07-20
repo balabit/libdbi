@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/dbi_main.c)
 AM_MAINTAINER_MODE
 
-AM_INIT_AUTOMAKE(libdbi, 0.8.0-pre1)
+AM_INIT_AUTOMAKE(libdbi, 0.8.0-pre2)
 AM_CONFIG_HEADER(config.h)
 
 dnl Library versioning
@@ -54,17 +54,17 @@ else
 
         case $host in
         *-*-linux*)
-                DEBUG="-g -Wall -D_REENTRANT -D__NO_MATH_INLINES -fsigned-char"
-                CFLAGS="-O20 -ffast-math -D_REENTRANT -fsigned-char"
-                PROFILE="-pg -g -O20 -ffast-math -D_REENTRANT -fsigned-char";;
+                DEBUG="-g -Wall -D_REENTRANT -D__NO_MATH_INLINES -fsigned-char -std=gnu99"
+                CFLAGS="-O20 -ffast-math -D_REENTRANT -fsigned-char -std=gnu99"
+                PROFILE="-pg -g -O20 -ffast-math -D_REENTRANT -fsigned-char -std=gnu99";;
         sparc-sun-*)
-                DEBUG="-g -Wall -D__NO_MATH_INLINES -fsigned-char -mv8"
-                CFLAGS="-O20 -ffast-math -D__NO_MATH_INLINES -fsigned-char -mv8"
-                PROFILE="-pg -g -O20 -D__NO_MATH_INLINES -fsigned-char -mv8" ;;
+                DEBUG="-g -Wall -D__NO_MATH_INLINES -fsigned-char -mv8 -std=gnu99"
+                CFLAGS="-O20 -ffast-math -D__NO_MATH_INLINES -fsigned-char -mv8 -std=gnu99"
+                PROFILE="-pg -g -O20 -D__NO_MATH_INLINES -fsigned-char -mv8 -std=gnu99" ;;
         *)
-                DEBUG="-g -Wall -D__NO_MATH_INLINES -fsigned-char"
-                CFLAGS="-O20 -D__NO_MATH_INLINES -fsigned-char"
-                PROFILE="-O20 -g -pg -D__NO_MATH_INLINES -fsigned-char" ;;
+                DEBUG="-g -Wall -D__NO_MATH_INLINES -fsigned-char -std=gnu99"
+                CFLAGS="-O20 -D__NO_MATH_INLINES -fsigned-char -std=gnu99"
+                PROFILE="-O20 -g -pg -D__NO_MATH_INLINES -fsigned-char -std=gnu99" ;;
         esac
 fi
 
