@@ -6,11 +6,11 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
 doc_DATA = programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
 
-EXTRA_DIST = $(doc_DATA)
-
 programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-program.sgml libdbi-quickstart.sgml
 
 driver_sources = driver-guide.sgml 
+
+EXTRA_DIST = $(doc_DATA) $(programmers_sources) $(driver_sources)
 
 all: programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
 
