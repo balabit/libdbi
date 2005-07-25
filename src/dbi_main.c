@@ -77,6 +77,14 @@ static const char * dyld_dlerror();
 #define DLSYM_PREFIX ""
 #endif
 
+/* declarations of optional external functions */
+#ifndef HAVE_VASPRINTF
+int int_vasprintf(char **result, const char *format, va_list *args);
+#endif
+#ifndef HAVE_ASPRINTF
+int asprintf(char **result, const char *format, ...);
+#endif
+
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
 static dbi_driver_t *_get_driver(const char *filename);
 static void _free_custom_functions(dbi_driver_t *driver);
@@ -743,7 +751,7 @@ const char *dbi_conn_get_option_list(dbi_conn Conn, const char *current) {
 
 void dbi_conn_clear_option(dbi_conn Conn, const char *key) {
 	dbi_conn_t *conn = Conn;
-	dbi_option_t *prevoption;
+	dbi_option_t *prevoption = NULL; /* shut up compiler */
 	dbi_option_t *option;
 	
 	if (!conn) return;
