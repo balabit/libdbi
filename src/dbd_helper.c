@@ -418,7 +418,8 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 ** not been NULL.
 */
 size_t _dbd_encode_binary(const unsigned char *in, size_t n, unsigned char *out){
-  int i, j, e, m;
+  int i, j, m;
+  int e = 0; /* shut up compiler */
   unsigned char x;
   int cnt[256];
   if( n<=0 ){
