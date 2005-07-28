@@ -60,7 +60,7 @@ int _dbd_result_add_to_conn(dbi_result_t *result) {
 }
 
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected) {
-	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
+	dbi_result_t *result = malloc(sizeof(dbi_result_t));
 	if (!result) return NULL;
 	result->conn = conn;
 	result->result_handle = handle;
@@ -150,7 +150,7 @@ void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int
 }
 
 dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned long long numrows_matched, const char **stringarray) {
-	dbi_result_t *result = (dbi_result_t *) malloc(sizeof(dbi_result_t));
+	dbi_result_t *result = malloc(sizeof(dbi_result_t));
 	unsigned long long currow = 0;
 	const int numfields = 1;
 	
@@ -216,7 +216,7 @@ static _capability_t *_find_or_create_driver_cap(dbi_driver_t *driver, const cha
 
 	if (cap == NULL) {
 		/* allocate a new node */
-		cap = (_capability_t *) malloc(sizeof(_capability_t));
+		cap = malloc(sizeof(_capability_t));
 		if (!cap) return NULL;
 		cap->name = strdup(capname);
 		cap->next = NULL;
@@ -242,7 +242,7 @@ static _capability_t *_find_or_create_conn_cap(dbi_conn_t *conn, const char *cap
 
 	if (cap == NULL) {
 		/* allocate a new node */
-		cap = (_capability_t *) malloc(sizeof(_capability_t));
+		cap = malloc(sizeof(_capability_t));
 		if (!cap) return NULL;
 		cap->next = NULL;
 		cap->name = strdup(capname);

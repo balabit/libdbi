@@ -1462,7 +1462,7 @@ static _field_binding_t *_find_or_create_binding_node(dbi_result_t *result, cons
   }
   if (!binding) {
     /* allocate a new option node */
-    binding = (_field_binding_t *) malloc(sizeof(_field_binding_t));
+    binding = malloc(sizeof(_field_binding_t));
     if (!binding) {
       return NULL;
     }
