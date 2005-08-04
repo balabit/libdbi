@@ -1,0 +1,1021 @@
+<!--
+vim:ft=sgml
+$Id$
+Copyright (C) 2001-2002, David Parker, Neon Goat Productions.
+This document is licensed under the GNU Free Documentation License, version 1.1 or later, as
+published by the Free Software Foundation.
+-->
+
+<!DOCTYPE Book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!ENTITY freedoc-license SYSTEM "include/copying-fdl.sgml">
+<!ENTITY www '<ULink url="http://libdbi.sourceforge.net">http://libdbi.sourceforge.net</ULink>'>
+
+]>
+
+<Book id="driver-guide">
+
+  <BookInfo>
+    <Title>Database Independent Abstraction Layer for C</Title>
+    <SubTitle>libdbi Driver Author's Guide</SubTitle>
+    <Author>
+      <Firstname>David</Firstname>
+      <Othername>A.</Othername>
+      <Surname>Parker</Surname>
+      <Affiliation>
+	<OrgName>Neon Goat Productions</OrgName>
+	<Address><EMail>david@neongoat.com</EMail></Address>
+      </Affiliation>
+    </Author>
+    <author>
+      <firstname>Markus</firstname>
+      <surname>Hoenicka</surname>
+      <affiliation>
+	<address format="linespecific"><email>mhoenicka@users.sourceforge.net</email></address>
+      </affiliation>
+    </author>
+    <Edition>Document revision: $Id$</Edition>
+    <PubDate>$Date$</PubDate>
+    <Copyright>
+      <Year>2001-2005</Year>
+      <Holder>David Parker, Neon Goat Productions</Holder>
+    </Copyright>
+    <LegalNotice>
+      <Para>
+	Permission is granted to copy, distribute and/or modify this
+	document under the terms of the <Link linkend="copying-FDL">
+	  <CiteTitle>GNU Free Documentation License</CiteTitle></Link>,
+	Version 1.1 or any later version published by the Free Software
+	Foundation; with no Invariant Sections, with no	Front-Cover Texts,
+	and with no Back-Cover Texts.  A copy of the license is included in
+	<XRef linkend="copying-FDL">.
+      </Para>
+    </LegalNotice>
+    <Abstract>
+      <Para>
+	libdbi implements a database-independent abstraction layer in C,
+	similar to the DBI/DBD layer in Perl. Writing one generic set of code,
+	programmers can leverage the power of multiple databases and multiple
+	simultaneous database connections by using this framework.
+      </Para>
+      <Para>
+	This guide explains the internal DBD interface for libdbi drivers, and
+	provides a reference for all available driver helper functions.
+      </Para>
+    </Abstract>
+  </BookInfo>
+
+  <Chapter id="intro"><Title>Introduction</Title>
+    <Section id="description"><Title>Description</Title>
+      <Para>
+	libdbi provides application developers with a database independent abstraction
+	layer for C. It handles the database-specific implementations for each type of
+	database, so that you can use the same exact code with any type of database server
+	that libdbi supports. You can initiate and use multiple database connections
+	simultaneously, regardless of the types of database servers you are connecting to.
+	The plugin architecture allows for new database drivers to be easily added
+	dynamically by a third party.
+      </Para>
+      <para>To aid the development of new database drivers, libdbi ships a template which contains everything you need to get started. Copy the <filename class="directory" moreinfo="none">drivers/example</filename> directory to your CVS version of the <ulink url="http://sourceforge.net/projects/libdbi-drivers">libdbi-drivers</ulink> project, rename it to the name of your database engine, and replace the string "example" by the name of your database engine in all files in that directory. This should get you pretty far. Check the name of the client library in the <filename moreinfo="none">Makefile.am</filename> and the name of the client library headers in the driver source file. Then have a peek at the existing drivers, and implement the functions in the driver source template accordingly.</para>
+    </Section>
+    <Section id="terminology"><Title>libdbi Concepts and Terminology</Title>
+      <Para>
+	In this guide, the terms <Quote>author</Quote> and <Quote>programmer</Quote> are used
+	interchangably, since the target audience is the software developer writing a driver for libdbi.
+      </Para>
+    </Section>
+    <Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
+      <Para>
+	libdbi is Copyright &copy; 2001-2005, David Parker and Mark Tobenkin.
+      </Para>
+      <Para>			
+	libdbi is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+      </Para>
+      <Para>
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+      </Para>
+      <Para>
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+      </Para>
+    </Section>
+    <Section id="contact"><Title>Contact Info</Title>
+      <Para>
+	Please email us with any bugs, ideas, feature requests, or questions. The libdbi
+	website has the latest version of this documentation and the libdbi software, as
+	well as a central database of third-party drivers.
+      </Para>
+      <ItemizedList>
+	<ListItem><Para>&www;</Para></ListItem>
+	<ListItem><Para>David Parker <EMail>david@neongoat.com</EMail></Para></ListItem>
+	<ListItem><Para>Mark Tobenkin <EMail>mark@brentwoodradio.com</EMail></Para></ListItem>
+	<listitem>
+	  <para>Markus Hoenicka <email>mhoenicka@users.sourceforge.net</email></para>
+	</listitem>
+      </ItemizedList>
+    </Section>
+  </Chapter>
+
+  <Chapter id="driverfuncs">
+    <Title>Driver Functions</Title>
+    <Section id="driverfuncs-infrastructure"><Title>Driver Infrastructure Functions</Title>
+      <para>These functions are called by libdbi at startup and when the libdbi user establishes or takes down a database engine connection.</para>
+      <Section id="dbd-register-driver" XRefLabel="dbd_register_driver"><Title>dbd_register_driver</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">dbd_register_driver</function></funcdef>
+	    <paramdef>const dbi_info_t **<parameter moreinfo="none">_driver_info</parameter></paramdef>
+	    <paramdef>const char ***<parameter moreinfo="none">_custom_functions</parameter></paramdef>
+	    <paramdef>const char ***<parameter moreinfo="none">_reserved_words</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>This is the first function called after the driver module is loaded into memory. It passes back meta-information back to libdbi through the pointers passed as arguments.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>_driver_info</Literal>: A pointer used to link to the driver's information struct.</Para>
+	      <Para><Literal>_custom_functions</Literal>: A pointer used to link to the driver's string array of custom database-specific functions.</Para>
+	      <Para><Literal>_reserved_words</Literal>: A pointer used to link to the driver's string array of reserved words.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-initialize" XRefLabel="dbd_initialize"><Title>dbd_initialize</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_initialize</function></funcdef>
+	    <paramdef>dbi_driver_t *<parameter moreinfo="none">driver</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Performs any database-specific server initialization. This is called right after dbd_register_driver().</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>driver</Literal>: The driver's pointer.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>-1 on error, 0 on success. If -1 is returned, the driver will not be added to the list of available drivers.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-connect" XRefLabel="dbd_connect"><Title>dbd_connect</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_connect</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Connects to the database, setting the connection's DB-specific connection handle and current database name. Connection parameters are already filled through the connection's option settings. The standard options that all drivers must recognize (if applicable) are: host, port, username, password, dbname, and encoding. Any driver-specific functions must be prefixed with the name of the driver and an underscore, such as "mysql_compression".</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection instance of the driver.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>&lt;0 on error, 0 on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-disconnect" XRefLabel="dbd_disconnect"><Title>dbd_disconnect</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_disconnect</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Disconnects from the database server.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection instance of the driver.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-geterror" XRefLabel="dbd_geterror"><Title>dbd_geterror</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_geterror</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>int *<parameter moreinfo="none">errno</parameter></paramdef>
+	    <paramdef>char **<parameter moreinfo="none">errstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves and stores error information, in numeric and/or string format.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>errno</Literal>: The int variable to hold the error number.</Para>
+	      <Para><Literal>errstr</Literal>: The string to hold the error description.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>0 if there was an error, 1 if errno was filled, 2 if errstr was filled, 3 if both errno and errstr were filled.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="dbd-get-socket" xreflabel="dbd_get_socket">
+	<title>dbd_get_socket</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_get_socket</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Retrieves the socket of the client/server connection used by the database client library, if applicable.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The file descriptor of the socket if successful, -1 if there was an error. Drivers of database engines that do not use sockets should return 0.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+    </Section>
+    <Section id="driverfuncs-dbquery"><Title>Internal Database Query Functions</Title>
+      <para>These functions are called by libdbi when the libdbi user runs queries and accesses their results. There are also a bunch of helper functions that deal with the character encodings as well as with string escaping and quoting.</para>
+      <Section id="dbd-goto-row" XRefLabel="dbd_goto_row"><Title>dbd_goto_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_goto_row</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">rowidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Jumps to the specifed row in the result set. Internal row counts start at 0.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result handle.</Para>
+	      <Para><Literal>row</Literal>: The target row number.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>1 on success, 0 on error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-fetch-row" XRefLabel="dbd_fetch_row"><Title>dbd_fetch_row</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_fetch_row</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">rowidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Fetches the target row, retrieving one-time field information if necessary. Also see the <xref linkend="internal-dbd-row-allocate"> and <xref linkend="internal-dbd-row-finalize"> helper functions.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result object.</Para>
+	      <Para><Literal>rowidx</Literal>: The number of the row to fetch. Internal row numbers start at zero.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>0 on error, 1 on successful fetch.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-free-query" XRefLabel="dbd_free_query"><Title>dbd_free_query</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_free_query</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Frees the target result handle.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result handle.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>0 on success.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+    </section>
+    <section id="driverfuncs-publicdbquery">
+      <title>Public Database Query Functions</title>
+      <section id="dbd-get-encoding" xreflabel="dbd_get_encoding">
+	<title>dbd_get_encoding</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function moreinfo="none">dbd_get_encoding</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Returns the character encoding used by the current connection.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A zero-terminated string containing the IANA name of the character encoding.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="dbd-encoding-to-iana" xreflabel="dbd_encoding_to_iana">
+	<title>dbd_encoding_to_iana</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function moreinfo="none">dbd_encoding_to_iana</function></funcdef>
+	    <paramdef>const char *<parameter moreinfo="none">db_encoding</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Converts the database-engine-specific name of a character encoding to the corresponging IANA name.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>db_encoding</Literal>: A pointer to a string containing the character encoding name.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A zero-terminated string containing the IANA name of the character encoding. If there is no equivalent IANA name, the original string will be returned.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="dbd-encoding-from-iana" xreflabel="dbd_encoding_from_iana">
+	<title>dbd_encoding_from_iana</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function moreinfo="none">dbd_encoding_from_iana</function></funcdef>
+	    <paramdef>const char *<parameter moreinfo="none">iana_encoding</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Converts the IANA name of a character encoding to the corresponging database-engine-specific name.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>iana_encoding</Literal>: A pointer to a string containing the character encoding name.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A zero-terminated string containing the database-engine-specific name of the character encoding. If there is no equivalent IANA name, the original string will be returned.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="dbd-get-engine-version" xreflabel="dbd_get_engine_version">
+	<title>dbd_get_engine_version</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>char *<function moreinfo="none">dbd_get_engine_version</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">versionstring</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Returns the version string of the database engine that serves the current connection.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <listitem>
+	      <para><literal moreinfo="none">conn</literal>: The current connection.</para>
+	      <Para><Literal>versionstring</Literal>: A pointer to a string that can hold at least VERSIONSTRING_LENGTH bytes, including the trailing NULL byte. The function will write the version string to this buffer.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para><parameter moreinfo="none">versionstring</parameter> which now contains a zero-terminated string representing the database engine version. This string contains only digits and periods. Returns an empty string in case of an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <Section id="dbd-list-dbs" XRefLabel="dbd_list_dbs"><Title>dbd_list_dbs</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function moreinfo="none">dbd_list_dbs</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">pattern</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Performs a query that retrieves the list of databases, with the database name as the first column in the result set. If <parameter moreinfo="none">pattern</parameter> is non-NULL, only databases whose name match <parameter moreinfo="none">pattern</parameter> are listed.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <para><literal moreinfo="none">pattern</literal>: A SQL regular expression that limits the search, or NULL to list all tables.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A DBI result object, or NULL if an error occurs.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-list-tables" XRefLabel="dbd_list_tables"><Title>dbd_list_tables</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function moreinfo="none">dbd_list_tables</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">db</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">pattern</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Performs a query that retrieves the list of tables in the specified database, with the table name as the first column in the result set. If <parameter moreinfo="none">pattern</parameter> is non-NULL, lists only the tables that match <parameter moreinfo="none">pattern</parameter>.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>db</Literal>: The name of the database where tables should be looked for.</Para>
+	      <para><literal moreinfo="none">pattern</literal>: A SQL regular expression that limits the search, or NULL to list all tables.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A DBI result object, or NULL if an error occurs.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-quote-string" XRefLabel="dbd_quote_string"><Title>dbd_quote_string</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbd_quote_string</function></funcdef>
+	    <paramdef>dbi_driver_t *<parameter moreinfo="none">driver</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">dest</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Given a string, wrap quotes around that string and escape any characters that the database server needs escaped.</Para>
+	<note>
+	  <para>The use of this function in user programs is deprecated, but drivers must still implement it at the moment. If the quoting and escaping does not depend on the connection parameters, it is perfectly legal to let your implementation of <xref linkend="dbd-conn-quote-string"> call this function (it is not possible to do it the other way). libdbi makes sure that both <parameter moreinfo="none">orig</parameter> and <parameter moreinfo="none">dest</parameter> are non-NULL before calling this function.</para>
+	</note>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>driver</Literal>: A pointer to the driver itself, which may be useful in weird cases.</Para>
+	      <Para><Literal>orig</Literal>: The string to quote and escape.</Para>
+	      <Para><Literal>dest</Literal>: The destination for the new string, which is already allocated as (strlen(orig)*2)+4+1. In the worst case, each character will need to be escaped, with two quote characters at both the beginning and end of the string, plus one for the terminating NULL.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The length of the new string.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-conn-quote-string" XRefLabel="dbd_conn_quote_string">
+	<Title>dbd_conn_quote_string</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbd_conn_quote_string</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">dest</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Given a string, wrap quotes around that string and escape any characters that the database server needs escaped.</Para>
+	<note>
+	  <para>The use of this function in user programs is preferred over <xref linkend="dbd-quote-string">. If the quoting and escaping does not depend on the connection parameters, it is perfectly legal to let your implementation of this function call <xref linkend="dbd-quote-string">. libdbi makes sure that both <parameter moreinfo="none">orig</parameter> and <parameter moreinfo="none">dest</parameter> are non-NULL before calling this function.</para>
+	</note>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: A pointer to the current connection.</Para>
+	      <Para><Literal>orig</Literal>: The string to quote and escape.</Para>
+	      <Para><Literal>dest</Literal>: The destination for the new string, which is already allocated as (strlen(orig)*2)+4+1. In the worst case, each character will need to be escaped, with two quote characters at both the beginning and end of the string, plus one for the terminating NULL.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The length of the new string.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-quote-binary" XRefLabel="dbd_quote_binary"><Title>dbd_quote_binary</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbd_quote_binary</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">from_length</parameter></paramdef>
+	    <paramdef>char **<parameter moreinfo="none">dest</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Given a binary string (which may contain NULL bytes and other non-printable characters), wrap quotes around that string and escape any characters that the database server needs escaped. If the function returns an error, *<parameter moreinfo="none">dest</parameter> is not a valid pointer to a string.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: A pointer to the current connection.</Para>
+	      <Para><Literal>orig</Literal>: The string to quote and escape.</Para>
+	      <para><literal moreinfo="none">from_length</literal>: The length, in bytes, of the binary string.</para>
+	      <Para><Literal>dest</Literal>: A pointer to the destination of the new zero-terminated string. The function allocates the required memory as required and updates the pointer that <parameter moreinfo="none">dest</parameter> points to accordingly.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The length of the new string, or DBI_LENGTH_ERROR in case of an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-query" XRefLabel="dbd_query"><Title>dbd_query</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function moreinfo="none">dbd_query</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">statement</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Performs a query and keeps track of meta-information about the query. Also see the <xref linkend="internal-dbd-result-create"> helper function.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>statement</Literal>: The zero-terminated query string to execute.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A DBI result object, or NULL on error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-query-null" XRefLabel="dbd_query_null"><Title>dbd_query_null</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function moreinfo="none">dbd_query_null</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const unsigned char *<parameter moreinfo="none">statement</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">st_length</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Performs a query using a binary query string and keeps track of meta-information about the query. Also see the <xref linkend="internal-dbd-result-create"> helper function.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>statement</Literal>: The query string to execute, which may contain NULL bytes and other non-printable characters.</Para>
+	      <para><literal moreinfo="none">st_length</literal>: The length of the binary query string.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A DBI result object, or NULL on error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbd-select-db" XRefLabel="dbd_select_db"><Title>dbd_select_db</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function moreinfo="none">dbd_select_db</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char* <parameter moreinfo="none">db</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Selects a new database on the server.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>db</Literal>: The name of the database to switch to.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The database name on success, NULL on error, or an empty string if the operation is not supported by the database server.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="dbd-get-seq-last" xreflabel="dbd_get_seq_last">
+	<title>dbd_get_seq_last</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function moreinfo="none">dbd_get_seq_last</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">sequence</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Returns the row ID generated by the last <command moreinfo="none">INSERT</command> command.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>sequence</Literal>: The name of the sequence if the database engine requires this, or NULL if it is not required.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The row ID if successful, otherwise 0.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="dbd-get-seq-next" xreflabel="dbd_get_seq_next">
+	<title>dbd_get_seq_next</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned long long <function moreinfo="none">dbd_get_seq_next</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">sequence</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Increments the sequence counter by the preset increment, and returns the resulting row ID.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>sequence</Literal>: The name of the sequence if the database engine requires this, or NULL if it is not required.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>The row ID if successful, otherwise 0. Also return 0 if the database engine does not implement this feature.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="dbd-ping" xreflabel="dbd_ping">
+	<title>dbd_ping</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbd_ping</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Checks whether the database connection is still alive.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>1 if the connection is alive, otherwise 0. This function may be implemented such that it automatically attempts to reconnect if the connection went down. If the reconnect is successful, the function should also return 1.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+    </Section>
+    <Section id="helperfuncs"><Title>DBD Helper Functions</Title>
+      <para>libdbi implements a couple of functions which come in handy when implementing database engine drivers. Call them from your driver code if appropriate.</para>
+      <Section id="internal-dbd-result-create" XRefLabel="_dbd_result_create"><Title>_dbd_result_create</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function moreinfo="none">_dbd_result_create</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>void *<parameter moreinfo="none">handle</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">numrows_matched</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">numrows_affected</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Allocates a new dbi_result_t, filling the number of rows matched and affected, storing the database-specific result handle, and allocating room for rows to be stored.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>handle</Literal>: The database-specific result handle used internally by the driver.</Para>
+	      <Para><Literal>numrows_matched</Literal>: The number of rows matched by the query.</Para>
+	      <Para><Literal>numrows_affected</Literal>: The number of rows affected by the query.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A new DBI result object.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="internal-dbd-result-set-numfields" XRefLabel="_dbd_result_set_numfields"><Title>_dbd_result_set_numfields</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_result_set_numfields</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter>numfields</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Sets a result's number of fields and allocates memory for field information to be stored.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result.</Para>
+	      <Para><Literal>numfields</Literal>: The number of fields in the result set.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="internal-dbd-result-add-field" XRefLabel="_dbd_result_add_field"><Title>_dbd_result_add_field</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_result_add_field</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">idx</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">name</parameter></paramdef>
+	    <paramdef>unsigned short <parameter moreinfo="none">type</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">attribs</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Stores information about the target field into the result set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result.</Para>
+	      <Para><Literal>idx</Literal>: The numeric field index.</Para>
+	      <Para><Literal>name</Literal>: The name of the field.</Para>
+	      <Para><Literal>type</Literal>: The datatype of the field.</Para>
+	      <Para><Literal>attribs</Literal>: The attributes of the field.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="internal-dbd-row-allocate" XRefLabel="_dbd_row_allocate"><Title>_dbd_row_allocate</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_row_t *<function moreinfo="none">_dbd_row_allocate</function></funcdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">numfields</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Allocates a new row, ready to be filled with data.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>numfields</Literal>: The number of fields in the result set.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <Term>Returns</Term>
+	    <ListItem><Para>A new DBI row, or NULL on error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="internal-dbd-row-finalize" XRefLabel="_dbd_row_finalize"><Title>_dbd_row_finalize</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_row_finalize</function></funcdef>
+	    <paramdef>dbi_result_t *<parameter moreinfo="none">result</parameter></paramdef>
+	    <paramdef>dbi_row_t *<parameter moreinfo="none">row</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter moreinfo="none">rowidx</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Associates and stores the row with the result set, once the row's data has been filled.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>result</Literal>: The target result set.</Para>
+	      <Para><Literal>row</Literal>: The target row object.</Para>
+	      <Para><Literal>rowidx</Literal>: The index of the row.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="internal-dbd-internal-error-handler" XRefLabel="_dbd_internal_error_handler"><Title>_dbd_internal_error_handler</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_internal_error_handler</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">errmsg</parameter></paramdef>
+	    <paramdef>const int <parameter moreinfo="none">errno</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Saves error message information generated by libdbi (rather than by the database or its API). If an old error message string exists, it will be freed.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>conn</Literal>: The target connection.</Para>
+	      <Para><Literal>errmsg</Literal>: The error message to store. This will be stdup'd by libdbi so it has its own copy.</Para>
+	      <Para><Literal>errno</Literal>: The error number to store.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <section id="internal-dbd-result-create-from-stringarray" xreflabel="_dbd_result_create_from_stringarray">
+	<title>_dbd_result_create_from_stringarray</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_result_t *<function>_dbd_result_create_from_stringarray</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter>conn</parameter></paramdef>
+	    <paramdef>unsigned long long <parameter>numrows_matched</parameter></paramdef>
+	    <paramdef>const char **<parameter>stringarray</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Creates a result object from an array of strings which contains the data of a single field for each row.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">conn</literal>: The target connection.</para>
+	      <Para><Literal>numrows_matched</Literal>: The number of rows contained in the <parameter>stringarray</parameter>.</Para>
+	      <Para><Literal>stringarray</Literal>: A pointer to an array of strings with <parameter>numrows_matched</parameter> members.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <varlistentry>
+	    <term><emphasis>Returns</emphasis></term>
+	    <listitem>
+	      <para>A result object, or NULL if there is an error.</para>
+	    </listitem>
+	  </varlistentry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-register-driver-cap" xreflabel="_dbd_register_driver_cap">
+	<title>_dbd_register_driver_cap</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_register_driver_cap</function></funcdef>
+	    <paramdef>dbi_driver_t *<parameter moreinfo="none">driver</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">capname</parameter></paramdef>
+	    <paramdef>int <parameter moreinfo="none">value</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Adds a key-value pair to the list of driver capabilities.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">driver</literal>: The target driver.</para>
+	      <Para><Literal>capname</Literal>: The key.</Para>
+	      <Para><Literal>value</Literal>: The value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-register-conn-cap" xreflabel="_dbd_register_conn_cap">
+	<title>_dbd_register_conn_cap</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_register_conn_cap</function></funcdef>
+	    <paramdef>dbi_conn_t *<parameter moreinfo="none">conn</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">capname</parameter></paramdef>
+	    <paramdef>int <parameter moreinfo="none">value</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Adds a key-value pair to the list of connection capabilities.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">conn</literal>: The target connection.</para>
+	      <Para><Literal>capname</Literal>: The key.</Para>
+	      <Para><Literal>value</Literal>: The value.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-parse-datetime" xreflabel="_dbd_parse_datetime">
+	<title>_dbd_parse_datetime</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>time_t <function moreinfo="none">_dbd_parse_datetime</function></funcdef>
+	    <paramdef>const char *<parameter moreinfo="none">raw</parameter></paramdef>
+	    <paramdef>unsigned int <parameter moreinfo="none">attribs</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Parses the input time, date, or datetime string and converts the value into a time_t value.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">raw</literal>: A zero-terminated string containing a time, date, or datetime value. Accepted formats are YYYY-MM-DD for date values, HH:MM:SS for time values, and YYYY-MM-DD HH:MM:SS for datetime values. The separators must be present, but can be any character.</para>
+	      <Para><Literal>attribs</Literal>: The field attributes of raw.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <varlistentry>
+	    <term><emphasis>Returns</emphasis></term>
+	    <listitem>
+	      <para>The numeric equivalent of the input based on UTC. In case of an error, this function returns the start of the Unix epoch.</para>
+	    </listitem>
+	  </varlistentry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-escape-chars" xreflabel="_dbd_escape_chars">
+	<title>_dbd_escape_chars</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function moreinfo="none">_dbd_escape_chars</function></funcdef>
+	    <paramdef>char *<parameter moreinfo="none">dest</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">orig_size</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">toescape</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Escapes the characters contained in <parameter moreinfo="none">toescape</parameter> in the string <parameter moreinfo="none">orig</parameter> and puts the result into the allocated memory pointed to by <parameter moreinfo="none">dest</parameter>. The size of <parameter moreinfo="none">dest</parameter> must be at least (<parameter moreinfo="none">orig_size</parameter>*2)+5. The characters are escaped by preceding them with a backslash.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">dest</literal>: Pointer to allocated memory which will receive the escaped string.</para>
+	      <Para><Literal>orig</Literal>: The string to escape.</Para>
+	      <Para><Literal>orig_size</Literal>: The length of the string to escape.</Para>
+	      <Para><Literal>toescape</Literal>: A string containing all characters that need escaping.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <varlistentry>
+	    <term><emphasis>Returns</emphasis></term>
+	    <listitem>
+	      <para>The length, in bytes, of the escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-encode-binary" xreflabel="_dbd_encode_binary">
+	<title>_dbd_encode_binary</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function moreinfo="none">_dbd_encode_binary</function></funcdef>
+	    <paramdef>const unsigned char *<parameter moreinfo="none">in</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">n</parameter></paramdef>
+	    <paramdef>unsigned char *<parameter moreinfo="none">out</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Encodes a binary string as a zero-terminated string which can be safely included in a SQL query. Use <xref linkend="internal-dbd-decode-binary"> to decode the string again.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">in</literal>: Pointer to the binary string.</para>
+	      <Para><Literal>n</Literal>: Length, in bytes, of the binary string <parameter moreinfo="none">in</parameter>.</Para>
+	      <Para><Literal>out</Literal>: Pointer to allocated memory which will receive the escaped string. The size must be at least 2 +(257*<parameter>n</parameter>)/254 bytes.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <varlistentry>
+	    <term><emphasis>Returns</emphasis></term>
+	    <listitem>
+	      <para>The length, in bytes, of the escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	</VariableList>
+      </section>
+      <section id="internal-dbd-decode-binary" xreflabel="_dbd_decode_binary">
+	<title>_dbd_decode_binary</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function moreinfo="none">_dbd_decode_binary</function></funcdef>
+	    <paramdef>const unsigned char *<parameter moreinfo="none">in</parameter></paramdef>
+	    <paramdef>unsigned char *<parameter moreinfo="none">out</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Decodes a zero-terminated string with escaped characters as created by <xref linkend="internal-dbd-encode-binary">.</para>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <para><literal moreinfo="none">in</literal>: Pointer to the input string.</para>
+	      <Para><Literal>out</Literal>: Pointer to allocated memory which will receive the unescaped string. The output string is always shorter than the input string, i.e. if the size of <parameter moreinfo="none">out</parameter> is the same as the size of <parameter moreinfo="none">in</parameter>, you're on the safe side. The implementation allows to decode the string in place, i.e. <parameter moreinfo="none">out</parameter> may be the same as <parameter moreinfo="none">in</parameter>.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <varlistentry>
+	    <term><emphasis>Returns</emphasis></term>
+	    <listitem>
+	      <para>The length, in bytes, of the unescaped binary string.</para>
+	    </listitem>
+	  </varlistentry>
+	</VariableList>
+      </section>
+    </Section>
+  </Chapter>
+
+  &freedoc-license;
+
+</Book>
