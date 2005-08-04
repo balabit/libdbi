@@ -172,6 +172,7 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...);
 
 int dbi_conn_connect(dbi_conn Conn);
 int dbi_conn_get_socket(dbi_conn Conn);
+unsigned int dbi_conn_get_engine_version(dbi_conn Conn);
 const char *dbi_conn_get_encoding(dbi_conn Conn);
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern);
 dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pattern);

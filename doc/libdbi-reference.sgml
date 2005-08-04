@@ -6,7 +6,6 @@ This document is licensed under the GNU Free Documentation License, version 1.1 
 published by the Free Software Foundation.
 -->
 
-<!-- change idx to unsigned int instead of unsigned long -->
   <Chapter id="reference"><Title>libdbi API Reference</Title>
     <Section id="reference-core"><Title>Core Library Functions</Title>
       <Section id="dbi-initialize" XRefLabel="dbi_initialize"><Title>dbi_initialize</Title>
@@ -673,6 +672,30 @@ published by the Free Software Foundation.
 	    <term>Returns</term>
 	    <listitem>
 	      <para>A string containing the <ulink url="http://www.iana.org">IANA</ulink> name of the connection encoding. If the encoding option was set to "auto", the function returns the encoding the database was created with. In all other cases, the current connection encoding is returned, which may be different from the database encoding. Use the <xref linkend="dbi-driver-encoding-from-iana"> function to translate the encoding name to that of the currently used database engine if necessary.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-get-engine-version" xreflabel="dbi_conn_get_engine_version">
+	<title>dbi_conn_get_engine_version</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>unsigned int <function>dbi_conn_get_engine_version</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the version of the database engine that serves the current connection.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal>Conn</literal>: The current connection.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>A numeric representation of the version. String representations of the version (e.g. "4.1.10") do not lend themselves to an easy comparison in order to find out whether a particular engine feature is already implemented. For example, a string comparison would claim that "4.1.9" is a later version than "4.1.10". Therefore libdbi computes a numeric representation of the version number [[[[A.]B.]C.]D.]E[.] according to the formula E + D*100 + C*10000 + B*1000000 + A*100000000. The resulting integers (40109 and 40110 in the above example) will be sorted correctly. Returns 0 if the version number cannot be retrieved.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>

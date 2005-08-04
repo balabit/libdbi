@@ -94,6 +94,7 @@ static int _update_internal_conn_list(dbi_conn_t *conn, int operation);
 static void _free_caps(_capability_t *caproot);
 static const char *_get_option(dbi_conn Conn, const char *key, int aggressive);
 static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive);
+static unsigned int _parse_versioninfo(const char *version);
 
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 extern int _disjoin_from_conn(dbi_result_t *result);
@@ -836,6 +837,17 @@ const char *dbi_conn_get_encoding(dbi_conn Conn){
 	return retval;
 }
 
+unsigned int dbi_conn_get_engine_version(dbi_conn Conn){
+	dbi_conn_t *conn = Conn;
+	char versionstring[VERSIONSTRING_LENGTH];
+
+	if (!conn) return 0;
+
+	conn->driver->functions->get_engine_version(conn, versionstring);
+
+	return _parse_versioninfo(versionstring);
+}
+
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
 	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
@@ -1009,6 +1021,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 			((driver->functions->get_encoding = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_encoding")) == NULL) ||
 			((driver->functions->encoding_from_iana = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_encoding_from_iana")) == NULL) ||
 			((driver->functions->encoding_to_iana = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_encoding_to_iana")) == NULL) ||
+			((driver->functions->get_engine_version = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_get_engine_version")) == NULL) ||
 			((driver->functions->list_dbs = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_dbs")) == NULL) ||
 			((driver->functions->list_tables = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_list_tables")) == NULL) ||
 			((driver->functions->query = my_dlsym(dlhandle, DLSYM_PREFIX "dbd_query")) == NULL) ||
@@ -1220,6 +1233,48 @@ unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsign
 		attrib_mask |= (1 << x);
 
 	return (attribs & attrib_mask);
+}
+
+/* computes an int from a [[[[A.]B.]C.]D.]E version number according to this
+  formula: version = E + D*100 + C*10000 + B*1000000 + A*100000000 */
+static unsigned int _parse_versioninfo(const char *version) {
+  char my_version[VERSIONSTRING_LENGTH];
+  char* start;
+  char* dot;
+  int i = 0;
+  unsigned int n_version = 0;
+  unsigned int n_multiplier = 1;
+
+  if (!version || !*version) {
+    return 0;
+  }
+
+  /* get a copy of version to mangle */
+  strncpy(my_version, version, VERSIONSTRING_LENGTH-1);
+  my_version[VERSIONSTRING_LENGTH-1] = '\0';
+
+  /* remove trailing periods */
+  if (my_version[strlen(my_version)-1] == '.') {
+    my_version[strlen(my_version)-1] = '\0';
+  }
+
+  start = my_version;
+  while ((dot = strrchr(start, (int)'.')) != NULL
+	 && i<5) {
+    n_version += atoi(dot+1) * n_multiplier;
+    *dot = '\0';
+    n_multiplier *= 100;
+    i++;
+  }
+  
+  /* take care of the remainder */
+  n_version += atoi(start) * n_multiplier;
+
+  if (i==5) {
+    /* version string can't be encoded in an unsigned int */
+    return 0;
+  }
+  return n_version;
 }
 
 #if HAVE_MACH_O_DYLD_H
