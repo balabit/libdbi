@@ -54,6 +54,7 @@ int dbd_ping(dbi_conn_t *conn);
 const char *dbd_get_encoding(dbi_conn_t *conn);
 size_t dbd_conn_quote_string(dbi_conn_t *conn, const char *orig, char *dest);
 size_t dbd_quote_binary(dbi_conn_t *conn, const char *orig, size_t from_length, char **ptr_dest);
+char *dbd_get_engine_version(dbi_conn_t *conn, char *versionstring);
 
 /* _DBD_* DRIVER AUTHORS HELPER FUNCTIONS */
 dbi_result_t *_dbd_result_create(dbi_conn_t *conn, void *handle, unsigned long long numrows_matched, unsigned long long numrows_affected);
