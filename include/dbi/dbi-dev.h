@@ -122,7 +122,7 @@ typedef struct dbi_functions_s {
 	dbi_result_t *(*query_null)(dbi_conn_t_pointer, const unsigned char *, size_t);
 	size_t (*quote_string)(dbi_driver_t_pointer, const char *, char *);
 	size_t (*conn_quote_string)(dbi_conn_t_pointer, const char *, char *);
-	size_t (*quote_binary)(dbi_conn_t_pointer, const char *, size_t, char **);
+	size_t (*quote_binary)(dbi_conn_t_pointer, const unsigned char *, size_t, unsigned char **);
         const char *(*encoding_to_iana)(const char *);
         const char *(*encoding_from_iana)(const char *);
         char *(*get_engine_version)(dbi_conn_t_pointer,char *);
