@@ -612,8 +612,8 @@ size_t dbi_conn_quote_string(dbi_conn Conn, char **orig) {
 	return newlen;
 }
 
-size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const char *orig, size_t from_length, char **ptr_dest) {
-  char *temp = NULL;
+size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const unsigned char *orig, size_t from_length, unsigned char **ptr_dest) {
+  unsigned char *temp = NULL;
   size_t newlen;
   dbi_conn_t *conn = Conn;
 

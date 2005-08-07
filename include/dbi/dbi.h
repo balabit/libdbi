@@ -185,7 +185,7 @@ unsigned long long dbi_conn_sequence_next(dbi_conn Conn, const char *name);
 int dbi_conn_ping(dbi_conn Conn);
 size_t dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newstr);
 size_t dbi_conn_quote_string(dbi_conn Conn, char **orig);
-size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const char *orig, size_t from_length, char **newstr);
+size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const unsigned char *orig, size_t from_length, unsigned char **newstr);
 
 dbi_conn dbi_result_get_conn(dbi_result Result);
 int dbi_result_free(dbi_result Result);
