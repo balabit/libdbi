@@ -1187,7 +1187,7 @@ const char *dbi_result_get_string_idx(dbi_result Result, unsigned int fieldidx) 
 }
 
 const unsigned char *dbi_result_get_binary(dbi_result Result, const char *fieldname) {
-  const unsigned char *ERROR = "ERROR";
+  const char *ERROR = "ERROR";
   unsigned int fieldidx;
   dbi_error_flag errflag;
 
@@ -1195,13 +1195,13 @@ const unsigned char *dbi_result_get_binary(dbi_result Result, const char *fieldn
   if (errflag != DBI_ERROR_NONE) {
     dbi_conn_t *conn = ((dbi_result_t *)Result)->conn;
     _error_handler(conn, DBI_ERROR_BADNAME);
-    return ERROR;
+    return (const unsigned char*)ERROR;
   }
   return dbi_result_get_binary_idx(Result, fieldidx+1);
 }
 	
 const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned int fieldidx) {
-  const unsigned char *ERROR = "ERROR";
+  const char *ERROR = "ERROR";
   dbi_result_t *result = Result;
   fieldidx--;
 	
@@ -1209,11 +1209,11 @@ const unsigned char *dbi_result_get_binary_idx(dbi_result Result, unsigned int f
 	
   if (fieldidx >= result->numfields) {
     _error_handler(result->conn, DBI_ERROR_BADIDX);
-    return ERROR;
+    return (const unsigned char*)ERROR;
   }
   if (result->field_types[fieldidx] != DBI_TYPE_BINARY) {
     _error_handler(result->conn, DBI_ERROR_BADTYPE);
-    return ERROR;
+    return (const unsigned char*)ERROR;
   }
   if (result->rows[result->currowidx]->field_sizes[fieldidx] == 0) return NULL;
 
@@ -1268,7 +1268,7 @@ char *dbi_result_get_string_copy_idx(dbi_result Result, unsigned int fieldidx) {
 }
 
 unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldname) {
-  unsigned char *ERROR = "ERROR";
+  char *ERROR = "ERROR";
   unsigned int fieldidx;
   dbi_error_flag errflag;
 
@@ -1276,14 +1276,14 @@ unsigned char *dbi_result_get_binary_copy(dbi_result Result, const char *fieldna
   if (errflag != DBI_ERROR_NONE) {
     dbi_conn_t *conn = ((dbi_result_t *)Result)->conn;
     _error_handler(conn, DBI_ERROR_BADNAME);
-    return strdup(ERROR);
+    return (unsigned char *)strdup(ERROR);
   }
   return dbi_result_get_binary_copy_idx(Result, fieldidx+1);
 }
 	
 unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int fieldidx) {
-  unsigned char *ERROR = "ERROR";
-  char *newblob = NULL;
+  char *ERROR = "ERROR";
+  unsigned char *newblob = NULL;
   unsigned long long size;
   dbi_result_t *result = Result;
   fieldidx--;
@@ -1292,11 +1292,11 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int fi
 	
   if (fieldidx >= result->numfields) {
     _error_handler(result->conn, DBI_ERROR_BADIDX);
-    return strdup(ERROR);
+    return (unsigned char *)strdup(ERROR);
   }
   if (result->field_types[fieldidx] != DBI_TYPE_BINARY) {
     _error_handler(result->conn, DBI_ERROR_BADTYPE);
-    return strdup(ERROR);
+    return (unsigned char *)strdup(ERROR);
   }
   if (result->rows[result->currowidx]->field_sizes[fieldidx] == 0) return NULL;
 
@@ -1304,7 +1304,7 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int fi
   newblob = malloc(size);
   if (!newblob) {
     _error_handler(result->conn, DBI_ERROR_NOMEM);
-    return strdup(ERROR);
+    return (unsigned char *)strdup(ERROR);
   }
   memcpy(newblob, result->rows[result->currowidx]->field_values[fieldidx].d_string, size);
   return newblob;
