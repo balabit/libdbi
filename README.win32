@@ -1,30 +1,41 @@
 
 libdbi - Database Independent Abstraction Layer for C
-Copyright (C) 2001-2003, David Parker and Mark Tobenkin.
+Copyright (C) 2001-2005, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
 WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS:
 -------------------------------------------
 
-Thanks to Markus Hoenicka, libdbi can be compiled into DLL files on Win32 with
-the Cygwin package, available at http://sources.redhat.com/cygwin/
+libdbi can be compiled into DLL files on Win32 with
+the Cygwin package, available at http://www.cygwin.com/. How much
+bending over backwards is required depends on the versions of your
+Cygwin installation. As of this writing, the following version numbers
+were all fresh:
 
-./configure --with-mysql --with-pgsql
+base-files-3.5.1
+binutils-20050610
+cygwin-1.5.18
+gcc-3.4.4
+libtool-1.5b
+
+With these tools, the Unix trinity is all it takes:
+./configure
 make
 make install
+
+If this procedure fails to create the file
+
+/usr/local/bin/cygdbi-0.dll
+
+you most likely run older versions of the Cygwin tools. You're not
+lost, though. Run the following commands and you should be all set:
+
 make -f Makefile.w32
 make -f Makefile.w32 install
 
-
-CYGWIN DETAILS:
----------------
-
-There are unfortunately no "Cygwin" releases in a sense as there are Debian 2.2
-or FreeBSD 4.5. All components, including the cygwin1.dll, gcc, bash etc. have
-their own independent versions. The most important package for the new-style
-Makefile to work is the binutils package (linker and such), which should be
-"binutils-20011002-1" or newer.
+The name of the dll file will be different from the one above, but it
+is going to work anyway.
 
 
 USAGE:
