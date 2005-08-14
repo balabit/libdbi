@@ -126,6 +126,9 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
   /* error code for bind* functions */
 #define DBI_BIND_ERROR  -1
 
+  /* needed by get_engine_version functions */
+#define VERSIONSTRING_LENGTH 32
+
 int dbi_initialize(const char *driverdir);
 void dbi_shutdown();
 const char *dbi_version();
@@ -173,6 +176,7 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...);
 int dbi_conn_connect(dbi_conn Conn);
 int dbi_conn_get_socket(dbi_conn Conn);
 unsigned int dbi_conn_get_engine_version(dbi_conn Conn);
+char *dbi_conn_get_engine_version_string(dbi_conn Conn, char *versionstring);
 const char *dbi_conn_get_encoding(dbi_conn Conn);
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern);
 dbi_result dbi_conn_get_table_list(dbi_conn Conn, const char *db, const char *pattern);

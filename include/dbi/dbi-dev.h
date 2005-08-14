@@ -173,8 +173,6 @@ int _disjoin_from_conn(dbi_result_t *result);
 void _set_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag, unsigned char value);
 int _get_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag);
 
-  /* internally used constants */
-#define VERSIONSTRING_LENGTH 32
 
 #ifdef __cplusplus
 }
