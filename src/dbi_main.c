@@ -848,6 +848,14 @@ unsigned int dbi_conn_get_engine_version(dbi_conn Conn){
 	return _parse_versioninfo(versionstring);
 }
 
+char* dbi_conn_get_engine_version_string(dbi_conn Conn, char *versionstring) {
+	dbi_conn_t *conn = Conn;
+
+	if (!conn) return 0;
+
+	return conn->driver->functions->get_engine_version(conn, versionstring);
+}
+
 dbi_result dbi_conn_get_db_list(dbi_conn Conn, const char *pattern) {
 	dbi_conn_t *conn = Conn;
 	dbi_result_t *result;
