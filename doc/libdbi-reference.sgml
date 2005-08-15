@@ -676,6 +676,35 @@ published by the Free Software Foundation.
 	  </varlistentry>
 	</variablelist>
       </section>
+      <section id="dbi-conn-get-engine-version-string" xreflabel="dbi_conn_get_engine_version_string">
+	<title>dbi_conn_get_engine_version_string</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>char *<function>dbi_conn_get_engine_version_string</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>char *<parameter moreinfo="none">versionstring</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Requests the version of the database engine that serves the current connection as a string.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal>Conn</literal>: The current connection.</para>
+	      <para><literal>versionstring</literal>: A string buffer that can hold at least VERSIONSTRING_LENGTH bytes.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>A string representation of the version. This will be something like "4.1.10". The result is written to the buffer that <parameter moreinfo="none">versionstring</parameter> points to. If successful, the function returns a pointer to that buffer. If the version cannot be determined, the function returns the string "0".</para>
+	      <note>
+		<para>This string is useful to display the version to the user. In order to check for particular version requirements in your program, <xref linkend="dbi-conn-get-engine-version"> is the better choice.</para>
+	      </note>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
       <section id="dbi-conn-get-engine-version" xreflabel="dbi_conn_get_engine_version">
 	<title>dbi_conn_get_engine_version</title>
 	<funcsynopsis>
@@ -684,7 +713,7 @@ published by the Free Software Foundation.
 	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<para>Requests the version of the database engine that serves the current connection.</para>
+	<para>Requests the version of the database engine that serves the current connection in a numeric form.</para>
 	<variablelist>
 	  <varlistentry>
 	    <term>Arguments</term>
@@ -695,7 +724,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>A numeric representation of the version. String representations of the version (e.g. "4.1.10") do not lend themselves to an easy comparison in order to find out whether a particular engine feature is already implemented. For example, a string comparison would claim that "4.1.9" is a later version than "4.1.10". Therefore libdbi computes a numeric representation of the version number [[[[A.]B.]C.]D.]E[.] according to the formula E + D*100 + C*10000 + B*1000000 + A*100000000. The resulting integers (40109 and 40110 in the above example) will be sorted correctly. Returns 0 if the version number cannot be retrieved.</para>
+	      <para>A numeric representation of the version. String representations of the version (e.g. "4.1.10") do not lend themselves to an easy comparison in order to find out whether a particular engine feature is already implemented. For example, a string comparison would claim that "4.1.9" is a later version than "4.1.10". Therefore libdbi computes a numeric representation of the version number [[[[A.]B.]C.]D.]E[.] according to the formula E + D*100 + C*10000 + B*1000000 + A*100000000. The resulting integers (40109 and 40110 in the example above) will be sorted correctly. Returns 0 if the version number cannot be retrieved.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
