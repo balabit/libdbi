@@ -1005,6 +1005,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 	dlhandle = my_dlopen(filename, DLOPEN_FLAG); /* DLOPEN_FLAG defined by autoconf */
 
 	if (dlhandle == NULL) {
+	  fprintf(stderr, "%s\n", my_dlerror());
 		return NULL;
 	}
 	else {
