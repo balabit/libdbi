@@ -114,27 +114,33 @@ size_t _dbd_escape_chars(char *dest, const char *orig, size_t orig_size, const c
 	char *curdest = dest;
 	const char *curorig = orig;
 	const char *curescaped;
+	size_t len = 0;
 	
-/* 	strcpy(dest, quotes);  */// check, also use destidx < destsize, and null treminate
-	
-	strncpy(dest, orig, orig_size);
-
-	while (curorig) {
+	while (curorig && curorig < orig+orig_size) {
 		curescaped = toescape;
-		while (curescaped) {
+		while (curescaped && *curescaped) {
 			if (*curorig == *curescaped) {
 				*curdest = '\\';
 				curdest++;
-				*curdest = *curorig;
-				continue;
+				len++;
+				break;
 			}
 			curescaped++;
 		}
+		/* Copy char to destination */
+		*curdest = *curorig;
+		
 		curorig++;
 		curdest++;
+		len++;
 	}
 
-	return strlen(dest);
+	/* append a NULL byte. This is required if orig was a
+	   zero-terminated string. It does not hurt if orig was a
+	   binary string as the calling function is not supposed to
+	   read past len bytes */
+	*curdest = '\0';
+	return len;
 }
 
 void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno) {
