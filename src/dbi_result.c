@@ -37,6 +37,10 @@
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
 
+#ifdef __MINGW32__
+#define strtok_r(s1,s2,s3) strtok(s1,s2)
+#endif
+
 extern void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */

@@ -38,6 +38,7 @@
 #define my_dlsym lt_dlsym
 #define my_dlclose lt_dlclose
 #define my_dlerror lt_dlerror
+
 #elif HAVE_MACH_O_DYLD_H
 #include <mach-o/dyld.h>
 static void * dyld_dlopen(const char * file);
@@ -48,12 +49,29 @@ static const char * dyld_dlerror();
 #define my_dlsym dyld_dlsym
 #define my_dlerror dyld_dlerror
 #define my_dlclose dyld_dlclose
+
+#elif __MINGW32__
+#include <windows.h>
+void *win_dlopen(const char*, int);
+void *win_dlsym(void *, const char*);
+int win_dlclose(void *);
+char *win_dlerror();
+/* just for compiling support,if anyone has used these masks in code. The MODE argument to `dlopen' contains one of the following: */
+#define RTLD_LAZY       0x001   /* Lazy function call binding.  */
+#define RTLD_NOW        0x002   /* Immediate function call binding.  */
+#define RTLD_BINDING_MASK 0x003   /* Mask of binding time value.  */
+#define my_dlopen(foo,bar) win_dlopen(foo,bar)
+#define my_dlsym win_dlsym
+#define my_dlclose win_dlclose
+#define my_dlerror win_dlerror
+
 #elif HAVE_DLFCN_H
 #include <dlfcn.h>
 #define my_dlopen dlopen
 #define my_dlsym dlsym
 #define my_dlclose dlclose
 #define my_dlerror dlerror
+
 #else
 #error no dynamic loading support
 #endif
@@ -102,7 +120,8 @@ extern int _disjoin_from_conn(dbi_result_t *result);
 dbi_result dbi_conn_queryf(dbi_conn Conn, const char *formatstr, ...) __attribute__ ((format (printf, 2, 3)));
 int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __attribute__ ((format (printf, 3, 4)));
 
-static const char *ERROR = "ERROR";
+/* must not be called "ERROR" due to a name clash on Windoze */
+static const char *my_ERROR = "ERROR";
 static dbi_driver_t *rootdriver;
 static dbi_conn_t *rootconn;
 static int complain = 1;
@@ -291,7 +310,7 @@ int dbi_conn_cap_get(dbi_conn Conn, const char *capname) {
 const char *dbi_driver_get_name(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 	
 	return driver->info->name;
 }
@@ -299,7 +318,7 @@ const char *dbi_driver_get_name(dbi_driver Driver) {
 const char *dbi_driver_get_filename(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 	
 	return driver->filename;
 }
@@ -307,7 +326,7 @@ const char *dbi_driver_get_filename(dbi_driver Driver) {
 const char *dbi_driver_get_description(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 	
 	return driver->info->description;
 }
@@ -315,7 +334,7 @@ const char *dbi_driver_get_description(dbi_driver Driver) {
 const char *dbi_driver_get_maintainer(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 
 	return driver->info->maintainer;
 }
@@ -323,7 +342,7 @@ const char *dbi_driver_get_maintainer(dbi_driver Driver) {
 const char *dbi_driver_get_url(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 
 	return driver->info->url;
 }
@@ -331,7 +350,7 @@ const char *dbi_driver_get_url(dbi_driver Driver) {
 const char *dbi_driver_get_version(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 	
 	return driver->info->version;
 }
@@ -339,7 +358,7 @@ const char *dbi_driver_get_version(dbi_driver Driver) {
 const char *dbi_driver_get_date_compiled(dbi_driver Driver) {
 	dbi_driver_t *driver = Driver;
 	
-	if (!driver) return ERROR;
+	if (!driver) return my_ERROR;
 	
 	return driver->info->date_compiled;
 }
@@ -1181,7 +1200,7 @@ static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key)
 }
 
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
-	int errno = 0;
+	int my_errno = 0;
 	char *errmsg = NULL;
 	int errstatus;
 	static const char *errflag_messages[] = {
@@ -1207,7 +1226,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	}
 
 	if (errflag == DBI_ERROR_DBD) {
-		errstatus = conn->driver->functions->geterror(conn, &errno, &errmsg);
+		errstatus = conn->driver->functions->geterror(conn, &my_errno, &errmsg);
 
 		if (errstatus == -1) {
 			/* not _really_ an error. XXX debug this, does it ever actually happen? */
@@ -1222,7 +1241,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	}
 	
 	conn->error_flag = errflag;
-	conn->error_number = errno;
+	conn->error_number = my_errno;
 	conn->error_message = errmsg;
 	
 	if (conn->error_handler != NULL) {
@@ -1337,3 +1356,63 @@ static const char * dyld_dlerror()
 	return errstr;
 }
 #endif /* HAVE_MACH_O_DYLD_H */
+
+#ifdef __MINGW32__
+static char win_errstr[512];
+static int win_err_set = 0;
+void *win_dlopen(const char *filename, int mode)
+{
+  HINSTANCE handle;
+  handle = LoadLibrary(filename);
+#ifdef _WIN32
+  if (! handle) {
+    sprintf(win_errstr, "Error code 1(%d) while loading library %s", GetLastError(), filename);
+	win_err_set =1;
+    return NULL;
+  }
+#else
+  if ((UINT) handle < 32) {
+    sprintf(win_errstr, "error code 1(%d) while loading library %s", (UINT) handle, filename);
+	win_err_set =1;
+    return NULL;
+  }
+#endif
+  return (void *) handle;
+}
+
+void *win_dlsym(void *handle1, const char *symname)
+{
+  HMODULE handle = (HMODULE) handle1;
+  void *symaddr;
+  symaddr = (void *) GetProcAddress(handle, symname);
+  if (symaddr == NULL)
+  {
+    sprintf(win_errstr, "can not find symbol %s", symname);
+	win_err_set =2;
+  }
+  return symaddr;
+}
+
+int win_dlclose(void *handle1)
+{
+  HMODULE handle = (HMODULE) handle1;
+#ifdef _WIN32
+  if (FreeLibrary(handle))
+    return 0;
+  else {
+    sprintf(win_errstr, "error code 3(%d) while closing library", GetLastError());
+	win_err_set =3;
+    return -1;
+  }
+#else
+  FreeLibrary(handle);
+  return 0;
+#endif
+}
+
+char *win_dlerror()
+{
+  return win_errstr;
+}
+
+#endif
