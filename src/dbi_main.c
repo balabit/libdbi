@@ -88,7 +88,11 @@ char *win_dlerror();
 #include <dbi/dbi-dev.h>
 
 #ifndef DBI_DRIVER_DIR
-#define DBI_DRIVER_DIR "/usr/local/lib/dbd" /* use this as the default */
+#  ifdef __MINGW32__
+#    define DBI_DRIVER_DIR "c:\\libdbi\\lib\\dbd" /* use this as the default */
+#  else
+#    define DBI_DRIVER_DIR "/usr/local/lib/dbd" /* use this as the default */
+#  endif
 #endif
 
 #ifndef DLSYM_PREFIX
