@@ -1,6 +1,6 @@
 
 libdbi - Database Independent Abstraction Layer for C
-Copyright (C) 2001-2003, David Parker and Mark Tobenkin.
+Copyright (C) 2001-2005, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
@@ -16,6 +16,13 @@ The plugin architecture allows for new database drivers to be easily added by a
 third party with flexbile licensing. See the libdbi-drivers project
 (http://libdbi-drivers.sourceforge.net) for the drivers officially
 supported by libdbi.
+
+The framework and the drivers have to use the same internal API
+version. Starting from libdbi version 0.8.0, the major version number
+(in this case 0.8) denotes the API version. Any libdbi release 0.8.x
+will work with any libdbi-drivers release 0.8.x. 'x' will be
+incremented independently and denotes bugfix or upgrade releases that
+do not change the internal API.
 
 
 INSTALLATION:
