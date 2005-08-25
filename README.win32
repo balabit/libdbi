@@ -3,9 +3,33 @@ libdbi - Database Independent Abstraction Layer for C
 Copyright (C) 2001-2005, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
+WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS
+==========================================
 
-WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS:
--------------------------------------------
+libdbi can be compiled on any 32bit Windows platform. There's two
+different methods. Choose the one that better suits your needs.
+
+1) Cygwin
+
+The Cygwin tools (http://www.cygwin.com/) add a POSIX layer to Windows
+and provide, by shipping a comprehensive selection of familiar Unix
+tools including bash and X.org, the cozy environment of a Unix
+box. Choose Cygwin if you want to port Unix applications to Win32 with
+the least amount of code changes. All Cygwin applications need at
+least access to the cygwin1.dll which translates the Unix API calls
+into Win32 API calls at runtime. libdbi drivers require the Cygwin
+versions of their client libraries.
+
+2) Mingw
+
+The Mingw environment (http://www.mingw.org) provide a minimal GNU
+environment on Windows. Choose Mingw if you want to build native Win32
+applications that do not depend on other third-party libraries. libdbi
+drivers require the native Win32 versions of their client libraries.
+
+
+1. WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS FOR CYGWIN:
+---------------------------------------------------------
 
 libdbi can be compiled into DLL files on Win32 with
 the Cygwin package, available at http://www.cygwin.com/. How much
@@ -42,9 +66,33 @@ USAGE:
 ------
 
 Once libdbi is compiled for Win32 and you have a DLL, you can use that DLL like
-any other. The only requirement is that the cygwin runtime DLL is available on
+any other. The only requirement is that the Cygwin runtime DLL is available on
 the target machine also, since non-Windows API functions are implemented by
-cygwin.
+Cygwin.
+
+
+2. WINDOWS-SPECIFIC INSTALLATION INSTRUCTIONS FOR MINGW+MSYS:
+-------------------------------------------------------------
+libdbi can be compiled into static library libdbi.a on Win32 with
+the Mingw and MSys packages, available at http://www.mingw.org
+
+	(say, libdbi-x.x.x.tar.gz distribution is in C: drive.)
+	cd /usr/local/src
+	cp /c/libdbi-x.x.x.tar.gz .
+	tar xvzf libdbi-x.x.x.tar.gz
+	cd libdbi-x.x.x
+	./configure --prefix=/usr
+	make
+	make install
+
+
+MSYS DETAILS:
+---------------
+
+Download (from www.mingw.org) and install mingw, msys and msysDTK
+(not essentially required, but recommended) from http://www.mingw.org.
+
+
 
 
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
