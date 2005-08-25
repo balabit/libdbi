@@ -4,6 +4,7 @@ The following people have been involved in libdbi development:
 Main developers:
 * David A. Parker <david at neongoat.com>
 * Mark Tobenkin <mark at brentwoodradio.com>
+* Markus Hoenicka <markus at mhoenicka.de>
 
 These people have also contributed to the project:
 (if we forgot you, please let us know!)
@@ -11,11 +12,11 @@ These people have also contributed to the project:
 * Peter O'Gorman <pogma at opendarwin.org>
   - configure/Makefile/libtool fixes, OSX guru
 
-* Markus Hoenicka <markus at mhoenicka.de>
-  - win32 port, atoll() portability, list_* tweaks, assorted bugfixes, error_flag scheme
-  
 * Christian M. Stamgren <christian at centiongroup.com>
   - bugfixes, mysql tweaks, list_* tweaks, error tweaks
+
+* Ashish Ranjan <ashishwave@yahoo.com>
+  - Mingw port
 
 * Ryan Eatmon <reatmon at jabber.org>
   - bugfixes
