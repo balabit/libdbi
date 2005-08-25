@@ -18,7 +18,10 @@ argument now use size_t throughout. Affected functions are:
 dbi_driver_quote_string()
 dbi_driver_quote_string_copy()
 dbi_conn_query_null()
+dbi_result_get_field_length()
+dbi_result_get_field_length_idx()
 dbi_result_get_field_size()
+dbi_result_get_field_size_idx()
 
 as well as the new dbi_conn_quote_* functions
 
@@ -83,7 +86,7 @@ functions:
 dbi_result_get_field_length(): DBI_LENGTH_ERROR instead of 0
 dbi_driver_quote_string(), dbi_driver_quote_string_copy(): 0 instead
   of -1 
-dbi_result_seek_row(): 0 instead of 0 or -1
+dbi_result_seek_row(): 0 instead of (0 or -1)
 dbi_result_get_numrows(): DBI_ROW_ERROR instead of 0
 dbi_result_get_field_length(), dbi_result_get_field_length_idx(),
   dbi_result_get_field_size(), dbi_result_get_field_size_idx():
@@ -113,18 +116,22 @@ dbi_driver_encoding_from_iana()
 
 dbi_conn_quote_binary_copy()
 
+- Two functions were added to retrieve the version number of the
+database engine:
+dbi_conn_get_engine_version()
+dbi_conn_get_engine_version_string()
 
 - The following functions were labelled "deprecated". They are still
 implemented in the current version, but you should use their
 replacements as these functions are likely to be dropped in a future
 release:
 
-dbi_result_get_field_size()
-dbi_result_get_field_size_idx()
-dbi_result_get_long()
-dbi_result_get_ulong()
-dbi_result_get_long_idx()
-dbi_result_get_ulong_idx()
-dbi_result_bind_long()
-dbi_result_bind_ulong()
+dbi_result_get_field_size() -> dbi_result_get_field_length()
+dbi_result_get_field_size_idx() -> dbi_result_get_field_length_idx()
+dbi_result_get_long() -> dbi_result_get_int()
+dbi_result_get_ulong() -> dbi_result_get_uint()
+dbi_result_get_long_idx() -> dbi_result_get_int_idx()
+dbi_result_get_ulong_idx() -> dbi_result_get_uint_idx()
+dbi_result_bind_long() -> dbi_result_bind_int()
+dbi_result_bind_ulong() -> dbi_result_bind_uint()
 
