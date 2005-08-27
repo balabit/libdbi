@@ -3,14 +3,18 @@
 AUTOMAKE_OPTIONS = foreign
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
+progguidedir = $(docdir)/programmers-guide
+driverguidedir = $(docdir)/driver-guide
 
-doc_DATA = programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
+doc_DATA = programmers-guide.pdf  driver-guide.pdf
+progguide_DATA = programmers-guide/*
+driverguide_DATA = driver-guide/*
 
 programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-program.sgml libdbi-quickstart.sgml
 
 driver_sources = driver-guide.sgml 
 
-EXTRA_DIST = $(doc_DATA) $(programmers_sources) $(driver_sources)
+EXTRA_DIST = $(doc_DATA)  $(progguide_DATA) $(driverguide_DATA) $(programmers_sources) $(driver_sources)
 
 all: programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
 
@@ -57,6 +61,3 @@ distclean: clean
 	rm -f driver-guide.pdf
 	rm -rf driver-guide/
 
-# this can't be kosher...
-install-exec-am: $(top_srcdir)/mkinstalldirs
-	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(docdir) $(DESTDIR)$(docdir)/programmers-guide $(DESTDIR)$(docdir)/driver-guide

@@ -1333,7 +1333,7 @@ static void * dyld_dlopen(const char * file)
 }
 static void * dyld_dlsym(void * hand, const char * name)
 {
-        NSSymbol * sym=NSLookupSymbolInModule((NSModule)hand, name);
+        NSSymbol sym=NSLookupSymbolInModule((NSModule)hand, name);
 	void * addr = NULL;
 	dyld_error_set=0;
 	if (sym) addr=(void*)NSAddressOfSymbol(sym);
