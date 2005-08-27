@@ -69,7 +69,7 @@
 
 (define formal-object-float
   ;; Do formal objects float?
-  #t)
+  #f)
 
 (define %hyphenation%
   ;; Allow automatic hyphenation?
