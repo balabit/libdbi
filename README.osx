@@ -10,10 +10,7 @@ OSX-SPECIFIC INSTALLATION INSTRUCTIONS:
 Building libdbi on OSX requires a little more typing compared to other
 Unixes. This is what you need to do:
 
-/sw/bin/glibtoolize --force
-aclocal
-automake --add-missing
-autoconf
+LIBTOOLIZE=glibtoolize ./autogen.sh
 ./configure CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
 make CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
 sudo make install
