@@ -827,7 +827,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>-1 on failure, zero on success.</Para></ListItem>
+	    <ListItem><Para>0 (zero) on success, less than zero on failure.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
