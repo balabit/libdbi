@@ -168,7 +168,7 @@ int dbi_result_next_row(dbi_result Result) {
   }	
 
   if (!dbi_result_has_next_row(Result)) {
-    _error_handler(result->conn, DBI_ERROR_BADIDX);
+/*     _error_handler(result->conn, DBI_ERROR_BADIDX); */
     return 0;
   }
   return dbi_result_seek_row(Result, result->currowidx+1);
@@ -1185,7 +1185,12 @@ const char *dbi_result_get_string_idx(dbi_result Result, unsigned int fieldidx) 
     _error_handler(result->conn, DBI_ERROR_BADTYPE);
     return ERROR;
   }
-  if (result->rows[result->currowidx]->field_sizes[fieldidx] == 0) return NULL;
+  if (result->rows[result->currowidx]->field_sizes[fieldidx] == 0
+      && _get_field_flag(result->rows[result->currowidx], fieldidx, DBI_VALUE_NULL)) {
+    /* string does not exist */
+    return NULL;
+  }
+  /* else: empty string */
 	
   return (const char *)(result->rows[result->currowidx]->field_values[fieldidx].d_string);
 }
