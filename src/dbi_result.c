@@ -1190,7 +1190,7 @@ const char *dbi_result_get_string_idx(dbi_result Result, unsigned int fieldidx) 
     /* string does not exist */
     return NULL;
   }
-  /* else: empty string */
+  /* else if field size == 0: empty string */
 	
   return (const char *)(result->rows[result->currowidx]->field_values[fieldidx].d_string);
 }
