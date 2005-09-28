@@ -14,7 +14,7 @@ programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-progr
 
 driver_sources = driver-guide.sgml 
 
-EXTRA_DIST = $(doc_DATA)  $(progguide_DATA) $(driverguide_DATA) $(programmers_sources) $(driver_sources)
+EXTRA_DIST = $(doc_DATA)  $(progguide_DATA) $(driverguide_DATA) $(programmers_sources) $(driver_sources) include/copying-fdl.sgml include/doc-html.dsl include/doc-print.dsl
 
 all: programmers-guide.pdf programmers-guide/* driver-guide.pdf driver-guide/*
 
@@ -27,7 +27,7 @@ programmers-guide.pdf: $(programmers_sources)
 #	@echo "Converting programmers-guide.ps to PDF...";
 #	ps2pdf programmers-guide.ps
 	@echo "Converting programmers-guide.sgml to PDF...";
-	openjade -t tex -V tex-backend -d include/doc-print.dsl programmers-guide.sgml
+	openjade -t tex -V tex-backend -d $(top_srcdir)/doc/include/doc-print.dsl programmers-guide.sgml
 # run jadetex three times to get the references right
 	pdftex "&pdfjadetex" programmers-guide.tex
 	pdftex "&pdfjadetex" programmers-guide.tex
@@ -36,7 +36,7 @@ programmers-guide.pdf: $(programmers_sources)
 programmers-guide/*: $(programmers_sources)
 	@echo "Converting programmers-guide.sgml to HTML...";
 #	sgmltools -b html -s include/doc-html.dsl programmers-guide.sgml
-	mkdir -p programmers-guide && cd programmers-guide && openjade -t sgml -d ../include/doc-html.dsl ../programmers-guide.sgml
+	mkdir -p programmers-guide && cd programmers-guide && openjade -t sgml -d $(top_srcdir)/../doc/include/doc-html.dsl $(top_srcdir)/../doc/programmers-guide.sgml
 
 driver-guide.pdf: $(driver_sources)
 #	@echo "Converting driver-guide.sgml to PostScript...";
@@ -53,7 +53,7 @@ driver-guide.pdf: $(driver_sources)
 driver-guide/*: $(driver_sources)
 	@echo "Converting driver-guide.sgml to HTML...";
 #	sgmltools -b html -s include/doc-html.dsl driver-guide.sgml
-	mkdir -p driver-guide && cd driver-guide && openjade -t sgml -d ../include/doc-html.dsl ../driver-guide.sgml
+	mkdir -p driver-guide && cd driver-guide && openjade -t sgml -d $(top_srcdir)/../doc/include/doc-html.dsl $(top_srcdir)/../doc/driver-guide.sgml
 
 distclean: clean
 	rm -f programmers-guide.pdf
