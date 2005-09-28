@@ -1,104 +1,22 @@
-2004-01-16	David A. Parker  <david at neongoat dot com>
+2005-09-28 21:18  mhoenicka
 
-	* release 0.7.2 (the "Shoshified" release)
-	* time_t values are now returned in GMT, not local time
-	* added encoding accessor
-	* added read-only string quoting function
-	* added range checking functions
-	* fixed various corner-case bugs
+	* NEWS (1.4): updated for 0.8.1
 
-2003-07-09	David A. Parker  <david at neongoat dot com>
+2005-09-28 21:12  mhoenicka
 
-	* release 0.7.1 (the "Double Banana Split" release)
-	* rebuilt tarball with automake-1.4, fixing braindead issues with
-	  automake-1.5 and depcomp. [expletives removed].
+	* configure.in (1.40): bumped up version number
 
-2003-06-25	David A. Parker  <david at neongoat dot com>
+2005-09-28 21:11  mhoenicka
 
-	* release 0.7.0 (the "Banana Split" release)
-	* split off drivers into libdbi-drivers project
-	* dropped support for nonstandard ENUM/SET types
-	* enabled compilation with alternate dynamic loading mechanisms, now
-	  working properly on Mac OSX
-	* added backend ping support
-	* added get_currow accessor
-	* date and time-related bugfixes
-	* improvements to error handling and reporting
-	* result metadata (column names, types, etc) can now be retrieved before
-	  rows are fetched
+	* doc/Makefile.am (1.19): fixed some doc building issues
 
-2002-11-18	David A. Parker  <david at neongoat dot com>
+2005-09-28 09:14  mhoenicka
 
-	* release 0.6.7 (the "Happy Birthday" release)
-	* fixed brown-paper-bag inability to retrieve integer fields
+	* src/dbi_result.c (1.43): clarified comment in
+	dbi_result_get_string()
 
-2002-10-27	David A. Parker  <david at neongoat dot com>
+2005-09-27 23:48  mhoenicka
 
-	* release 0.6.6 (the "Preemptive Ghostbusting" release)
-	* queries are now sent verbatim. old behavior moved to dbi_conn_queryf
-	  function. THIS CAN BREAK OLD CODE. IT WILL EAT YOUR FIRSTBORN CHILD.
-	  (hopefully that got your attention)
-	* docs are outdated, see README
-	* fixed mysql returning empty strings as NULL
-	* adapted to mysql's broken handling of trailing NULLs at the end of
-	  BINARY fields. see README.drivers
-	* began eliminating "int" values in favor of explicit types
-	* minor fix to error handling regarding NULL error messages
-	* fixed dbi_driver_is_reserved_word() hang
-	* Debian packaging done, "unstable" users can now apt-get install the
-	  following packages - libdbi0, libdbi0-dev, libdbd-mysql, libdbd-pgsql
+	* src/dbi_result.c (1.42): dbi_result_get_string_idx():don't return
+	zero-length strings as nonexistent
 
-2002-06-14  David A. Parker  <david at neongoat dot com>
-	
-	* release 0.6.5 (the "Slowly Intoxicated" release)
-	* new error handling framework
-	* beginnings of capabilities infrastructure
-	* extra hooks added to aid garbage collection
-	* sequencing API (mysql people can now use auto_increment! yay!)
-	* fixed small memory leak
-	* fixed big memory leak ;)
-	* fixed wrong mysql INSERT behavior
-	* fixed wrong mysql DATETIME parsing
-	* more cross-platform tweaks (asprintf for Solaris 7)
-	* new Debian packaging from scratch (bound for sid)
-	* support for queries with NULL characters
-	* additional helper functions for driver authors
-	* pattern matching ability for listing dbs/tables
-	* minor changes to option handling
-
-2002-02-10  David A. Parker  <david at neongoat dot com>
-	
-	* release 0.6.4 (the "Only 2 Dog-Weeks Late" release)
-	* changed libdbi API nomenclature (plugin -> driver, driver -> connection)
-	* portability tweaks (Win32, FreeBSD, SunOS in particular)
-	* build system tweaks
-	* fixed memory leaks
-	* handful of small bugfixes
-	* finally, (the beginnings of) a test suite!
-
-2001-08-23  David A. Parker  <david at neongoat dot com>
-
-	* release 0.6.2
-	* (switched to x.y.z versioning scheme)
-	* fixed one-off errors
-	* win32 port, better framework for portability
-	* better debian packaging
-	* first shot at a plugin author's guide
-
-2001-08-15  David A. Parker  <david at neongoat dot com>
-
-	* release 0.6
-	* added "by index" field functions
-	* fixed malloc/free bugs, causing weird segfaults
-	* fixed example code in docs
-	* added field info accessor functions
-	* added datetime support (as time_t)
-	* added DBD quote function
-	* more explicit NULL handling
-	* deb packaging tweaks
-	* bugfixes in plugins
-
-2001-08-04  David A. Parker  <david at neongoat dot com>
-
-	* initial release (0.5)
-	

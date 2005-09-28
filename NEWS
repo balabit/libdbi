@@ -3,6 +3,20 @@ libdbi NEWS file
 
 $Id$
 
+___________________________________________
+libdbi 0.8.1 (the "Get used to it" release)
+
+This is a bugfix release. It fixes the following bug:
+
+- dbi_result_get_string_idx() and dbi_result_get_string() returned
+  NULL if the database returned an empty string. However, ''!= NULL in
+  SQL. Now the functions correctly return a pointer to an
+  empty string if the database returns an empty string, and NULL if the
+  database returns NULL. The functions
+  dbi_result_get_string_copy_idx() and dbi_result_get_string_copy() were
+  not affected by this bug.
+
+
 _______________________________________________
 libdbi 0.8.0 (the "When I come around" release)
 
