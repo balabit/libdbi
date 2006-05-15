@@ -269,6 +269,12 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 	struct tm unixtime;
 	char *unparsed;
 	char *cur;
+
+	int _gm_offset = 0;
+	int _tz_dir = 0;
+	int _tz_hours = 0;
+	int _tz_mins = 0;
+
 	int check_time = 1;
 
 	unixtime.tm_sec = unixtime.tm_min = unixtime.tm_hour = 0;
@@ -279,6 +285,8 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 	
 	if (raw && (unparsed = strdup(raw)) != NULL) {
 	  cur = unparsed;
+
+	  fprintf(stderr, "cur went to:%s\n", cur);
 
 	  /* this code assumes the following input in cur: */
 	  /* DATE: YYYY-MM-DD (the dashes may be any other separator) */
@@ -309,13 +317,59 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 	    unixtime.tm_hour = atoi(cur);
 	    unixtime.tm_min = atoi(cur+3);
 	    unixtime.tm_sec = atoi(cur+6);
+
+	    /* check for a timezone suffix */
+	    cur += 8;
+	    if (*cur) {
+			 
+/* 	      fprintf(stderr,"part after : %s\n", cur); */
+
+	      char* _tz_start = strchr(cur, '-');
+
+	      if (!_tz_start) {
+	         _tz_start = strchr(cur, '+');
+	         _tz_dir = 1;
+	      }
+
+/* 	      fprintf(stderr,"_tz_start says : %s\n", _tz_start); */
+
+	      if (_tz_start) {
+	        cur = _tz_start + 1;
+
+/* 	        fprintf(stderr,"_tz_dir is %d, remaining : %s\n", _tz_dir, _tz_start); */
+
+	        if (strlen(cur) > 4) { // there's a minute separator ...
+	          _tz_mins = atoi(cur+3);
+	          cur[2] = '\0';
+	          _tz_hours = atoi(cur);
+/* 		  fprintf(stderr, "have hours:%d and minutes:%d\n", _tz_hours, _tz_mins); */
+
+	        } else if (strlen(cur) > 3) { // hours and minutes
+	          _tz_mins = atoi(cur+2);
+	          cur[2] = '\0';
+	          _tz_hours = atoi(cur);
+/* 		  fprintf(stderr, "have hours:%d and minutes:%d\n", _tz_hours, _tz_mins); */
+				 
+	        } else { // just hours
+	          _tz_hours = atoi(cur);
+/* 		  fprintf(stderr, "have hours:%d\n", _tz_hours); */
+	        }
+
+	        _gm_offset += _tz_hours * 60 * 60;
+	        _gm_offset += _tz_mins * 60;
+
+	        if ( _tz_dir ) {
+	          _gm_offset *= -1;
+	        }
+	      }
+	    }
 	  }
 
 	  free(unparsed);
 	}
 
 	/* output is UTC, not local time */
-	return timegm(&unixtime);
+	return (time_t)(_gm_offset + timegm(&unixtime));
 }
 
 /* encoding/decoding of binary strings. The code, including the
