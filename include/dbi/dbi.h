@@ -38,7 +38,11 @@ typedef void * dbi_conn;
 typedef void * dbi_result;
 
 /* other type definitions */
-typedef enum { DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, DBI_ERROR_NOCONN, DBI_ERROR_NOMEM, DBI_ERROR_BADPTR } dbi_error_flag;
+typedef enum {
+  DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, 
+  DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, 
+  DBI_ERROR_NOCONN, DBI_ERROR_NOMEM, DBI_ERROR_BADPTR
+} dbi_error_flag;
 
 /* some _MAX definitions. The size_t hack may not be portable */
 #ifndef SIZE_T_MAX
@@ -89,10 +93,14 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
 #define DBI_INTEGER_SIZE3		(1 << 3)
 #define DBI_INTEGER_SIZE4		(1 << 4)
 #define DBI_INTEGER_SIZE8		(1 << 5)
+#define DBI_INTEGER_SIZEMASK	(DBI_INTEGER_SIZE1|DBI_INTEGER_SIZE2 \
+								|DBI_INTEGER_SIZE3|DBI_INTEGER_SIZE4 \
+								|DBI_INTEGER_SIZE8) // isolate the size flags
 
 #define DBI_DECIMAL_UNSIGNED	(1 << 0)
 #define DBI_DECIMAL_SIZE4		(1 << 1)
 #define DBI_DECIMAL_SIZE8		(1 << 2)
+#define DBI_DECIMAL_SIZEMASK	(DBI_DECIMAL_SIZE4|DBI_DECIMAL_SIZE8)
 
 #define DBI_STRING_FIXEDSIZE	(1 << 0) /* XXX unused as of now */
 

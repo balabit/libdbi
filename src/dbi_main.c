@@ -919,6 +919,7 @@ dbi_result dbi_conn_query(dbi_conn Conn, const char *statement) {
 
 	if (!conn) return NULL;
 	
+	_logquery(conn, "[query] %s\n", statement);
 	result = conn->driver->functions->query(conn, statement);
 
 	if (result == NULL) {
@@ -940,6 +941,7 @@ dbi_result dbi_conn_queryf(dbi_conn Conn, const char *formatstr, ...) {
 	vasprintf(&statement, formatstr, ap);
 	va_end(ap);
 	
+	_logquery(conn, "[queryf] %s\n", statement);
 	result = conn->driver->functions->query(conn, statement);
 
 	if (result == NULL) {
@@ -956,6 +958,7 @@ dbi_result dbi_conn_query_null(dbi_conn Conn, const unsigned char *statement, si
 
 	if (!conn) return NULL;
 
+	_logquery_null(conn, statement, st_length);
 	result = conn->driver->functions->query_null(conn, statement, st_length);
 
 	if (result == NULL) {
@@ -1207,6 +1210,8 @@ static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key)
 	return option;
 }
 
+#define COUNTOF(array) (sizeof(array)/sizeof((array)[0]))
+
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	int my_errno = 0;
 	char *errmsg = NULL;
@@ -1214,7 +1219,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	static const char *errflag_messages[] = {
 		/* DBI_ERROR_USER */		NULL,
 		/* DBI_ERROR_NONE */		NULL,
-		/* DBI_ERROR_DBD */		NULL,
+		/* DBI_ERROR_DBD */			NULL,
 		/* DBI_ERROR_BADOBJECT */	"An invalid or NULL object was passed to libdbi",
 		/* DBI_ERROR_BADTYPE */		"The requested variable type does not match what libdbi thinks it should be",
 		/* DBI_ERROR_BADIDX */		"An invalid or out-of-range index was passed to libdbi",
@@ -1222,7 +1227,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 		/* DBI_ERROR_UNSUPPORTED */	"This particular libdbi driver or connection does not support this feature",
 		/* DBI_ERROR_NOCONN */		"libdbi could not establish a connection",
 		/* DBI_ERROR_NOMEM */		"libdbi ran out of memory",
-	        /* DBI_ERROR_BADPTR */          "An invalid pointer was passed to libdbi"};
+		/* DBI_ERROR_BADPTR */		"An invalid pointer was passed to libdbi"};
 	
 	if (conn == NULL) {
 		/* temp hack... if a result is disjoined and encounters an error, conn
@@ -1230,6 +1235,12 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 		 * errors require a valid conn. this shouldn't even be a problem now,
 		 * since (currently) the only reason a result would be disjoint is if a
 		 * garbage collector was about to get rid of it. */
+		// conn will also be NULL if the connection itself could not be created,
+		// or if a NULL result handle was passed to a dbi routine, so we would
+		// always want to return if NULL. Probably should say something though:
+		fprintf(stderr, "libdbi: _error_handler: %s (NULL conn/result handle)\n",
+				errflag >= DBI_ERROR_BADOBJECT-1 && errflag < COUNTOF(errflag_messages)-1
+					? errflag_messages[errflag+1] : "");
 		return;
 	}
 
@@ -1244,7 +1255,8 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 
 	if (conn->error_message) free(conn->error_message);
 
-	if (errflag_messages[errflag+1] != NULL) {
+	if (errflag >= -1 && errflag < COUNTOF(errflag_messages)-1 
+			&& errflag_messages[errflag+1] != NULL) {
 		errmsg = strdup(errflag_messages[errflag+1]);
 	}
 	
@@ -1258,17 +1270,46 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 	}
 }
 
+void _verbose_handler(dbi_conn_t *conn, const char* fmt, ...) {
+	va_list ap;
+
+	//if(conn && dbi_conn_get_option_numeric(conn, "Verbosity"))
+	{
+	  fputs("libdbi: ",stderr);
+	  va_start(ap, fmt);
+	  vfprintf(stderr, fmt, ap);
+	  va_end(ap);
+	}
+}
+
+void _logquery(dbi_conn_t *conn, const char* fmt, ...) {
+	va_list ap;
+
+	if(conn && dbi_conn_get_option_numeric(conn, "LogQueries")){
+	  fputs("libdbi: ", stderr);
+	  va_start(ap, fmt);
+	  vfprintf(stderr, fmt, ap);
+	  va_end(ap);
+	}
+}
+
+void _logquery_null(dbi_conn_t *conn, const char* statement, size_t st_length) {
+	if(conn && dbi_conn_get_option_numeric(conn, "LogQueries")){
+	  fputs("libdbi: [query_null] ", stderr);
+	  fwrite(statement, 1, st_length, stderr);
+	  fputc('\n', stderr);
+	}
+}
+
 unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax) {
 	/* hahaha! who woulda ever thunk strawberry's code would come in handy? */
-	unsigned short startbit = log(rangemin)/log(2);
-	unsigned short endbit = log(rangemax)/log(2);
-	unsigned int attrib_mask = 0;
-	int x;
-	
-	for (x = startbit; x <= endbit; x++)
-		attrib_mask |= (1 << x);
-
-	return (attribs & attrib_mask);
+	// find first (highest) bit set; methods not using FP can be found at 
+	// http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+	unsigned startbit = log(rangemin)/log(2);
+	unsigned endbit = log(rangemax)/log(2);
+	// construct mask from startbit to endbit inclusive
+	unsigned attrib_mask = ((1<<(endbit+1))-1) ^ ((1<<startbit)-1);
+	return attribs & attrib_mask;
 }
 
 /* computes an int from a [[[[A.]B.]C.]D.]E version number according to this
@@ -1295,8 +1336,7 @@ static unsigned int _parse_versioninfo(const char *version) {
   }
 
   start = my_version;
-  while ((dot = strrchr(start, (int)'.')) != NULL
-	 && i<5) {
+  while ((dot = strrchr(start, (int)'.')) != NULL && i<5) {
     n_version += atoi(dot+1) * n_multiplier;
     *dot = '\0';
     n_multiplier *= 100;

@@ -169,6 +169,9 @@ typedef struct dbi_conn_s {
 
 unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
+void _verbose_handler(dbi_conn_t *conn, const char* fmt, ...);
+void _logquery(dbi_conn_t *conn, const char* fmt, ...);
+void _logquery_null(dbi_conn_t *conn, const char* statement, size_t st_length);
 int _disjoin_from_conn(dbi_result_t *result);
 void _set_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag, unsigned char value);
 int _get_field_flag(dbi_row_t *row, unsigned int fieldidx, unsigned char flag);
