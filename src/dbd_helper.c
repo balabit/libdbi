@@ -274,6 +274,7 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 	int _tz_dir = 0;
 	int _tz_hours = 0;
 	int _tz_mins = 0;
+	int _hour_len = 2;
 
 	int check_time = 1;
 
@@ -338,22 +339,22 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 
 /* 	        fprintf(stderr,"_tz_dir is %d, remaining : %s\n", _tz_dir, _tz_start); */
 
-	        if (strlen(cur) > 4) { // there's a minute separator ...
-	          _tz_mins = atoi(cur+3);
-	          cur[2] = '\0';
-	          _tz_hours = atoi(cur);
-/* 		  fprintf(stderr, "have hours:%d and minutes:%d\n", _tz_hours, _tz_mins); */
+		/* reuse _tz_start */
+		_tz_start = strchr(cur, ':');
 
-	        } else if (strlen(cur) > 3) { // hours and minutes
-	          _tz_mins = atoi(cur+2);
-	          cur[2] = '\0';
-	          _tz_hours = atoi(cur);
-/* 		  fprintf(stderr, "have hours:%d and minutes:%d\n", _tz_hours, _tz_mins); */
-				 
-	        } else { // just hours
-	          _tz_hours = atoi(cur);
-/* 		  fprintf(stderr, "have hours:%d\n", _tz_hours); */
-	        }
+		if (_tz_start) { /* have separator */
+		  _tz_mins = atoi(_tz_start+1);
+		  *_tz_start = '\0';
+		  _tz_hours = atoi(cur);
+		}
+		else { /* no separator */
+		  if (strlen(cur) > 2) { /* have minutes */
+		    _tz_mins = atoi(cur+strlen(cur)-2);
+		    cur[strlen(cur)-2] = '\0';
+		  }
+		  /* hours */
+		  _tz_hours = atoi(cur);
+		}
 
 	        _gm_offset += _tz_hours * 60 * 60;
 	        _gm_offset += _tz_mins * 60;
