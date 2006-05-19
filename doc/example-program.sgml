@@ -54,6 +54,30 @@ int main() {
 <Para>Of course, a complete program should be checking for errors more thoroughly. This example	keeps error-checking at a minimum for the sake of clarity. There are also other ways to	retrieve data after a successful query. Keep reading on to see the rest.</Para>
     </Section>
 
+  <section>
+    <title>Adding libdbi to your project</title>
+    <para>If your project uses autoconf to manage the build process on the target machine, you should add some tests to your <filename moreinfo="none">./configure</filename> script to check for the presence and usability of libdbi. The following example shows how this can be done:</para>
+    <programlisting format="linespecific">
+dnl check for dynamic linking functions
+AC_CHECK_LIB(dl,dlopen)
+
+dnl check for the libdbi library
+AC_CHECK_LIB(dbi,dbi_initialize)
+
+dnl to check for the availability and function of a particular
+dnl driver we need a runtime check (since the driver is loaded
+dnl dynamically). This example checks for the mysql driver
+AC_MSG_CHECKING("for libdbi mysql driver (dynamic load)")
+AC_RUN_IFELSE(
+  [AC_LANG_PROGRAM(,
+    [[dbi_initialize(0); return(dbi_conn_new("mysql") ? 0 : 1);]])],
+  [AC_MSG_RESULT("yes")],
+  [AC_MSG_FAILURE("mysql driver not installed?")])
+</programlisting>
+
+    <para>The first two tests add the appropriate flags to the <varname>LIBS</varname> variable to link against the required libraries.</para>
+    <para>In addition, you have to make sure that both the directory which contains the libdbi header file directory (usually <filename moreinfo="none">/usr/include</filename> or <filename moreinfo="none">/usr/local/include</filename>) as well as the directory which contains the libdbi library (usually <filename moreinfo="none">/usr/lib</filename> or <filename moreinfo="none">/usr/local/lib</filename>) are accessible to the compiler and to the linker by using the <option>-I</option> and <option>-l</option> compiler flags, respectively.</para>
+  </section>
 <!--
 Local Variables:
 sgml-parent-document: ("programmers-guide.sgml" "BOOK" "CHAPTER")
