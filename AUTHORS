@@ -41,6 +41,9 @@ These people have also contributed to the project:
 
 * Martin Kutschker <Martin.T.Kutschker at blackbox.net>
   - assistance with bugfixes
+  
+* Toby Thain <qu1j0t3 at sourceforge.net>
+  - improve error handling, code cleanups
 
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
