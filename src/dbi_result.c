@@ -1447,7 +1447,7 @@ static unsigned int _find_field(dbi_result_t *result, const char *fieldname, dbi
     }
     i++;
   }
-  _verbose_handler(result->conn, "there is no field named `%s`\n", fieldname);
+  _verbose_handler(result->conn, "result row has no field `%s`\n", fieldname);
   *errflag = DBI_ERROR_BADNAME;
   return 0;
 }
