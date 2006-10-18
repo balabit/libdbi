@@ -165,8 +165,10 @@ fi
 AC_SUBST(docs_subdirs)
 
 dnl ==============================
-dnl Write Makefiles
+dnl Write output files
 dnl ==============================
+
+AC_CONFIG_FILES([include/dbi/dbi.h])
 
 AC_OUTPUT([
 	libdbi.spec
@@ -176,3 +178,4 @@ AC_OUTPUT([
 	include/Makefile
 	include/dbi/Makefile
 	])
+
