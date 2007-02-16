@@ -55,6 +55,17 @@ int main() {
     </Section>
 
   <section>
+    <title>Loading libdbi at runtime</title>
+    <para>The generic example shown in the previous section assumed that the program is linked against libdbi. This is in fact the recommended way to add libdbi functionality to your programs. However, there are situations where this approach will not work. Some programs are designed to load modules at runtime to extend their capabilities. A well-known example is the web server Apache, which uses loadable modules to custom-tailor its capabilities. If such a module were to use libdbi, we'd look at the following pattern:</para>
+    <informalexample>
+      <para>Parent =&gt; dl_open(module) =&gt; dl_open(libdbi) =&gt; dl_open(driver)</para>
+    </informalexample>
+    <para>Both libdbi and the drivers have to be loaded using the <function moreinfo="none">dl_open</function> function as it is not possible to link the dynamically loaded module against libdbi. For this pattern to work, the drivers need a little tweak, like this:</para>
+    <screen format="linespecific"><prompt moreinfo="none">~/libdbi-drivers #</prompt><userinput>./configure --enable-libdbi --with-mysql</userinput></screen>
+    <para>Drivers built with this option are supposed to work both with the procedure shown above and with the generic procedure shown in the previous section. This has been tested on Linux, FreeBSD, and Cygwin. You may want to test the drivers on other platforms in both modes to avoid surprises.</para>
+  </section>
+
+  <section>
     <title>Adding libdbi to your project</title>
     <para>If your project uses autoconf to manage the build process on the target machine, you should add some tests to your <filename moreinfo="none">./configure</filename> script to check for the presence and usability of libdbi. The following example shows how this can be done:</para>
     <programlisting format="linespecific">
@@ -76,7 +87,7 @@ AC_RUN_IFELSE(
 </programlisting>
 
     <para>The first two tests add the appropriate flags to the <varname>LIBS</varname> variable to link against the required libraries.</para>
-    <para>In addition, you have to make sure that both the directory which contains the libdbi header file directory (usually <filename moreinfo="none">/usr/include</filename> or <filename moreinfo="none">/usr/local/include</filename>) as well as the directory which contains the libdbi library (usually <filename moreinfo="none">/usr/lib</filename> or <filename moreinfo="none">/usr/local/lib</filename>) are accessible to the compiler and to the linker by using the <option>-I</option> and <option>-l</option> compiler flags, respectively.</para>
+    <para>In addition, you have to make sure that both the directory which contains the libdbi header file directory (usually <filename moreinfo="none">/usr/include</filename> or <filename moreinfo="none">/usr/local/include</filename>) as well as the directory which contains the libdbi library (usually <filename moreinfo="none">/usr/lib</filename> or <filename moreinfo="none">/usr/local/lib</filename>) are accessible to the compiler and to the linker by using the <option>-I</option> and <option>-L</option> compiler flags, respectively.</para>
   </section>
 <!--
 Local Variables:
