@@ -1,6 +1,6 @@
 
 libdbi - Database Independent Abstraction Layer for C
-Copyright (C) 2001-2005, David Parker and Mark Tobenkin.
+Copyright (C) 2001-2007, David Parker, Mark Tobenkin, Markus Hoenicka.
 http://libdbi.sourceforge.net
 
 
@@ -91,7 +91,7 @@ has been successfully tested with:
 
 Linux: Debian, RedHat/Fedora Core, Slackware, Gentoo
 Windows: 98, NT4, 2000, XP
-FreeBSD: 4.3 through 5.4
+FreeBSD: 4.3 through 6.2
 SunOS: 2.8
 Solaris: 7
 AIX: 4.2, 4.3 and 5.1
@@ -151,9 +151,9 @@ CONTACT INFO:
 -------------
 
 http://libdbi.sourceforge.net
+Markus Hoenicka <mhoenicka@users.sourceforge.net>
 David A. Parker <david@neongoat.com>
 Mark M. Tobenkin <mark@brentwoodradio.com>
-Markus Hoenicka <mhoenicka@users.sourceforge.net>
 
 $Id$
 

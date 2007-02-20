@@ -3,6 +3,19 @@ libdbi NEWS file
 
 $Id$
 
+__________________________________________________________
+libdbi 0.8.2 (the "Sunday Night Buttermilk Waltz" release)
+
+Minor enhancements:
+
+- the TIME and DATETIME types now support a numeric timezone suffix,
+  like in "23:12:30+01:00"
+- improved error handling and error reporting code
+- some memory leaks were plugged
+- the "--disable-docs" configure switch now allows to build libdbi
+  without having the sgml toolchain installed
+
+
 ___________________________________________
 libdbi 0.8.1 (the "Get used to it" release)
 
