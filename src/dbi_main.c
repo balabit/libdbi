@@ -1273,7 +1273,7 @@ void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag) {
 void _verbose_handler(dbi_conn_t *conn, const char* fmt, ...) {
 	va_list ap;
 
-	//if(conn && dbi_conn_get_option_numeric(conn, "Verbosity"))
+	if(conn && dbi_conn_get_option_numeric(conn, "Verbosity"))
 	{
 	  fputs("libdbi: ",stderr);
 	  va_start(ap, fmt);
