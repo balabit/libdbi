@@ -93,9 +93,9 @@ Linux: Debian, RedHat/Fedora Core, Slackware, Gentoo
 Windows: 98, NT4, 2000, XP
 FreeBSD: 4.3 through 6.2
 SunOS: 2.8
-Solaris: 7
+Solaris: 7, 10
 AIX: 4.2, 4.3 and 5.1
-OSX: 10.2-10.4
+OS X: 10.2-10.4.9
 
 If you are using libdbi on a platform not listed here, please notify the
 mailing list! (see below)

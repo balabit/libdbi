@@ -4,16 +4,15 @@ Copyright (C) 2001-2003, David Parker and Mark Tobenkin.
 http://libdbi.sourceforge.net
 
 
-OSX-SPECIFIC INSTALLATION INSTRUCTIONS:
--------------------------------------------
-
-Building libdbi on OSX requires a little more typing compared to other
-Unixes. This is what you need to do:
+OS X-SPECIFIC INSTALLATION INSTRUCTIONS:
+----------------------------------------
 
 LIBTOOLIZE=glibtoolize ./autogen.sh
-./configure CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
-make CFLAGS="-I/sw/include" LDFLAGS="-L/sw/lib" 
+./configure
+make
 sudo make install
+
+If openjade is not available, add '--disable-docs' to configure's options.
 
 
 MODIFICATIONS AND REDISTRIBUTION (LGPL):
