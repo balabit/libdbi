@@ -121,6 +121,7 @@ static void _free_caps(_capability_t *caproot);
 static const char *_get_option(dbi_conn Conn, const char *key, int aggressive);
 static int _get_option_numeric(dbi_conn Conn, const char *key, int aggressive);
 static unsigned int _parse_versioninfo(const char *version);
+static int _safe_dlclose(dbi_driver_t *driver);
 
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 extern int _disjoin_from_conn(dbi_result_t *result);
@@ -174,7 +175,7 @@ int dbi_initialize(const char *driverdir) {
 					num_loaded++;
 				}
 				else {
-					if (driver && driver->dlhandle) my_dlclose(driver->dlhandle);
+					if (driver && driver->dlhandle) _safe_dlclose(driver);
 					if (driver && driver->functions) free(driver->functions);
 					if (driver) free(driver);
 					driver = NULL; /* don't include in linked list */
@@ -203,7 +204,7 @@ void dbi_shutdown() {
 	
 	while (curdriver) {
 		nextdriver = curdriver->next;
-		my_dlclose(curdriver->dlhandle);
+ 		_safe_dlclose(curdriver);
 		free(curdriver->functions);
 		_free_custom_functions(curdriver);
 		_free_caps(curdriver->caps);
@@ -287,12 +288,14 @@ int dbi_driver_cap_get(dbi_driver Driver, const char *capname) {
 	dbi_driver_t *driver = Driver;
 	_capability_t *cap;
 
-	if (!driver) return 0;
+	if (!driver) {
+	  return 0;
+	}
 
 	cap = driver->caps;
 
-	while (cap && strcmp(capname, cap->name)) {
-		cap = cap->next;
+ 	while (cap && strcmp(capname, cap->name)) {
+	    cap = cap->next;
 	}
 
 	return cap ? cap->value : 0;
@@ -1351,6 +1354,25 @@ static unsigned int _parse_versioninfo(const char *version) {
     return 0;
   }
   return n_version;
+}
+
+/* this is to work around nasty database client libraries which
+   install exit handlers although they're not supposed to. If we
+   unload drivers linked against one of these libraries, the
+   application linked against libdbi will crash on exit if running on
+   FreeBSD and other OSes sticking to the rule. Drivers which can be
+   safely dlclose()d should set the driver capability "safe_dlclose"
+   to nonzero */
+/* returns 0 if the driver was closed, 1 if not */
+static int _safe_dlclose(dbi_driver_t *driver) {
+  int may_close = 0;
+
+  may_close = dbi_driver_cap_get((dbi_driver)driver, "safe_dlclose");
+  if (may_close) {
+    my_dlclose(driver->dlhandle);
+    return 0;
+  }
+  return 1;
 }
 
 #if HAVE_MACH_O_DYLD_H
