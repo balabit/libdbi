@@ -114,14 +114,49 @@ published by the Free Software Foundation.
       </Para>
       <ItemizedList>
 	<ListItem><Para>&www;</Para></ListItem>
-	<ListItem><Para>David Parker <EMail>david@neongoat.com</EMail></Para></ListItem>
-	<ListItem><Para>Mark Tobenkin <EMail>mark@brentwoodradio.com</EMail></Para></ListItem>
-	<listitem>
-	  <para>Markus Hoenicka <email>mhoenicka@users.sourceforge.net</email></para>
-	</listitem>
+	<ListItem><Para>libdbi-users mailing list <EMail>libdbi-users@lists.sourceforge.net</EMail></Para></ListItem>
       </ItemizedList>
     </Section>
   </Chapter>
+
+  <Chapter id="drivercaps">
+    <title>Driver Capabilities</title>
+    <para>Driver capabilities are essentially an array of key/value pairs which the drivers set when they're loaded. Both the libdbi framework and programs linked against libdbi can query these capabilities and adjust their behaviour accordingly.</para>
+    <section id="settingdrivercaps">
+      <title>Setting driver capabilities</title>
+      <para>The perfect place to set driver capabilities is in the <link linkend="dbd-initialize">dbd_initialize</link> function which is called right after the driver is loaded by libdbi. To set capabilities, call the _dbd_register_driver_cap function for each of them:</para>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function moreinfo="none">_dbd_register_driver_cap</function></funcdef>
+	    <paramdef>dbi_driver_t *<parameter moreinfo="none">driver</parameter></paramdef>
+	    <paramdef>const char *<parameter moreinfo="none">capname</parameter></paramdef>
+	    <paramdef>int <parameter moreinfo="none">value</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<VariableList>
+	  <VarListEntry>
+	    <Term>Arguments</Term>
+	    <ListItem>
+	      <Para><Literal>driver</Literal>: the driver as passed to <link linkend="dbd-initialize">dbd_initialize</link>.</Para>
+	      <Para><Literal>capname</Literal>: A string containing the name of the capability (i.e. the key).</Para>
+	      <Para><Literal>value</Literal>: The value of the capability.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+    </section>
+    <section id="requireddrivercaps">
+      <title>Required driver capabilities</title>
+      <para>libdbi currently queries only one driver capability.</para>
+      <variablelist>
+	<varlistentry>
+	  <term>safe_dlclose</term>
+	  <listitem>
+	    <para>A nonzero value indicates that the driver can safely be unloaded from memory by calling dlclose(). A value of 0 (zero) indicates that the driver should not be unloaded when libdbi is shut down. Drivers must not be unloaded if they, or any library they are linked against, install exit handlers via atexit() as this would leave dangling pointers, causing segfaults on some platforms.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </section>
+  </chapter>
 
   <Chapter id="driverfuncs">
     <Title>Driver Functions</Title>
