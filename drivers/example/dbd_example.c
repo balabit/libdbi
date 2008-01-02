@@ -93,7 +93,13 @@ int dbd_initialize(dbi_driver_t *driver) {
    * this is called right after dbd_register_driver().
    * return -1 on error, 0 on success. if -1 is returned, the driver will not
    * be added to the list of available drivers. */
-	
+
+  /* this indicates the driver can be safely unloaded when libdbi is
+     shut down. Change the value to '0' (zero) if the driver, or a
+     library it is linked against, installs exit handlers via
+     atexit() */
+  _dbd_register_driver_cap(driver, "safe_dlclose", 1);
+
   return 0;
 }
 
