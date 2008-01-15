@@ -1,92 +1,39 @@
-2007-05-01 16:37  qu1j0t3
+	* doc/libdbi-reference.sgml (1.15), include/dbi/dbi-dev.h (1.42),
+	include/dbi/dbi.h.in (1.2), src/dbd_helper.c (1.40), src/dbi_main.c
+	(1.78), src/dbi_result.c (1.46): overhauled error reporting;
+	dbi_conn_error_flags() is now deprecated, use the return value of
+	dbi_conn_error() instead; make sure error status is reset before
+	each dbi command
 
-    * remove unnecessary frills from OS X build recipe in README.osx
+2008-01-15 01:18  mhoenicka
 
-2007-04-30 09:40  qu1j0t3
+	* doc/: Makefile.am (1.20), libdbi-errorhandling.sgml (1.1),
+	programmers-guide.sgml (1.13): added chapter about error handling
 
-    * uncomment code that checks Verbosity option flag
-      (reported by Balazs Scheidler)
+2008-01-15 01:15  mhoenicka
 
-2007-02-16 01:40  mhoenicka
+	* configure.in (1.44): bumped up version number to 0.8.3-pre1
 
-	* doc/example-program.sgml (1.14): added info about loading libdbi
-	  at runtime
+2008-01-02 17:14  mhoenicka
 
-2007-02-15 01:42  mhoenicka
+	* drivers/example/dbd_example.c (1.2): added safe_dlclose cap
 
-	* src/dbd_helper.c (1.39): removed leftover fprintf() call
+2008-01-01 01:12  mhoenicka
 
-2007-02-15 01:42  mhoenicka
+	* doc/driver-guide.sgml (1.2): added driver cap info
 
-	* configure.in (1.43): bumped up version number
+2008-01-01 01:11  mhoenicka
 
-2006-10-18 22:18  mhoenicka
+	* src/dbi_main.c (1.77): added _safe_dlclose() to work around crash
+	on FreeBSD when using firebird
 
-	* include/dbi/Makefile.am (1.5): include dbi.h.in as an extra file
+2007-05-01 21:38  qu1j0t3
 
-2006-10-18 22:17  mhoenicka
+	* ChangeLog (1.21), README (1.16), README.osx (1.4): minor doc
+	updates
 
-	* configure.in (1.42): now creates include/dbi/dbi.h and fills in
-	  defines
+2007-04-30 14:40  qu1j0t3
 
-2006-10-18 22:17  mhoenicka
-
-	* include/dbi/dbi.h.in (1.1): replaces dbi.h;configure.in now fills
-	  in a few defines
-
-2006-10-18 22:16  mhoenicka
-
-	* include/dbi/dbi.h (1.62): replaced by dbi.h.in
-
-2006-06-02 19:18  qu1j0t3
-
-	* src/dbi_main.c (1.75), include/dbi/dbi-dev.h (1.41): make
-	  verbosity level accessible to drivers as dbi_verbosity
-
-2006-06-02 19:17  qu1j0t3
-
-	* src/dbi_result.c (1.45): clarify error message
-
-2006-05-28 20:45  qu1j0t3
-
-	* AUTHORS (1.15): add myself
-
-2006-05-19 23:46  mhoenicka
-
-	* drivers/example/.cvsignore (1.1): initial version
-
-2006-05-19 23:44  mhoenicka
-
-	* doc/: example-program.sgml (1.13), programmers-guide.sgml (1.12):
-	  added hint about configure checks
-
-2006-05-19 23:44  mhoenicka
-
-	* Makefile.am (1.23), configure.in (1.41): added switch to disable
-	  doc building
-
-2006-05-17 00:05  mhoenicka
-
-	* src/dbd_helper.c (1.38): second round of timezone fix
-
-2006-05-15 23:06  mhoenicka
-
-	* src/dbd_helper.c (1.37): Mikes timezone patch
-
-2006-05-15 17:11  qu1j0t3
-
-	* include/dbi/dbi-dev.h (1.40), include/dbi/dbi.h (1.61),
-	  src/dbi_main.c (1.74), src/dbi_result.c (1.44): add 'verbose'
-	  error messages to stderr on type mismatches and missing fields;
-	  query logging to stderr controlled by conn option 'LogQueries';
-	  eliminate unnecessary loop in _isolate_attrib(); use constant
-	  masks for most attribute tests; fix numerous cases where a NULL
-	  result pointer would be dereferenced before calling
-	  _error_handler(); avoid redundant local variable for copy of
-	  opaque parameter (use cast instead & macro for readability)
-
-2005-12-08 19:51  mhoenicka
-
-	* src/dbd_helper.c (1.36): Samis leak plug for
-	  _dbd_result_set_numfields()
+	* src/dbi_main.c (1.76): restore test for Verbosity before logging
+	message (reported by Balazs Scheidler)
 
