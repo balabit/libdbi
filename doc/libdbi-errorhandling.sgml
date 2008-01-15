@@ -3,31 +3,31 @@
       <varlistentry>
 	<term>Function return values</term>
 	<listitem>
-	  <para>Essentially all libdbi functions return a value. For example, the <link linkend="dbi-initialize">dbi_initialize</link> function returns the number of loaded drivers, or -1 if an error occurred. In this case checking the return value is sufficient to detect an error condition. However, other functions like the family of "getters" cannot indicate error conditions with a return value. Consider e.g. the <link linkend="dbi-result-get-string">dbi_result_get_string</link> function which is used to retrieve strings from a database. If there was an error in accessing the value, the function will return the string "ERROR". However, this string is a legal value of such a field (the problem is the same for any other conceivable return value, including the empty string and the NULL pointer). Therefore we need an additional mechanism to report errors.</para>
+	  <para>Essentially all libdbi functions return a value, a concept not unfamiliar to the seasoned C programmer. For example, the <link linkend="dbi-initialize">dbi_initialize</link> function returns the number of loaded drivers, or -1 if an error occurred. In this case checking the return value is sufficient to detect an error condition. However, other functions like the family of "getters" cannot indicate error conditions with a return value. Consider e.g. the <link linkend="dbi-result-get-string">dbi_result_get_string</link> function which is used to retrieve strings from a database. If there was an error in accessing the value, the function will return the string "ERROR". However, this string is a legal value of such a field (the problem is the same for any other conceivable return value, including the empty string and the NULL pointer). Therefore we need an additional mechanism to report errors.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Error numbers and error messages</term>
 	<listitem>
-	  <para>Connections store the status of the most recent operation which can be queried by an accessor function. This of course implies that your program queries the status right after each operation, as the values will be overwritten by subsequent operations.</para>
+	<para>Connections store the status of the most recent operation which can be queried by the accessor function <link linkend="dbi-conn-error"><function moreinfo="none">dbi_conn_error</function></link>. This is equivalent to the <varname>errno</varname> variable of the standard C library which is used by most system calls and can be printed in human-readable form by the <function moreinfo="none">perror</function> system call. This mechanism implies that your program queries the status right after each operation, as the values will be overwritten by subsequent operations.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
     <para>The return values of all libdbi functions are listed in the <link linkend="reference">reference</link> chapter below. The error numbers will be briefly discussed in the following sections.</para>
     <sect1 id="connerrors">
       <title>Connection error numbers and messages</title>
-      <para>If your application has successfully opened a connection to a database, all operations on this connection may cause errors. We have to distinguish two classes of errors:</para>
+      <para>If your application has successfully opened a connection to a database, all operations on this connection may cause errors. There are two classes of errors:</para>
       <variablelist>
 	<varlistentry>
 	  <term>Client library errors</term>
 	  <listitem>
-	    <para>libdbi retrieves and stores the error codes of the database engine client library if it provides error codes in a suitable format. If the client library does not support error numbers, the value DBI_ERROR_CLIENT indicates an error status. In addition a string may be provided which describes or further elaborates the error status. The possible values of error number and error message depend on the database engine used for the connection.</para>
+	    <para>libdbi retrieves and stores the error codes of the database engine client library if it provides error codes in a suitable format. If the client library does not support error numbers as positive integers, the value DBI_ERROR_CLIENT indicates an error status instead. In addition a string may be provided which describes or further elaborates the error status. The possible values of error number and error message depend on the database engine used for the connection.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>libdbi errors</term>
 	  <listitem>
-	    <para>A number of errors may occur within the libdbi framework or within a database driver. The possible error numbers and error messages are predefined by libdbi.</para>
+	    <para>A number of errors may occur within the libdbi framework or within a database driver, e.g. if your program queries nonexistent columns or attempts to read past the last row of a result set. The possible error numbers and error messages are predefined by libdbi.</para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -56,7 +56,7 @@
 	    </row>
 	    <row>
 	      <entry>DBI_ERROR_BADTYPE</entry>
-	      <entry>incorrect column type</entry>
+	      <entry>the accessor function does not match the actual column type</entry>
 	    </row>
 	    <row>
 	      <entry>DBI_ERROR_BADIDX</entry>
@@ -64,7 +64,7 @@
 	    </row>
 	    <row>
 	      <entry>DBI_ERROR_BADNAME</entry>
-	      <entry>incorrect column name</entry>
+	      <entry>incorrect column or option name</entry>
 	    </row>
 	    <row>
 	      <entry>DBI_ERROR_UNSUPPORTED</entry>

@@ -3,6 +3,31 @@ libdbi NEWS file
 
 $Id$
 
+_________________________
+libdbi 0.8.3 (prerelease)
+
+Two major issues were addressed:
+
+- database engine client libraries which install exit handlers are not
+  safe to unload on some systems. libdbi now checks the driver
+  capability "safe_dlclose" and leaves those drivers in memory to avoid
+  segfaults.
+
+- error handling and reporting was changed once again. The
+  dbi_conn_error_flag() function is now deprecated. Instead, a call of
+  dbi_conn_error() is all it takes to check the error status. This
+  function returns zero if the last operation was successful, < 0 (one
+  of several predefined libdbi error codes) for internal errors, and > 0
+  for client library errors. To maintain backwards compatibility,
+  dbi_conn_error_flags() reports the same error codes as
+  dbi_conn_error() so older code should not break as long as you checked
+  against the predefined error codes.
+
+Minor enhancements:
+
+- deprecated functions will now cause compiler warnings to make you
+  aware of this fact
+
 __________________________________________________________
 libdbi 0.8.2 (the "Sunday Night Buttermilk Waltz" release)
 

@@ -1,3 +1,15 @@
+2008-01-15 15:01  mhoenicka
+
+	* NEWS (1.6), doc/driver-guide.sgml (1.3), doc/example-program.sgml
+	(1.15), doc/libdbi-errorhandling.sgml (1.2),
+	doc/libdbi-reference.sgml (1.16): final touches for 0.8.3-pre1
+
+2008-01-15 14:59  mhoenicka
+
+	* ChangeLog (1.22): shut up
+
+2008-01-15 01:21  mhoenicka
+
 	* doc/libdbi-reference.sgml (1.15), include/dbi/dbi-dev.h (1.42),
 	include/dbi/dbi.h.in (1.2), src/dbd_helper.c (1.40), src/dbi_main.c
 	(1.78), src/dbi_result.c (1.46): overhauled error reporting;

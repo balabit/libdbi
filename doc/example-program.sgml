@@ -51,18 +51,17 @@ int main() {
     <note>
       <para>The <option>-ldl</option> option is not required on systems that implement the dynamic linking in their libc (like FreeBSD). You may also have to throw in something like <option>-I/usr/local/include</option> and <option>-L/usr/local/lib</option> to help gcc and ld find the libdbi headers and libraries.</para>
     </note>
-<Para>Of course, a complete program should be checking for errors more thoroughly. This example	keeps error-checking at a minimum for the sake of clarity. There are also other ways to	retrieve data after a successful query. Keep reading on to see the rest.</Para>
+<Para>Of course, a complete program should check for errors more thoroughly. This example keeps error-checking at a minimum for the sake of clarity. There are also other ways to retrieve data after a successful query. Keep reading on to see the rest.</Para>
     </Section>
 
   <section>
     <title>Loading libdbi at runtime</title>
     <para>The generic example shown in the previous section assumed that the program is linked against libdbi. This is in fact the recommended way to add libdbi functionality to your programs. However, there are situations where this approach will not work. Some programs are designed to load modules at runtime to extend their capabilities. A well-known example is the web server Apache, which uses loadable modules to custom-tailor its capabilities. If such a module were to use libdbi, we'd look at the following pattern:</para>
     <informalexample>
-      <para>Parent =&gt; dl_open(module) =&gt; dl_open(libdbi) =&gt; dl_open(driver)</para>
+      <para>Parent =&gt; dl_open(module) =&gt; dl_open(driver)</para>
     </informalexample>
-    <para>Both libdbi and the drivers have to be loaded using the <function moreinfo="none">dl_open</function> function as it is not possible to link the dynamically loaded module against libdbi. For this pattern to work, the drivers need a little tweak, like this:</para>
-    <screen format="linespecific"><prompt moreinfo="none">~/libdbi-drivers #</prompt><userinput>./configure --enable-libdbi --with-mysql</userinput></screen>
-    <para>Drivers built with this option are supposed to work both with the procedure shown above and with the generic procedure shown in the previous section. This has been tested on Linux, FreeBSD, and Cygwin. You may want to test the drivers on other platforms in both modes to avoid surprises.</para>
+    <para>The dynamically loaded module is linked against libdbi whereas the parent application is not. For this pattern to work, the drivers are linked against libdbi by default. This avoids "undefined symbol" errors at runtime, but may cause problems under arcane conditions or on equally arcane operating systems. If you should ever encounter such problems, you can switch off linking the drivers against libdbi like this:</para>
+    <screen format="linespecific"><prompt moreinfo="none">~/libdbi-drivers #</prompt><userinput>./configure --disable-libdbi --with-mysql</userinput></screen>
   </section>
 
   <section>
