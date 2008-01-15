@@ -32,6 +32,14 @@ extern "C" {
 #include <time.h>
 #include <limits.h> /* for the *_MAX definitions */
 
+#if defined _MSC_VER && _MSC_VER >= 1300
+#define LIBDBI_API_DEPRECATED __declspec(deprecated)
+#elif defined __GNUC__ && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2))
+#define LIBDBI_API_DEPRECATED __attribute__((__deprecated__))
+#else
+#define LIBDBI_API_DEPRECATED
+#endif
+
 /* opaque type definitions */
 typedef void * dbi_driver;
 typedef void * dbi_conn;
@@ -39,9 +47,18 @@ typedef void * dbi_result;
 
 /* other type definitions */
 typedef enum {
-  DBI_ERROR_USER = -1, DBI_ERROR_NONE = 0, DBI_ERROR_DBD, DBI_ERROR_BADOBJECT, 
-  DBI_ERROR_BADTYPE, DBI_ERROR_BADIDX, DBI_ERROR_BADNAME, DBI_ERROR_UNSUPPORTED, 
-  DBI_ERROR_NOCONN, DBI_ERROR_NOMEM, DBI_ERROR_BADPTR
+  DBI_ERROR_USER = -10, /* must be the first in the list */
+  DBI_ERROR_DBD = -9,
+  DBI_ERROR_BADOBJECT, 
+  DBI_ERROR_BADTYPE,
+  DBI_ERROR_BADIDX,
+  DBI_ERROR_BADNAME,
+  DBI_ERROR_UNSUPPORTED, 
+  DBI_ERROR_NOCONN,
+  DBI_ERROR_NOMEM,
+  DBI_ERROR_BADPTR,
+  DBI_ERROR_NONE = 0,
+  DBI_ERROR_CLIENT
 } dbi_error_flag;
 
 /* some _MAX definitions. The size_t hack may not be portable */
@@ -151,8 +168,8 @@ dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if curre
 dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
 int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
 void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
-size_t dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
-size_t dbi_driver_quote_string(dbi_driver Driver, char **orig);
+size_t LIBDBI_API_DEPRECATED dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
+size_t LIBDBI_API_DEPRECATED dbi_driver_quote_string(dbi_driver Driver, char **orig);
 const char* dbi_driver_encoding_from_iana(dbi_driver Driver, const char* iana_encoding);
 const char* dbi_driver_encoding_to_iana(dbi_driver Driver, const char* db_encoding);
 int dbi_driver_cap_get(dbi_driver Driver, const char *capname);
@@ -183,7 +200,7 @@ void dbi_conn_close(dbi_conn Conn);
 
 int dbi_conn_error(dbi_conn Conn, const char **errmsg_dest);
 void dbi_conn_error_handler(dbi_conn Conn, dbi_conn_error_handler_func function, void *user_argument);
-dbi_error_flag dbi_conn_error_flag(dbi_conn Conn);
+dbi_error_flag LIBDBI_API_DEPRECATED dbi_conn_error_flag(dbi_conn Conn);
 int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...);
 
 int dbi_conn_connect(dbi_conn Conn);
@@ -216,8 +233,8 @@ int dbi_result_next_row(dbi_result Result);
 unsigned long long dbi_result_get_currow(dbi_result Result);
 unsigned long long dbi_result_get_numrows(dbi_result Result);
 unsigned long long dbi_result_get_numrows_affected(dbi_result Result);
-size_t dbi_result_get_field_size(dbi_result Result, const char *fieldname);
-size_t dbi_result_get_field_size_idx(dbi_result Result, unsigned int fieldidx);
+size_t LIBDBI_API_DEPRECATED dbi_result_get_field_size(dbi_result Result, const char *fieldname);
+size_t LIBDBI_API_DEPRECATED dbi_result_get_field_size_idx(dbi_result Result, unsigned int fieldidx);
 size_t dbi_result_get_field_length(dbi_result Result, const char *fieldname);
 size_t dbi_result_get_field_length_idx(dbi_result Result, unsigned int fieldidx);
 unsigned int dbi_result_get_field_idx(dbi_result Result, const char *fieldname);
@@ -242,8 +259,8 @@ short dbi_result_get_short(dbi_result Result, const char *fieldname);
 unsigned short dbi_result_get_ushort(dbi_result Result, const char *fieldname);
 int dbi_result_get_int(dbi_result Result, const char *fieldname);
 unsigned int dbi_result_get_uint(dbi_result Result, const char *fieldname);
-int dbi_result_get_long(dbi_result Result, const char *fieldname); /* deprecated */
-unsigned int dbi_result_get_ulong(dbi_result Result, const char *fieldname); /* deprecated */
+int LIBDBI_API_DEPRECATED dbi_result_get_long(dbi_result Result, const char *fieldname); /* deprecated */
+unsigned int LIBDBI_API_DEPRECATED dbi_result_get_ulong(dbi_result Result, const char *fieldname); /* deprecated */
 long long dbi_result_get_longlong(dbi_result Result, const char *fieldname);
 unsigned long long dbi_result_get_ulonglong(dbi_result Result, const char *fieldname);
 
@@ -262,8 +279,8 @@ int dbi_result_bind_char(dbi_result Result, const char *fieldname, char *bindto)
 int dbi_result_bind_uchar(dbi_result Result, const char *fieldname, unsigned char *bindto);
 int dbi_result_bind_short(dbi_result Result, const char *fieldname, short *bindto);
 int dbi_result_bind_ushort(dbi_result Result, const char *fieldname, unsigned short *bindto);
-int dbi_result_bind_long(dbi_result Result, const char *fieldname, int *bindto);
-int dbi_result_bind_ulong(dbi_result Result, const char *fieldname, unsigned int *bindto);
+int LIBDBI_API_DEPRECATED dbi_result_bind_long(dbi_result Result, const char *fieldname, int *bindto);
+int LIBDBI_API_DEPRECATED dbi_result_bind_ulong(dbi_result Result, const char *fieldname, unsigned int *bindto);
 int dbi_result_bind_int(dbi_result Result, const char *fieldname, int *bindto);
 int dbi_result_bind_uint(dbi_result Result, const char *fieldname, unsigned int *bindto);
 int dbi_result_bind_longlong(dbi_result Result, const char *fieldname, long long *bindto);
@@ -286,10 +303,10 @@ signed char dbi_result_get_char_idx(dbi_result Result, unsigned int fieldidx);
 unsigned char dbi_result_get_uchar_idx(dbi_result Result, unsigned int fieldidx);
 short dbi_result_get_short_idx(dbi_result Result, unsigned int fieldidx);
 unsigned short dbi_result_get_ushort_idx(dbi_result Result, unsigned int fieldidx);
-int dbi_result_get_long_idx(dbi_result Result, unsigned int fieldidx);
+int LIBDBI_API_DEPRECATED dbi_result_get_long_idx(dbi_result Result, unsigned int fieldidx);
 int dbi_result_get_int_idx(dbi_result Result, unsigned int fieldidx);
 unsigned int dbi_result_get_uint_idx(dbi_result Result, unsigned int fieldidx);
-unsigned int dbi_result_get_ulong_idx(dbi_result Result, unsigned int fieldidx);
+unsigned int LIBDBI_API_DEPRECATED dbi_result_get_ulong_idx(dbi_result Result, unsigned int fieldidx);
 long long dbi_result_get_longlong_idx(dbi_result Result, unsigned int fieldidx);
 unsigned long long dbi_result_get_ulonglong_idx(dbi_result Result, unsigned int fieldidx);
 

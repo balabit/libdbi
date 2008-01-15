@@ -146,15 +146,44 @@ size_t _dbd_escape_chars(char *dest, const char *orig, size_t orig_size, const c
 }
 
 void _dbd_internal_error_handler(dbi_conn_t *conn, const char *errmsg, const int errno) {
-	if (conn->error_message) free(conn->error_message);
-	
-	conn->error_flag = DBI_ERROR_DBD;
-	conn->error_number = errno;
-	conn->error_message = strdup(errmsg);
+  int my_errno = DBI_ERROR_NONE;
+  int errstatus;
+  char *my_errmsg = NULL;
 
-	if (conn->error_handler != NULL) {
-		conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
-	}
+  if (conn->error_message) {
+    free(conn->error_message);
+  }
+	
+  if (errno == DBI_ERROR_DBD) {
+    /* translate into a client-library specific error number */
+    errstatus = conn->driver->functions->geterror(conn, &my_errno, &my_errmsg);
+
+    if (errstatus == -1) {
+      /* not _really_ an error. XXX debug this, does it ever actually happen? */
+      return;
+    }
+    conn->error_flag = my_errno; /* legacy code may rely on this */
+    conn->error_number = my_errno;
+    conn->error_message = my_errmsg ? strdup(my_errmsg) : NULL;
+    
+    if (conn->error_handler != NULL) {
+      conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
+    }
+  }
+  else if (errmsg) {
+    conn->error_flag = errno; /* legacy code may rely on this */
+    conn->error_number = errno;
+    conn->error_message = strdup(errmsg);
+    
+    if (conn->error_handler != NULL) {
+      conn->error_handler((dbi_conn)conn, conn->error_handler_argument);
+    }
+  }
+  else {
+    /* pass internal errors to the internal libdbi handler */
+    _error_handler(conn, errno);
+  }
+
 }
 
 dbi_result_t *_dbd_result_create_from_stringarray(dbi_conn_t *conn, unsigned long long numrows_matched, const char **stringarray) {
@@ -287,7 +316,7 @@ time_t _dbd_parse_datetime(const char *raw, unsigned int attribs) {
 	if (raw && (unparsed = strdup(raw)) != NULL) {
 	  cur = unparsed;
 
-/* 	  fprintf(stderr, "cur went to:%s\n", cur); */
+/*  	  fprintf(stderr, "cur went to:%s\n", cur);  */
 
 	  /* this code assumes the following input in cur: */
 	  /* DATE: YYYY-MM-DD (the dashes may be any other separator) */

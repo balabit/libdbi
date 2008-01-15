@@ -171,6 +171,7 @@ extern int dbi_verbosity;
 
 unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
+void _reset_conn_error(dbi_conn_t *conn);
 void _verbose_handler(dbi_conn_t *conn, const char* fmt, ...);
 void _logquery(dbi_conn_t *conn, const char* fmt, ...);
 void _logquery_null(dbi_conn_t *conn, const char* statement, size_t st_length);

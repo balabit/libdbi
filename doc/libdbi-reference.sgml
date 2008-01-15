@@ -497,7 +497,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
+	    <ListItem><Para>-1 on error, 0 on success. In case of an error, the <link linkend="errornumbers">error number</link> is DBI_ERROR_NOMEM.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -522,7 +522,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>-1 on error, 0 on success.</Para></ListItem>
+	    <ListItem><Para>-1 on error, 0 on success. In case of an error, the <link linkend="errornumbers">error number</link> is DBI_ERROR_NOMEM.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -534,7 +534,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter>key</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Retrieves the string value of the specified option set for a connection.</Para>
+	<Para>Retrieves the string value of the specified option set for a connection if available.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -545,7 +545,30 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>A read-only string with the setting, or NULL if it is not available.</Para></ListItem>
+	    <ListItem><Para>A read-only string with the setting, or NULL if it is not available. It is not considered an error if the setting is not available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-require-option" XRefLabel="dbi_conn_require_option"><Title>dbi_conn_require_option</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>const char *<function>dbi_conn_require_option</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves the string value of the specified option set for a connection and throws an error if the option was not set.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A read-only string with the setting, or NULL if it is not available. In the latter case, the <link linkend="errornumbers">error number</link> is DBI_ERROR_BADNAME.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -557,7 +580,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter>key</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Retrieves the integer value of the specified option set for a connection.</Para>
+	<Para>Retrieves the integer value of the specified option set for a connection if available.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -568,7 +591,30 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The value of the setting, or -1 if it is not available.</Para></ListItem>
+	    <ListItem><Para>The value of the setting, or -1 if it is not available. It is not considered an error if the option has not been set.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-conn-require-option-numeric" XRefLabel="dbi_conn_require_option_numeric"><Title>dbi_conn_require_option_numeric</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_conn_require_option_numeric</function></funcdef>
+	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	    <paramdef>const char *<parameter>key</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves the integer value of the specified option set for a connection and throws an error if it is not available.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Conn</Literal>: The target connection.</Para>
+	      <Para><Literal>key</Literal>: The name of the target setting.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The value of the setting, or -1 if it is not available. In the latter case, the <link linkend="errornumbers">error number</link> is DBI_ERROR_BADNAME.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -591,7 +637,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>The key name of the next option, or NULL if there was an error or there are no more options.</Para></ListItem>
+	    <ListItem><Para>The key name of the next option, or NULL if there are no more options or if there was an error. In the latter case the <link linkend="errornumbers">error number</link> is set to DBI_ERROR_BADPTR.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -603,7 +649,7 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter>key</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Removes the target option setting from a connection.</Para>
+	<Para>Removes the target option setting from a connection. It is not considered an error if the requested option was not set before.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -749,7 +795,7 @@ published by the Free Software Foundation.
 	    </VarListEntry>
 	    <VarListEntry>
 	      <term>Returns</term>
-	      <ListItem><Para>The error number of the most recent database operation if it resulted in an error. If not, this will return -1.</Para></ListItem>
+	      <ListItem><Para>The error number of the most recent database operation if it resulted in an error. If not, this will return DBI_ERROR_NONE.</Para></ListItem>
 	    </VarListEntry>
 	  </VariableList>
 	</Section>
@@ -806,6 +852,38 @@ published by the Free Software Foundation.
 	      </listitem>
 	    </varlistentry>
 	  </variablelist>
+	  <note>
+	    <para>This function is deprecated. Use <xref linkend="dbi-conn-error"> instead. Both functions return the same error code to maintain backwards compatibility.</para>
+	  </note>
+	</section>
+	<section id="dbi-conn-set-error" xreflabel="dbi_conn_set_error">
+	  <title>dbi_conn_set_error</title>
+	  <funcsynopsis>
+	    <funcprototype>
+	      <funcdef>int <function>dbi_conn_set_error</function></funcdef>
+	      <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
+	      <paramdef>int <parameter moreinfo="none">errnum</parameter></paramdef>
+	      <paramdef>const char <parameter moreinfo="none">*formatstr</parameter></paramdef>
+	      <paramdef>...</paramdef>
+	    </funcprototype>
+	  </funcsynopsis>
+	  <para>Applications may set an error status and an error message which are accessible through the libdbi error API function <link linkend="dbi-conn-error">dbi_conn_error</link>.</para>
+	  <variablelist>
+	    <varlistentry>
+	      <term><emphasis>Arguments</emphasis></term>
+	      <listitem>
+		<Para><Literal>Conn</Literal>: The target connection.</Para>
+		<Para><Literal>errnum</Literal>: An application-defined error code. Applications should use only positive nonzero integers to indicate errors.</Para>
+		<Para>The remainder of the argument list is interpreted using a printf(3)-like syntax to define an error message.</Para>
+	      </listitem>
+	    </varlistentry>
+	    <varlistentry>
+	      <term><emphasis>Returns</emphasis></term>
+	      <listitem>
+		<para>The length of the error message in bytes, or 0 if there was an error.</para>
+	      </listitem>
+	    </varlistentry>
+	  </variablelist>
 	</section>
       </Section>
     </Section>
@@ -817,7 +895,7 @@ published by the Free Software Foundation.
 	    <paramdef>dbi_conn <parameter>Conn</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Connects to the database using the options (host, username, password, port, (etc.) set with dbi_set_option() and dbi_set_option_numeric().  See the documentation for each specific database driver for the options it recognizes and requires.</Para>
+	<Para>Connects to the database using the options (host, username, password, port, (etc.) set with <link linkend="dbi-conn-set-option">dbi_conn_set_option</link> and related functions.  See the documentation for each specific database driver for the options it recognizes and requires.</Para>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -827,7 +905,7 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
-	    <ListItem><Para>0 (zero) on success, less than zero on failure.</Para></ListItem>
+	    <ListItem><Para>0 (zero) on success, less than zero on failure. In the latter case, the <link linkend="errornumbers">error number</link> may be DBI_ERROR_NOMEM, DBI_ERROR_NOCONN, or one of the driver-specific values.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -1090,7 +1168,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes. In case of an error the <link linkend="errornumbers">error number</link> is DBI_ERROR_BADPTR or DBI_ERROR_NOMEM.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1118,7 +1196,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. Possible <link linkend="errornumbers">error numbers</link> are DBI_ERROR_BADPTR and DBI_ERROR_NOMEM.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -1148,7 +1226,7 @@ published by the Free Software Foundation.
 	  <varlistentry>
 	    <term>Returns</term>
 	    <listitem>
-	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error.</para>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. Possible <link linkend="errornumbers">error numbers</link> are DBI_ERROR_BADPTR and DBI_ERROR_NOMEM.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
