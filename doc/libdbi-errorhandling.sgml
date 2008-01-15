@@ -1,0 +1,102 @@
+      <para>Applications should check all libdbi function calls for errors and respond appropriately to avoid entering an undefined status. libdbi uses two mechanisms to indicate errors:</para>
+    <variablelist>
+      <varlistentry>
+	<term>Function return values</term>
+	<listitem>
+	  <para>Essentially all libdbi functions return a value. For example, the <link linkend="dbi-initialize">dbi_initialize</link> function returns the number of loaded drivers, or -1 if an error occurred. In this case checking the return value is sufficient to detect an error condition. However, other functions like the family of "getters" cannot indicate error conditions with a return value. Consider e.g. the <link linkend="dbi-result-get-string">dbi_result_get_string</link> function which is used to retrieve strings from a database. If there was an error in accessing the value, the function will return the string "ERROR". However, this string is a legal value of such a field (the problem is the same for any other conceivable return value, including the empty string and the NULL pointer). Therefore we need an additional mechanism to report errors.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Error numbers and error messages</term>
+	<listitem>
+	  <para>Connections store the status of the most recent operation which can be queried by an accessor function. This of course implies that your program queries the status right after each operation, as the values will be overwritten by subsequent operations.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>The return values of all libdbi functions are listed in the <link linkend="reference">reference</link> chapter below. The error numbers will be briefly discussed in the following sections.</para>
+    <sect1 id="connerrors">
+      <title>Connection error numbers and messages</title>
+      <para>If your application has successfully opened a connection to a database, all operations on this connection may cause errors. We have to distinguish two classes of errors:</para>
+      <variablelist>
+	<varlistentry>
+	  <term>Client library errors</term>
+	  <listitem>
+	    <para>libdbi retrieves and stores the error codes of the database engine client library if it provides error codes in a suitable format. If the client library does not support error numbers, the value DBI_ERROR_CLIENT indicates an error status. In addition a string may be provided which describes or further elaborates the error status. The possible values of error number and error message depend on the database engine used for the connection.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>libdbi errors</term>
+	  <listitem>
+	    <para>A number of errors may occur within the libdbi framework or within a database driver. The possible error numbers and error messages are predefined by libdbi.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <para>Use the function <link linkend="dbi-conn-error">dbi_conn_error</link> to access the error number and error message of the most recent connection operation.</para>
+    </sect1>
+    <sect1 id="errornumbers">
+      <title>Error numbers</title>
+      <para><link linkend="dbi-conn-error">dbi_conn_error</link> returns DBI_ERROR_NONE (internally 0) if the last operation was successful, and a nonzero value if not. Client library errors use positive error numbers, whereas libdbi errors use negative error numbers as listed in the following table:</para>
+      <table>
+	<title>libdbi error numbers</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>value</entry>
+	      <entry>description</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>DBI_ERROR_USER</entry>
+	      <entry>This indicates an error status set by the application itself, see <link linkend="dbi-conn-set-error">dbi_conn_set_error</link></entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_BADOBJECT</entry>
+	      <entry>invalid connection or result structure</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_BADTYPE</entry>
+	      <entry>incorrect column type</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_BADIDX</entry>
+	      <entry>out-of-range index</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_BADNAME</entry>
+	      <entry>incorrect column name</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_UNSUPPORTED</entry>
+	      <entry>feature not supported by driver</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_NOCONN</entry>
+	      <entry>no valid connection</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_NOMEM</entry>
+	      <entry>out of memory</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_BADPTR</entry>
+	      <entry>invalid pointer</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_NONE</entry>
+	      <entry>no error occurred</entry>
+	    </row>
+	    <row>
+	      <entry>DBI_ERROR_CLIENT</entry>
+	      <entry>client library error</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect1>
+
+<!--
+Local Variables:
+sgml-parent-document: ("programmers-guide.sgml" "BOOK" "CHAPTER")
+End:
+-->

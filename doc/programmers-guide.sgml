@@ -2,6 +2,7 @@
 
 <!ENTITY libdbi-reference SYSTEM "libdbi-reference.sgml">
 <!ENTITY libdbi-quickstart SYSTEM "libdbi-quickstart.sgml">
+<!ENTITY libdbi-errorhandling SYSTEM "libdbi-errorhandling.sgml">
 <!ENTITY example-program SYSTEM "example-program.sgml">
 <!ENTITY freedoc-license SYSTEM "include/copying-fdl.sgml">
 <!ENTITY www '<ULink url="http://libdbi.sourceforge.net">http://libdbi.sourceforge.net</ULink>'>
@@ -124,6 +125,10 @@
       &libdbi-quickstart;
     <!-- this is another section -->
       &example-program;
+  </Chapter>
+
+  <chapter id="errorhandling"><title>Error Handling</Title>
+    &libdbi-errorhandling;
   </Chapter>
 
   &libdbi-reference;
