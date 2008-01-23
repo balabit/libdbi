@@ -1307,7 +1307,8 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int fi
   }
   if (RESULT->rows[RESULT->currowidx]->field_sizes[fieldidx] == 0) return NULL;
 
-  size = dbi_result_get_field_length_idx(Result, fieldidx);
+  /* API function must use 1-based index */
+  size = dbi_result_get_field_length_idx(Result, fieldidx+1);
   newblob = malloc(size);
   if (!newblob) {
     _error_handler(RESULT->conn, DBI_ERROR_NOMEM);
