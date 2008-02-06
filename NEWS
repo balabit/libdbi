@@ -3,15 +3,24 @@ libdbi NEWS file
 
 $Id$
 
-_________________________
-libdbi 0.8.3 (prerelease)
+______________________________________
+libdbi 0.8.3 (the "Steeltown" release)
 
-Two major issues were addressed:
+Bugfixes
 
 - database engine client libraries which install exit handlers are not
   safe to unload on some systems. libdbi now checks the driver
-  capability "safe_dlclose" and leaves those drivers in memory to avoid
-  segfaults.
+  capability "safe_dlclose" and unloads the driver only if the driver
+  claims it is safe to do so.
+
+Improvements
+
+- three functions were added: dbi_conn_escape_string(),
+  dbi_conn_escape_string_copy(), and dbi_conn_escape_binary_copy()
+  perform the same escaping of special characters as the corresponding
+  *_quote_* functions do, but they do not surround the resulting
+  string with quotes. This may at times be more convenient if the
+  escaped strings are not directly inserted into a SQL query.
 
 - error handling and reporting was changed once again. The
   dbi_conn_error_flag() function is now deprecated. Instead, a call of
@@ -23,10 +32,11 @@ Two major issues were addressed:
   dbi_conn_error() so older code should not break as long as you checked
   against the predefined error codes.
 
-Minor enhancements:
-
 - deprecated functions will now cause compiler warnings to make you
-  aware of this fact
+  aware of this fact. This does not negatively affect your programs
+  but it kindly reminds you of the fact that right now is a good time to
+  modify your sources.
+
 
 __________________________________________________________
 libdbi 0.8.2 (the "Sunday Night Buttermilk Waltz" release)
