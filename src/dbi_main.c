@@ -602,6 +602,10 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) {
 	return len;
 }
 
+/* CONN: quoting functions. These functions escape SQL special
+   characters and surround the resulting string with appropriate
+   quotes to insert it into a SQL query string */
+
 size_t dbi_conn_quote_string_copy(dbi_conn Conn, const char *orig, char **newquoted) {
 	dbi_conn_t *conn = Conn;
 	char *newstr;
@@ -692,6 +696,53 @@ size_t dbi_conn_quote_binary_copy(dbi_conn Conn, const unsigned char *orig, size
   *ptr_dest = temp;
 
   return newlen;
+}
+
+/* CONN: escaping functions. These functions escape SQL special
+   characters but do not add the quotes like the quoting functions
+   do */
+
+size_t dbi_conn_escape_string_copy(dbi_conn Conn, const char *orig, char **newquoted) {
+	char *newstr;
+	size_t newlen;
+	
+	if (!Conn) {
+	  return 0;
+	}
+
+	newlen = dbi_conn_quote_string_copy(Conn, orig, newquoted);
+
+	if (newlen) {
+	  (*newquoted)[newlen-1] = '\0';
+	  memmove(*newquoted, (*newquoted)+1, newlen-1);
+	}
+
+	return newlen-2;
+}
+
+size_t dbi_conn_escape_string(dbi_conn Conn, char **orig) {
+	size_t newlen;
+
+	newlen = dbi_conn_quote_string(Conn, orig);
+
+	if (newlen) {
+	  (*orig)[newlen-1] = '\0';
+	  memmove(*orig, (*orig)+1, newlen-1);
+	}
+	return newlen-2;
+}
+
+size_t dbi_conn_escape_binary_copy(dbi_conn Conn, const unsigned char *orig, size_t from_length, unsigned char **ptr_dest) {
+	size_t newlen;
+
+	newlen = dbi_conn_quote_binary_copy(Conn, orig, from_length, ptr_dest);
+
+	if (newlen) {
+	  (*ptr_dest)[newlen-1] = '\0';
+	  memmove(*ptr_dest, (*ptr_dest)+1, newlen-1);
+	}
+
+	return newlen-2;
 }
 
 /* CONN: option manipulation */
