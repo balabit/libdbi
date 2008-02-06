@@ -1231,6 +1231,90 @@ published by the Free Software Foundation.
 	  </varlistentry>
 	</variablelist>
       </section>
+      <section id="dbi-conn-escape-string" xreflabel="dbi_conn_escape_string">
+	<title>dbi_conn_escape_string</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_conn_escape_string</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	    <paramdef>char **<parameter moreinfo="none">orig</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Works like <xref linkend="dbi-conn-quote-string"> but does not surround the resulting string with quotes.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. The length of a quoted empty string is 2 bytes. In case of an error the <link linkend="errornumbers">error number</link> is DBI_ERROR_BADPTR or DBI_ERROR_NOMEM.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-escape-string-copy" xreflabel="dbi_conn_escape_string_copy">
+	<title>dbi_conn_escape_string_copy</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_conn_escape_string_copy</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	      <paramdef>char *<parameter moreinfo="none">orig</parameter></paramdef>
+	      <paramdef>char **<parameter>newstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Works like <xref linkend="dbi-conn-quote-string-copy"> but does not surround the resulting string with quotes.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	      <para><literal>newstr</literal>: After the function returns, this pointer will point to the quoted and escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. Possible <link linkend="errornumbers">error numbers</link> are DBI_ERROR_BADPTR and DBI_ERROR_NOMEM.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
+      <section id="dbi-conn-escape-binary-copy" xreflabel="dbi_conn_escape_binary_copy">
+	<title>dbi_conn_escape_binary_copy</title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>size_t <function>dbi_conn_escape_binary_copy</function></funcdef>
+	    <paramdef>dbi_conn <parameter moreinfo="none">Conn</parameter></paramdef>
+	      <paramdef>char *<parameter moreinfo="none">orig</parameter></paramdef>
+	    <paramdef>size_t <parameter moreinfo="none">from_length</parameter></paramdef>
+	      <paramdef>char **<parameter>newstr</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<para>Works like <xref linkend="dbi-conn-quote-binary-copy"> but does not surround the resulting string with quotes.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>Arguments</term>
+	    <listitem>
+	      <para><literal moreinfo="none">Conn</literal>: The current database connection.</para>
+	      <para><literal moreinfo="none">orig</literal>: A pointer to the string to quote and escape.</para>
+	      <para><literal moreinfo="none">from_length</literal>: The length of the binary string in bytes.</para>
+	      <para><literal>newstr</literal>: After the function returns, this pointer will point to the quoted and escaped string.</para>
+	    </listitem>
+	  </varlistentry>
+	  <varlistentry>
+	    <term>Returns</term>
+	    <listitem>
+	      <para>The new string's length in bytes, excluding the terminating zero byte, or 0 in case of an error. Possible <link linkend="errornumbers">error numbers</link> are DBI_ERROR_BADPTR and DBI_ERROR_NOMEM.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
     </section>
     <section id="reference-results">
       <title>Managing Results</title>
