@@ -41,6 +41,7 @@ extern "C" {
 #endif
 
 /* opaque type definitions */
+typedef void * dbi_inst;
 typedef void * dbi_driver;
 typedef void * dbi_conn;
 typedef void * dbi_result;
@@ -159,13 +160,19 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
   /* needed by get_engine_version functions */
 #define VERSIONSTRING_LENGTH 32
 
-int dbi_initialize(const char *driverdir);
-void dbi_shutdown();
+int dbi_initialize_r(const char *driverdir, dbi_inst **Inst);
+int LIBDBI_API_DEPRECATED dbi_initialize(const char *driverdir);
+void dbi_shutdown_r(dbi_inst Inst);
+void LIBDBI_API_DEPRECATED dbi_shutdown();
 const char *dbi_version();
-int dbi_set_verbosity(int verbosity);
+int dbi_set_verbosity_r(int verbosity, dbi_inst Inst);
+int LIBDBI_API_DEPRECATED dbi_set_verbosity(int verbosity);
 
-dbi_driver dbi_driver_list(dbi_driver Current); /* returns next driver. if current is NULL, return first driver. */
-dbi_driver dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
+dbi_driver dbi_driver_list_r(dbi_driver Current, dbi_inst Inst);
+dbi_driver LIBDBI_API_DEPRECATED dbi_driver_list(dbi_driver Current); /* returns next driver. if current is NULL, return first driver. */
+dbi_driver dbi_driver_open_r(const char *name, dbi_inst Inst);
+dbi_driver LIBDBI_API_DEPRECATED dbi_driver_open(const char *name); /* goes thru linked list until it finds the right one */
+dbi_inst dbi_driver_get_instance(dbi_driver Driver);
 int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word);
 void *dbi_driver_specific_function(dbi_driver Driver, const char *name);
 size_t LIBDBI_API_DEPRECATED dbi_driver_quote_string_copy(dbi_driver Driver, const char *orig, char **newstr);
@@ -182,7 +189,8 @@ const char *dbi_driver_get_url(dbi_driver Driver);
 const char *dbi_driver_get_version(dbi_driver Driver);
 const char *dbi_driver_get_date_compiled(dbi_driver Driver);
 
-dbi_conn dbi_conn_new(const char *name); /* shortcut for dbi_conn_open(dbi_driver_open("foo")) */
+dbi_conn dbi_conn_new_r(const char *name, dbi_inst Inst);
+dbi_conn LIBDBI_API_DEPRECATED dbi_conn_new(const char *name); /* shortcut for dbi_conn_open(dbi_driver_open("foo")) */
 dbi_conn dbi_conn_open(dbi_driver Driver); /* returns an actual instance of the conn */
 dbi_driver dbi_conn_get_driver(dbi_conn Conn);
 int dbi_conn_set_option(dbi_conn Conn, const char *key, const char *value); /* if value is NULL, remove option from list */

@@ -113,7 +113,7 @@ int asprintf(char **result, const char *format, ...);
 #endif
 
 /* declarations for internal functions -- anything declared as static won't be accessible by name from client programs */
-static dbi_driver_t *_get_driver(const char *filename);
+static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst);
 static void _free_custom_functions(dbi_driver_t *driver);
 static dbi_option_t *_find_or_create_option_node(dbi_conn Conn, const char *key);
 static int _update_internal_conn_list(dbi_conn_t *conn, int operation);
@@ -131,13 +131,12 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __
 
 /* must not be called "ERROR" due to a name clash on Windoze */
 static const char *my_ERROR = "ERROR";
-static dbi_driver_t *rootdriver;
-static dbi_conn_t *rootconn;
-int dbi_verbosity = 1;
+static dbi_inst *dbi_inst_legacy;
 
 /* XXX DBI CORE FUNCTIONS XXX */
 
-int dbi_initialize(const char *driverdir) {
+int dbi_initialize_r(const char *driverdir, dbi_inst **Inst) {
+	dbi_inst_t *inst;
 	DIR *dir;
 	struct dirent *driver_dirent = NULL;
 	struct stat statbuf;
@@ -150,7 +149,16 @@ int dbi_initialize(const char *driverdir) {
 #if HAVE_LTDL_H
         (void)lt_dlinit();
 #endif	
-	rootdriver = NULL;
+	/* init the instance */
+	inst = malloc(sizeof(dbi_inst_t));
+	if (!inst) {
+		return -1;
+	}
+	*Inst = (void*) inst;
+	inst->rootdriver = NULL;
+	inst->rootconn = NULL;
+	inst->dbi_verbosity = 1; /* TODO: is this really the right default? */
+	/* end instance init */
 	effective_driverdir = (driverdir ? (char *)driverdir : DBI_DRIVER_DIR);
 	dir = opendir(effective_driverdir);
 
@@ -163,10 +171,10 @@ int dbi_initialize(const char *driverdir) {
 			snprintf(fullpath, FILENAME_MAX, "%s%s%s", effective_driverdir, DBI_PATH_SEPARATOR, driver_dirent->d_name);
 			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && strrchr(driver_dirent->d_name, '.') && (!strcmp(strrchr(driver_dirent->d_name, '.'), DRIVER_EXT))) {
 				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
-				driver = _get_driver(fullpath);
+				driver = _get_driver(fullpath, inst);
 				if (driver && (driver->functions->initialize(driver) != -1)) {
-					if (!rootdriver) {
-						rootdriver = driver;
+					if (!inst->rootdriver) {
+						inst->rootdriver = driver;
 					}
 					if (prevdriver) {
 						prevdriver->next = driver;
@@ -179,7 +187,7 @@ int dbi_initialize(const char *driverdir) {
 					if (driver && driver->functions) free(driver->functions);
 					if (driver) free(driver);
 					driver = NULL; /* don't include in linked list */
-					if (dbi_verbosity) fprintf(stderr, "libdbi: Failed to load driver: %s\n", fullpath);
+					if (inst->dbi_verbosity) fprintf(stderr, "libdbi: Failed to load driver: %s\n", fullpath);
 				}
 			}
 		}
@@ -189,11 +197,16 @@ int dbi_initialize(const char *driverdir) {
 	return num_loaded;
 }
 
-void dbi_shutdown() {
-	dbi_conn_t *curconn = rootconn;
+int dbi_initialize(const char *driverdir) {
+	dbi_initialize_r(driverdir, &dbi_inst_legacy);
+}
+
+void dbi_shutdown_r(dbi_inst Inst) {
+	dbi_inst_t *inst = (dbi_inst_t*) Inst;
+	dbi_conn_t *curconn = inst->rootconn;
 	dbi_conn_t *nextconn;
 	
-	dbi_driver_t *curdriver = rootdriver;
+	dbi_driver_t *curdriver = inst->rootdriver;
 	dbi_driver_t *nextdriver;
 	
 	while (curconn) {
@@ -215,43 +228,67 @@ void dbi_shutdown() {
 #if HAVE_LTDL_H
         (void)lt_dlexit();
 #endif	
-	rootdriver = NULL;
+	free(inst);
+}
+
+void dbi_shutdown() {
+	dbi_shutdown_r(dbi_inst_legacy);
 }
 
 const char *dbi_version() {
 	return "libdbi v" VERSION;
 }
 
-int dbi_set_verbosity(int verbosity) {
+int dbi_set_verbosity_r(int verbosity, dbi_inst Inst) {
+	dbi_inst_t *inst = (dbi_inst_t*) Inst;
 	/* whether or not to spew stderr messages when something bad happens (and
 	 * isn't handled through the normal connection-oriented DBI error
 	 * mechanisms) */
 
-	int prev = dbi_verbosity;
-	dbi_verbosity = verbosity;
+	int prev = inst->dbi_verbosity;
+	inst->dbi_verbosity = verbosity;
 	return prev;
+}
+int dbi_set_verbosity(int verbosity) {
+	return dbi_set_verbosity_r(verbosity, dbi_inst_legacy);
 }
 
 /* XXX DRIVER FUNCTIONS XXX */
 
-dbi_driver dbi_driver_list(dbi_driver Current) {
+dbi_driver dbi_driver_list_r(dbi_driver Current, dbi_inst Inst) {
+	dbi_inst_t *inst = (dbi_inst_t*) Inst;
 	dbi_driver_t *current = Current;
 
 	if (current == NULL) {
-		return (dbi_driver)rootdriver;
+		return (dbi_driver)inst->rootdriver;
 	}
 
 	return (dbi_driver)current->next;
 }
+dbi_driver dbi_driver_list(dbi_driver Current) {
+	return dbi_driver_list_r(Current, dbi_inst_legacy);
+}
 
-dbi_driver dbi_driver_open(const char *name) {
-	dbi_driver_t *driver = rootdriver;
+dbi_driver dbi_driver_open_r(const char *name, dbi_inst Inst) {
+	dbi_inst_t *inst = (dbi_inst_t*) Inst;
+	dbi_driver_t *driver = inst->rootdriver;
 
 	while (driver && strcasecmp(name, driver->info->name)) {
 		driver = driver->next;
 	}
 
 	return driver;
+}
+dbi_driver dbi_driver_open(const char *name) {
+	return dbi_driver_open_r(name, dbi_inst_legacy);
+}
+
+dbi_inst dbi_driver_get_instance(dbi_driver Driver) {
+	dbi_driver_t *driver = Driver;
+	
+	if (!driver) return NULL;
+	
+	return driver->dbi_inst;
 }
 
 int dbi_driver_is_reserved_word(dbi_driver Driver, const char *word) {
@@ -445,14 +482,17 @@ const char* dbi_driver_encoding_to_iana(dbi_driver Driver, const char* db_encodi
 
 /* XXX DRIVER FUNCTIONS XXX */
 
-dbi_conn dbi_conn_new(const char *name) {
+dbi_conn dbi_conn_new_r(const char *name, dbi_inst Inst) {
 	dbi_driver driver;
 	dbi_conn conn;
 
-	driver = dbi_driver_open(name);
+	driver = dbi_driver_open_r(name, Inst);
 	conn = dbi_conn_open(driver);
 
 	return conn;
+}
+dbi_conn dbi_conn_new(const char *name) {
+	dbi_conn_new_r(name, dbi_inst_legacy);
 }
 
 dbi_conn dbi_conn_open(dbi_driver Driver) {
@@ -1162,7 +1202,7 @@ int dbi_conn_ping(dbi_conn Conn) {
 
 /* XXX INTERNAL PRIVATE IMPLEMENTATION FUNCTIONS XXX */
 
-static dbi_driver_t *_get_driver(const char *filename) {
+static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 	dbi_driver_t *driver;
 	void *dlhandle;
 	const char **custom_functions_list;
@@ -1183,6 +1223,7 @@ static dbi_driver_t *_get_driver(const char *filename) {
 
 		driver->dlhandle = dlhandle;
 		driver->filename = strdup(filename);
+		driver->dbi_inst = inst;
 		driver->next = NULL;
 		driver->caps = NULL;
 		driver->functions = malloc(sizeof(dbi_functions_t));
@@ -1289,7 +1330,7 @@ static int _update_internal_conn_list(dbi_conn_t *conn, const int operation) {
 	 * operation = -1: remove conn
 	 *           =  0: just look for conn (return 1 if found, -1 if not)
 	 *           =  1: add conn */
-	dbi_conn_t *curconn = rootconn;
+	dbi_conn_t *curconn = conn->driver->dbi_inst->rootconn;
 	dbi_conn_t *prevconn = NULL;
 
 	if ((operation == -1) || (operation == 0)) {
@@ -1301,7 +1342,7 @@ static int _update_internal_conn_list(dbi_conn_t *conn, const int operation) {
 		if (operation == 0) return 1;
 		else if (operation == -1) {
 			if (prevconn) prevconn->next = curconn->next;
-			else rootconn = NULL;
+			else conn->driver->dbi_inst->rootconn = NULL;
 			return 0;
 		}
 	}
@@ -1313,7 +1354,7 @@ static int _update_internal_conn_list(dbi_conn_t *conn, const int operation) {
 			curconn->next = conn;
 		}
 		else {
-			rootconn = conn;
+			conn->driver->dbi_inst->rootconn = conn;
 		}
 		conn->next = NULL;
 		return 0;
