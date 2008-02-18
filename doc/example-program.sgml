@@ -9,13 +9,14 @@
 int main() {
     dbi_conn conn;
     dbi_result result;
+    dbi_inst instance;
 
     double threshold = 4.333333;
     unsigned int idnumber;
     const char *fullname;
     
-    dbi_initialize(NULL);
-    conn = dbi_conn_new("mysql");
+    dbi_initialize_r(NULL, &instance);
+    conn = dbi_conn_new_r("mysql", instance);
 
     dbi_conn_set_option(conn, "host", "localhost");
     dbi_conn_set_option(conn, "username", "your_name");
@@ -41,7 +42,7 @@ int main() {
       dbi_conn_close(conn);
     }
     
-    dbi_shutdown();
+    dbi_shutdown_r(instance);
 
     return 0;
 }
@@ -54,7 +55,7 @@ int main() {
 <Para>Of course, a complete program should check for errors more thoroughly. This example keeps error-checking at a minimum for the sake of clarity. There are also other ways to retrieve data after a successful query. Keep reading on to see the rest.</Para>
     </Section>
 
-  <section>
+  <section id="loadinglibdbi">
     <title>Loading libdbi at runtime</title>
     <para>The generic example shown in the previous section assumed that the program is linked against libdbi. This is in fact the recommended way to add libdbi functionality to your programs. However, there are situations where this approach will not work. Some programs are designed to load modules at runtime to extend their capabilities. A well-known example is the web server Apache, which uses loadable modules to custom-tailor its capabilities. If such a module were to use libdbi, we'd look at the following pattern:</para>
     <informalexample>
@@ -64,7 +65,7 @@ int main() {
     <screen format="linespecific"><prompt moreinfo="none">~/libdbi-drivers #</prompt><userinput>./configure --disable-libdbi --with-mysql</userinput></screen>
   </section>
 
-  <section>
+  <section id="addtoproject">
     <title>Adding libdbi to your project</title>
     <para>If your project uses autoconf to manage the build process on the target machine, you should add some tests to your <filename moreinfo="none">./configure</filename> script to check for the presence and usability of libdbi. The following example shows how this can be done:</para>
     <programlisting format="linespecific">

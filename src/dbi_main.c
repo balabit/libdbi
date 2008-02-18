@@ -131,11 +131,11 @@ int dbi_conn_set_error(dbi_conn Conn, int errnum, const char *formatstr, ...) __
 
 /* must not be called "ERROR" due to a name clash on Windoze */
 static const char *my_ERROR = "ERROR";
-static dbi_inst *dbi_inst_legacy;
+static dbi_inst dbi_inst_legacy;
 
 /* XXX DBI CORE FUNCTIONS XXX */
 
-int dbi_initialize_r(const char *driverdir, dbi_inst **Inst) {
+int dbi_initialize_r(const char *driverdir, dbi_inst *pInst) {
 	dbi_inst_t *inst;
 	DIR *dir;
 	struct dirent *driver_dirent = NULL;
@@ -144,6 +144,7 @@ int dbi_initialize_r(const char *driverdir, dbi_inst **Inst) {
 	char *effective_driverdir;
 	
 	int num_loaded = 0;
+	*pInst = NULL; /* use a defined value if the function fails */
 	dbi_driver_t *driver = NULL;
 	dbi_driver_t *prevdriver = NULL;
 #if HAVE_LTDL_H
@@ -154,7 +155,7 @@ int dbi_initialize_r(const char *driverdir, dbi_inst **Inst) {
 	if (!inst) {
 		return -1;
 	}
-	*Inst = (void*) inst;
+	*pInst = (void*) inst;
 	inst->rootdriver = NULL;
 	inst->rootconn = NULL;
 	inst->dbi_verbosity = 1; /* TODO: is this really the right default? */

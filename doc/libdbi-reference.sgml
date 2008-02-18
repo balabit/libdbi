@@ -7,7 +7,30 @@ published by the Free Software Foundation.
 -->
 
   <Chapter id="reference"><Title>libdbi API Reference</Title>
-    <Section id="reference-core"><Title>Core Library Functions</Title>
+    <Section id="reference-core"><Title>Instance Infrastructure</Title>
+      <Section id="dbi-initialize-r" XRefLabel="dbi_initialize_r"><Title>dbi_initialize_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbi_initialize_r</function></funcdef>
+	    <paramdef>const char *<parameter moreinfo="none">driverdir</parameter></paramdef>
+	    <paramdef>dbi_inst *pInst</paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Creates an instance of libdbi, locates all available database drivers and loads them into memory.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>driverdir</Literal>: The directory to search for drivers. If NULL, DBI_DRIVER_DIR (defined at compile time) will be used instead.</Para>
+	      <para><literal>pInst</literal>: A pointer to an instance handle. The function will fill in the new instance handle if successful, or set it to NULL if an error occurred.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The number of drivers successfully loaded, or -1 if there was an error. The latter may be due to an incorrect driver directory or to a lack of permissions.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
       <Section id="dbi-initialize" XRefLabel="dbi_initialize"><Title>dbi_initialize</Title>
 	<funcsynopsis>
 	  <funcprototype>
@@ -16,6 +39,9 @@ published by the Free Software Foundation.
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Locates all available database drivers and loads them into memory.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-initialize-r"> instead. In contrast to that function, dbi_initialize allows only one (internally managed) libdbi instance per process.</para>
+	</note>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -29,6 +55,23 @@ published by the Free Software Foundation.
 	  </VarListEntry>
 	</VariableList>
       </Section>
+      <Section id="dbi-shutdown-r" XRefLabel="dbi_shutdown_r"><Title>dbi_shutdown_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>dbi_shutdown_r</function></funcdef>
+	    <paramdef>dbi_inst <parameter moreinfo="none">Inst</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Frees all loaded drivers and terminates the libdbi instance. You should close each connection you opened before shutting down, but libdbi will clean up after you if you don't.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Inst</Literal>: The instance handle.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
       <Section id="dbi-shutdown" XRefLabel="dbi_shutdown"><Title>dbi_shutdown</Title>
 	<funcsynopsis>
 	  <funcprototype>
@@ -37,6 +80,56 @@ published by the Free Software Foundation.
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Frees all loaded drivers and terminates the DBI system. You should close each connection you opened before shutting down, but libdbi will clean up after you if you don't.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-shutdown-r"> instead.</para>
+	</note>
+      </Section>
+      <Section id="dbi-set-verbosity-r" XRefLabel="dbi_set_verbosity_r"><Title>dbi_set_verbosity_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbi_set_verbosity_r</function></funcdef>
+	    <paramdef>int <parameter moreinfo="none">verbosity</parameter></paramdef>
+	    <paramdef>dbi_inst Inst</paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Toggles internal error messages on or off in the given libdbi instance. This affects only those error messages which are directly sent to stderr, not those handled by the <link linkend="errorhandling">connection error API</link>.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>verbosity</Literal>: A nonzero value causes error messages to be printed on stderr. 0 (zero) suppresses error messages.</Para>
+	      <para><literal>Inst</literal>: The instance handle.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The previous setting of <parameter>verbosity</parameter>.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-set-verbosity" XRefLabel="dbi_set_verbosity"><Title>dbi_set_verbosity</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function moreinfo="none">dbi_set_verbosity</function></funcdef>
+	    <paramdef>int <parameter moreinfo="none">verbosity</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Toggles internal error messages on or off. This affects only those error messages which are directly sent to stderr, not those handled by the <link linkend="errorhandling">connection error API</link>.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-set-verbosity-r"> instead.</para>
+	</note>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>verbosity</Literal>: A nonzero value causes error messages to be printed on stderr. 0 (zero) suppresses error messages.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The previous setting of <parameter>verbosity</parameter>.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
       </Section>
       <Section id="dbi-version" XRefLabel="dbi_version"><Title>dbi_version</Title>
 	<funcsynopsis>
@@ -55,6 +148,29 @@ published by the Free Software Foundation.
       </Section>
     </Section>
     <Section id="reference-driver"><Title>Driver Infrastructure</Title>
+      <Section id="dbi-driver-list-r" XRefLabel="dbi_driver_list_r"><Title>dbi_driver_list_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_driver <function>dbi_driver_list_r</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Current</parameter></paramdef>
+	    <paramdef>dbi_inst <parameter moreinfo="none">Inst</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Enumerates all loaded drivers of the given instance. If Current is NULL, the first available driver will be returned. If Current is a valid driver, the next available driver will be returned.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Current</Literal>: The current driver in the list of drivers, or NULL to retrieve the first one.</Para>
+	      <para><literal moreinfo="none">Inst</literal>: The instance handle.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The next available driver, or NULL if there is an error or no more are available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
       <Section id="dbi-driver-list" XRefLabel="dbi_driver_list"><Title>dbi_driver_list</Title>
 	<funcsynopsis>
 	  <funcprototype>
@@ -63,16 +179,42 @@ published by the Free Software Foundation.
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Enumerates all loaded drivers. If Current is NULL, the first available driver will be returned. If Current is a valid driver, the next available driver will be returned.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-driver-list-r"> instead.</para>
+	</note>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
 	    <ListItem>
-	      <Para><Literal>Current</Literal>: The current driver in the list of drivers.</Para>
+	      <Para><Literal>Current</Literal>: The current driver in the list of drivers, or NULL to retrieve the first one.</Para>
 	    </ListItem>
 	  </VarListEntry>
 	  <VarListEntry>
 	    <term>Returns</term>
 	    <ListItem><Para>The next available driver, or NULL if there is an error or no more are available.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-open-r" XRefLabel="dbi_driver_open_r"><Title>dbi_driver_open_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_driver <function>dbi_driver_open_r</function></funcdef>
+	    <paramdef>const char *<parameter>name</parameter></paramdef>
+	    <paramdef>dbi_inst <parameter moreinfo="none">Inst</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Locate the driver with the specified name.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>name</Literal>: The name of the driver to open.</Para>
+	      <para><literal moreinfo="none">Inst</literal>: The instance handle.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The requested driver, or NULL if there is no such driver.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -84,6 +226,9 @@ published by the Free Software Foundation.
 	  </funcprototype>
 	</funcsynopsis>
 	<Para>Locate the driver with the specified name.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-driver-open-r"> instead.</para>
+	</note>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>
@@ -94,6 +239,27 @@ published by the Free Software Foundation.
 	  <VarListEntry>
 	    <term>Returns</term>
 	    <ListItem><Para>The requested driver, or NULL if there is no such driver.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
+      <Section id="dbi-driver-get-instance" XRefLabel="dbi_driver_get_instance"><Title>dbi_driver_get_instance</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>int <function>dbi_driver_get_instance</function></funcdef>
+	    <paramdef>dbi_driver <parameter>Driver</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Retrieves the handle of the instance that loaded the driver.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>Driver</Literal>: The target driver.</Para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>The instance handle, or NULL in case of an error.</Para></ListItem>
 	  </VarListEntry>
 	</VariableList>
       </Section>
@@ -396,6 +562,29 @@ published by the Free Software Foundation.
       </Section>
     </Section>
     <Section id="reference-conn"><Title>Connection Infrastructure</Title>
+      <Section id="dbi-conn-new-r" XRefLabel="dbi_conn_new_r"><Title>dbi_conn_new_r</Title>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>dbi_conn <function>dbi_conn_new_r</function></funcdef>
+	    <paramdef>const char *<parameter>name</parameter></paramdef>
+	    <paramdef>dbi_inst <parameter moreinfo="none">Inst</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<Para>Creates a connection instance of the driver specified by "name" loaded by the given libdbi instance. This is a shortcut for calling <xref linkend="dbi-driver-open-r"> and passing the result to <xref linkend="dbi-conn-open">.</Para>
+	<VariableList>
+	  <VarListEntry>
+	    <term>Arguments</term>
+	    <ListItem>
+	      <Para><Literal>name</Literal>: The name of the desired driver.</Para>
+	      <para><literal moreinfo="none">Inst</literal>: The instance handle.</para>
+	    </ListItem>
+	  </VarListEntry>
+	  <VarListEntry>
+	    <term>Returns</term>
+	    <ListItem><Para>A connection instance of the specified driver, or NULL if there was an error.</Para></ListItem>
+	  </VarListEntry>
+	</VariableList>
+      </Section>
       <Section id="dbi-conn-new" XRefLabel="dbi_conn_new"><Title>dbi_conn_new</Title>
 	<funcsynopsis>
 	  <funcprototype>
@@ -403,7 +592,10 @@ published by the Free Software Foundation.
 	    <paramdef>const char *<parameter>name</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
-	<Para>Creates a connection instance of the driver specified by "name". This is a shortcut for calling dbi_driver_open() and passing the result to dbi_conn_open().</Para>
+	<Para>Creates a connection instance of the driver specified by "name". This is a shortcut for calling <xref linkend="dbi-driver-open"> and passing the result to <xref linkend="dbi-conn-open">.</Para>
+	<note>
+	  <para>This function is deprecated. Use <xref linkend="dbi-conn-new-r"> instead.</para>
+	</note>
 	<VariableList>
 	  <VarListEntry>
 	    <term>Arguments</term>

@@ -70,18 +70,8 @@
       </Para>
     </Section>
     <Section id="terminology"><Title>libdbi Concepts and Terminology</Title>
-      <Para>
-	In this guide, the terms <Quote>user</Quote> and <Quote>programmer</Quote> are used
-	interchangably, since the target audience is the software developer using libdbi in
-	his program. The libdbi architecture provides serveral <Quote>drivers</Quote>, one
-	for each type of database server. All drivers are loaded into memory upon libdbi
-	initiallization and are made available to the programmer. Once a driver is
-	<Emphasis>instantiated</Emphasis>, it represents a distinct database session and is
-	called a <Quote>connection</Quote>. Multiple connections may exist for a single driver, and
-	all will function independently of each other. A star character (*) represents a
-	wildcard matching any letters. For example, <Quote>dbi_conn_*</Quote> would
-	represent all functions beginning with <Quote>dbi_conn_</Quote>.
-      </Para>
+      <para>In this guide, the terms <Quote>user</Quote> and <Quote>programmer</Quote> are used interchangably, since the target audience is the software developer using libdbi in his	program. A star character (*) represents a wildcard matching any letters. For example, <Quote>dbi_conn_*</Quote> would represent all functions beginning with <Quote>dbi_conn_</Quote>.</para>
+      <para>Before doing anything useful, your program must initialize libdbi. This creates an <quote>instance</quote> of libdbi which is accessible through a handle. The libdbi architecture provides several <quote>drivers</quote>, one for each type of database server. All drivers are loaded into memory by each libdbi instance upon initialization and are made available to the programmer. Once a driver is <Emphasis>instantiated</Emphasis>, it represents a distinct database session and is called a <Quote>connection</Quote>.</Para>
     </Section>
     <Section id="gnugpl"><Title>Modifications and redistribution of libdbi</Title>
       <Para>

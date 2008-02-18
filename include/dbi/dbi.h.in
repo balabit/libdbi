@@ -160,7 +160,7 @@ typedef void (*dbi_conn_error_handler_func)(dbi_conn, void *);
   /* needed by get_engine_version functions */
 #define VERSIONSTRING_LENGTH 32
 
-int dbi_initialize_r(const char *driverdir, dbi_inst **Inst);
+int dbi_initialize_r(const char *driverdir, dbi_inst *pInst);
 int LIBDBI_API_DEPRECATED dbi_initialize(const char *driverdir);
 void dbi_shutdown_r(dbi_inst Inst);
 void LIBDBI_API_DEPRECATED dbi_shutdown();
