@@ -45,6 +45,13 @@ These people have also contributed to the project:
 * Toby Thain <qu1j0t3 at sourceforge.net>
   - improve error handling, code cleanups
 
+* Rainer Gerhards <rgerhards@hq.adiscon.com>
+  - made libdbi plugin-safe
+
+* Balazs Scheidler <bazsi@balabit.hu>
+  - pkg-config integration
+  - configure uses CFLAGS from the environment
+
 Thanks:
 * Vorbis and Icecast contributors. Monty, Jack, and all the rest are coding machines.
 * The authors of libao, which clued me in to dynamic libraries.
