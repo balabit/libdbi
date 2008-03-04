@@ -3,6 +3,7 @@
 <!ENTITY libdbi-reference SYSTEM "libdbi-reference.sgml">
 <!ENTITY libdbi-quickstart SYSTEM "libdbi-quickstart.sgml">
 <!ENTITY libdbi-errorhandling SYSTEM "libdbi-errorhandling.sgml">
+<!ENTITY libdbi-versioning SYSTEM "libdbi-versioning.sgml">
 <!ENTITY example-program SYSTEM "example-program.sgml">
 <!ENTITY freedoc-license SYSTEM "include/copying-fdl.sgml">
 <!ENTITY www '<ULink url="http://libdbi.sourceforge.net">http://libdbi.sourceforge.net</ULink>'>
@@ -119,6 +120,10 @@
 
   <chapter id="errorhandling"><title>Error Handling</Title>
     &libdbi-errorhandling;
+  </Chapter>
+
+  <chapter id="versioning"><title>Library and Interface Versions</Title>
+    &libdbi-versioning;
   </Chapter>
 
   &libdbi-reference;
