@@ -119,15 +119,18 @@ published by the Free Software Foundation.
     </Section>
   </Chapter>
 
-  <Chapter id="drivercaps">
-    <title>Driver Capabilities</title>
-    <para>Driver capabilities are essentially an array of key/value pairs which the drivers set when they're loaded. Both the libdbi framework and programs linked against libdbi can query these capabilities and adjust their behaviour accordingly.</para>
-    <section id="settingdrivercaps">
-      <title>Setting driver capabilities</title>
-      <para>The perfect place to set driver capabilities is in the <link linkend="dbd-initialize">dbd_initialize</link> function which is called right after the driver is loaded by libdbi. To set capabilities, call the _dbd_register_driver_cap function for each of them:</para>
-      <funcsynopsis>
-	<funcprototype>
-	  <funcdef>void <function moreinfo="none">_dbd_register_driver_cap</function></funcdef>
+  <Chapter id="driverinfrastructure">
+    <title>Driver Infrastructure</title>
+    <para>This chapter briefly discusses some infrastructure features which you have to consider when implementing a database driver.</para>
+    <section id="drivercaps">
+      <title>Driver Capabilities</title>
+      <para>Driver capabilities are essentially an array of key/value pairs which the drivers set when they're loaded. Both the libdbi framework and programs linked against libdbi can query these capabilities and adjust their behaviour accordingly.</para>
+      <section id="settingdrivercaps">
+	<title>Setting driver capabilities</title>
+	<para>The perfect place to set driver capabilities is in the <link linkend="dbd-initialize">dbd_initialize</link> function which is called right after the driver is loaded by libdbi. To set capabilities, call the _dbd_register_driver_cap function for each of them:</para>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function moreinfo="none">_dbd_register_driver_cap</function></funcdef>
 	    <paramdef>dbi_driver_t *<parameter moreinfo="none">driver</parameter></paramdef>
 	    <paramdef>const char *<parameter moreinfo="none">capname</parameter></paramdef>
 	    <paramdef>int <parameter moreinfo="none">value</parameter></paramdef>
@@ -143,18 +146,32 @@ published by the Free Software Foundation.
 	    </ListItem>
 	  </VarListEntry>
 	</VariableList>
+      </section>
+      <section id="requireddrivercaps">
+	<title>Required driver capabilities</title>
+	<para>libdbi currently queries only one driver capability.</para>
+	<variablelist>
+	  <varlistentry>
+	    <term>safe_dlclose</term>
+	    <listitem>
+	      <para>A nonzero value indicates that the driver can safely be unloaded from memory by calling dlclose(). A value of 0 (zero) indicates that the driver should not be unloaded when libdbi is shut down. Drivers must not be unloaded if they, or any library they are linked against, install exit handlers via atexit() as this would leave dangling pointers, causing segfaults on some platforms.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </section>
     </section>
-    <section id="requireddrivercaps">
-      <title>Required driver capabilities</title>
-      <para>libdbi currently queries only one driver capability.</para>
-      <variablelist>
-	<varlistentry>
-	  <term>safe_dlclose</term>
-	  <listitem>
-	    <para>A nonzero value indicates that the driver can safely be unloaded from memory by calling dlclose(). A value of 0 (zero) indicates that the driver should not be unloaded when libdbi is shut down. Drivers must not be unloaded if they, or any library they are linked against, install exit handlers via atexit() as this would leave dangling pointers, causing segfaults on some platforms.</para>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
+    <section id="databasedirectories">
+      <title>Database directories</title>
+      <para>Many database engines use database directories which they manage themselves. Other engines, like sqlite, sqlite3, or firebird, allow the database user to store a database file basically anywhere on the filesystem. Drivers of such engines should follow some guidelines to make database operations as transparent as possible across all drivers. In order to allow e.g. listing available databases, most applications should keep all databases managed by such a driver in the same directory.</para>
+      <section id="defaultdatabasedirectories">
+	<title>Default Database Directories</title>
+	<para>libdbi-drivers uses a common root directory (<filename class="directory" moreinfo="none">&lt;localstatedir&gt;/lib/libdbi</filename>) containing homonymous subdirectories for each driver as a default database path. If nothing else is specified (see <xref linkend="customdatabasedirectories">), databases will be created and accessed in these subdirectories. Using different subdirectories for each driver makes switching between drivers painless without having to re-create database files from scratch.</para>
+	<para>Users can change the compile-time default root directory using the <option>--with-dbi-dbdir</option> option when configuring libdbi-drivers.</para>
+      </section>
+      <section id="customdatabasedirectories">
+	<title>Custom Database Directories</title>
+	<para>In order to allow applications to store databases outside of the default directory if desired, a driver should implement a &lt;drivername&gt;_dbdir option which overrides the default database path in a connection.</para>
+      </section>
     </section>
   </chapter>
 

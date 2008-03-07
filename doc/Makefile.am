@@ -10,7 +10,7 @@ doc_DATA = programmers-guide.pdf  driver-guide.pdf
 progguide_DATA = programmers-guide/*
 driverguide_DATA = driver-guide/*
 
-programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-program.sgml libdbi-quickstart.sgml libdbi-errorhandling.sgml
+programmers_sources = programmers-guide.sgml libdbi-reference.sgml example-program.sgml libdbi-quickstart.sgml libdbi-errorhandling.sgml libdbi-versioning.sgml
 
 driver_sources = driver-guide.sgml 
 
