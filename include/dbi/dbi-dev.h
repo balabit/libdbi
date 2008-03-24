@@ -169,8 +169,6 @@ typedef struct dbi_conn_s {
 	struct dbi_conn_s *next; /* so libdbi can unload all conns at exit */
 } dbi_conn_t;
 
-extern int dbi_verbosity;
-
 unsigned int _isolate_attrib(unsigned int attribs, unsigned int rangemin, unsigned int rangemax);
 void _error_handler(dbi_conn_t *conn, dbi_error_flag errflag);
 void _reset_conn_error(dbi_conn_t *conn);
