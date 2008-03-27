@@ -75,12 +75,15 @@ AC_SUBST(PROFILE)
 
 case $host in
 	*-*-*bsd*)
+		dlsym_handle=0
 		dlopen_flag="RTLD_LAZY" ;;
 	*)
+		dlsym_handle=1
 		dlopen_flag="RTLD_NOW" ;;
 esac
 
 AC_DEFINE_UNQUOTED(DLOPEN_FLAG, $dlopen_flag, [ Specifies the mode of dlopen behavior ])
+AC_DEFINE_UNQUOTED(DLSYM_HANDLE, $dlsym_handle, [ use dlopen handle with dlsym ])
 
 dnl ==============================
 dnl Check for libraries

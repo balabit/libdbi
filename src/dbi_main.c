@@ -1206,6 +1206,7 @@ int dbi_conn_ping(dbi_conn Conn) {
 static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 	dbi_driver_t *driver;
 	void *dlhandle;
+	void *symhandle;
 	const char **custom_functions_list;
 	unsigned int idx = 0;
 	dbi_custom_function_t *prevcustom = NULL;
@@ -1263,6 +1264,19 @@ static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 		}
 		driver->functions->register_driver(&driver->info, &custom_functions_list, &driver->reserved_words);
 		driver->custom_functions = NULL; /* in case no custom functions are available */
+
+		/* this is a weird hack for the sake of dlsym
+		   portability. I can't imagine why using dlhandle
+		   fails on FreeBSD except that dlsym may expect a
+		   leading underscore in front of the function
+		   names. But then, why does RTLD_NEXT work? */
+		if (DLSYM_HANDLE) { /* most OSes */
+		  symhandle = dlhandle;
+		}
+		else { /* the BSDs */
+		  symhandle = RTLD_NEXT;
+		}
+
 		while (custom_functions_list && custom_functions_list[idx] != NULL) {
 			custom = malloc(sizeof(dbi_custom_function_t));
 			if (!custom) {
@@ -1277,9 +1291,10 @@ static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 /* 			snprintf(function_name, 256, DLSYM_PREFIX "dbd_%s", custom->name); */
 /* 			printf("loading %s<<\n", custom->name); */
 
-			custom->function_pointer = my_dlsym(RTLD_NEXT, custom->name);
+			custom->function_pointer = my_dlsym(symhandle, custom->name);
 			if (!custom->function_pointer) {
 /* 			  printf(my_dlerror()); */
+
 			  /* this usually fails because a function was
 			     renamed, is no longer available, or not
 			     yet available. Simply skip this
@@ -1297,6 +1312,7 @@ static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 			prevcustom = custom;
 			idx++;
 		}
+		printf("custom_functions went to %p\n", driver->custom_functions);
 	}
 	return driver;
 }
