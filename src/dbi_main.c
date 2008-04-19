@@ -1312,7 +1312,6 @@ static dbi_driver_t *_get_driver(const char *filename, dbi_inst_t *inst) {
 			prevcustom = custom;
 			idx++;
 		}
-		printf("custom_functions went to %p\n", driver->custom_functions);
 	}
 	return driver;
 }
