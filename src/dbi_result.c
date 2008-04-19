@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <limits.h>
+#include <time.h>
 
 #include <dbi/dbi.h>
 #include <dbi/dbi-dev.h>
@@ -1353,6 +1354,192 @@ time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned int fieldidx) {
 	
   return (time_t)(RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_datetime);
 }
+
+/* RESULT: get_as* functions */
+
+long long dbi_result_get_as_longlong(dbi_result Result, const char *fieldname) {
+  long long ERROR = 0;
+  unsigned int fieldidx;
+  dbi_error_flag errflag;
+    
+  _reset_conn_error(RESULT->conn);
+
+  fieldidx = _find_field(RESULT, fieldname, &errflag);
+  if (errflag != DBI_ERROR_NONE) {
+    dbi_conn_t *conn = RESULT->conn;
+    _error_handler(conn, DBI_ERROR_BADNAME);
+    return ERROR;
+  }
+  return dbi_result_get_as_longlong_idx(Result, fieldidx+1);
+}
+
+long long dbi_result_get_as_longlong_idx(dbi_result Result, unsigned int fieldidx) {
+  long long ERROR = 0;
+  fieldidx--;
+
+  switch (RESULT->field_types[fieldidx]) {
+  case DBI_TYPE_INTEGER:
+    switch (RESULT->field_attribs[fieldidx] & DBI_INTEGER_SIZEMASK) {
+    case DBI_INTEGER_SIZE1:
+      return (long long)RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_char;
+    case DBI_INTEGER_SIZE2:
+      return (long long)RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_short;
+    case DBI_INTEGER_SIZE3:
+    case DBI_INTEGER_SIZE4:
+      return (long long)RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_long;
+    case DBI_INTEGER_SIZE8:
+      return RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_longlong;
+    default:
+      _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+      return ERROR;
+    }
+  case DBI_TYPE_DECIMAL:
+    switch (RESULT->field_attribs[fieldidx] & DBI_DECIMAL_SIZEMASK) {
+    case DBI_DECIMAL_SIZE4:
+      return (long long)RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_float;
+    case DBI_DECIMAL_SIZE8:
+      return (long long)RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_double;
+    default:
+      _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+      return ERROR;
+    }
+  case DBI_TYPE_STRING:
+    if (RESULT->rows[RESULT->currowidx]->field_sizes[fieldidx] == 0
+	&& RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_string == NULL) {
+      /* string does not exist */
+      return 0; /* do not raise an error */
+    }
+    /* else if field size == 0: empty string */
+    /* todo: do we need strtoll() error handling? */
+    return strtoll((const char *)(RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_string), NULL, 10);
+  case DBI_TYPE_BINARY:
+    return 0; /* do not raise an error */
+  case DBI_TYPE_DATETIME:
+    return (long long)(RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_datetime);
+  default:
+    _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+    return ERROR;
+  }
+}
+
+char *dbi_result_get_as_string_copy(dbi_result Result, const char *fieldname) {
+  char *ERROR = "ERROR";
+  unsigned int fieldidx;
+  dbi_error_flag errflag;
+
+  _reset_conn_error(RESULT->conn);
+
+  fieldidx = _find_field(RESULT, fieldname, &errflag);
+  if (errflag != DBI_ERROR_NONE) {
+    dbi_conn_t *conn = RESULT->conn;
+    _error_handler(conn, DBI_ERROR_BADNAME);
+    return strdup(ERROR);
+  }
+  return dbi_result_get_as_string_copy_idx(Result, fieldidx+1);
+}
+
+char *dbi_result_get_as_string_copy_idx(dbi_result Result, unsigned int fieldidx) {
+  char *ERROR = "ERROR";
+  char *newstring = NULL;
+  char *oldstring = NULL;
+  struct tm *utctime;
+
+  fieldidx--;
+
+  newstring = malloc(32); /* sufficient for integers, decimal, and datetime */
+
+  if (!newstring) {
+    _error_handler(RESULT->conn, DBI_ERROR_NOMEM);
+    return ERROR;
+  }
+  *newstring = '\0';
+
+  /* output depends on: type, size, sign */
+  switch (RESULT->field_types[fieldidx]) {
+  case DBI_TYPE_INTEGER:
+    switch (RESULT->field_attribs[fieldidx] & DBI_INTEGER_SIZEMASK) {
+    case DBI_INTEGER_SIZE1:
+      if (RESULT->field_attribs[fieldidx] & DBI_INTEGER_UNSIGNED) {
+	snprintf(newstring, 32, "%hu", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_char);
+      }
+      else {
+	snprintf(newstring, 32, "%hd", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_char);
+      }
+      break;
+    case DBI_INTEGER_SIZE2:
+      if (RESULT->field_attribs[fieldidx] & DBI_INTEGER_UNSIGNED) {
+	snprintf(newstring, 32, "%hu", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_short);
+      }
+      else {
+	snprintf(newstring, 32, "%hd", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_short);
+      }
+      break;
+    case DBI_INTEGER_SIZE3:
+    case DBI_INTEGER_SIZE4:
+      if (RESULT->field_attribs[fieldidx] & DBI_INTEGER_UNSIGNED) {
+	snprintf(newstring, 32, "%u", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_long);
+      }
+      else {
+	snprintf(newstring, 32, "%d", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_long);
+      }
+      break;
+    case DBI_INTEGER_SIZE8:
+      if (RESULT->field_attribs[fieldidx] & DBI_INTEGER_UNSIGNED) {
+	snprintf(newstring, 32, "%llu", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_longlong);
+      }
+      else {
+	snprintf(newstring, 32, "%lld", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_longlong);
+      }
+      break;
+    default:
+      _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+    }
+    break;
+  case DBI_TYPE_DECIMAL:
+    switch (RESULT->field_attribs[fieldidx] & DBI_DECIMAL_SIZEMASK) {
+    case DBI_DECIMAL_SIZE4:
+      snprintf(newstring, 32, "%e", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_float);
+      break;
+    case DBI_DECIMAL_SIZE8:
+      snprintf(newstring, 32, "%e", RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_double);
+      break;
+    default:
+      _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+    }
+    break;
+  case DBI_TYPE_STRING:
+    if (RESULT->rows[RESULT->currowidx]->field_sizes[fieldidx] == 0
+	&& RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_string == NULL) {
+      /* string does not exist */
+      /* return an empty string instead, no error */
+    }
+    else {
+      /* else if field size == 0: empty string */
+
+      oldstring = newstring;
+      if ((newstring = strdup(RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_string)) == NULL) {
+	_error_handler(RESULT->conn, DBI_ERROR_NOMEM);
+	newstring = oldstring;
+      }
+      else {
+	/* don't free in case of an error as we'd return a dangling pointer */
+	free(oldstring);
+      }
+    }
+    break;
+  case DBI_TYPE_BINARY:
+    break; /* return empty string, do not raise an error */
+  case DBI_TYPE_DATETIME:
+    utctime = gmtime(&(RESULT->rows[RESULT->currowidx]->field_values[fieldidx].d_datetime));
+    snprintf(newstring, 32, "%04d-%02d-%02d %02d:%02d:%02d", utctime->tm_year+1900, utctime->tm_mon+1, utctime->tm_mday, utctime->tm_hour, utctime->tm_min, utctime->tm_sec);
+    break;
+  default:
+    _error_handler(RESULT->conn, DBI_ERROR_BADTYPE);
+  }
+
+  return newstring; /* is still empty string in case of an error */
+}
+
 
 /* RESULT: bind_* functions */
 

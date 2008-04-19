@@ -332,6 +332,12 @@ unsigned char *dbi_result_get_binary_copy_idx(dbi_result Result, unsigned int fi
 
 time_t dbi_result_get_datetime_idx(dbi_result Result, unsigned int fieldidx);
 
+/* get_as* functions */
+long long dbi_result_get_as_longlong(dbi_result Result, const char *fieldname);
+long long dbi_result_get_as_longlong_idx(dbi_result Result, unsigned int fieldidx);
+char *dbi_result_get_as_string_copy(dbi_result Result, const char *fieldname);
+char *dbi_result_get_as_string_copy_idx(dbi_result Result, unsigned int fieldidx);
+
 /*
 int dbi_result_bind_char_idx(dbi_result Result, unsigned int fieldidx, char *bindto);
 int dbi_result_bind_uchar_idx(dbi_result Result, unsigned int fieldidx, unsigned char *bindto);
