@@ -103,6 +103,10 @@ char *win_dlerror();
 #define DLSYM_PREFIX ""
 #endif
 
+#ifndef RTLD_NEXT
+#define RTLD_NEXT ((void *) -1) /* taken from FreeBSD */
+#endif
+
 /* declarations of optional external functions */
 #ifndef HAVE_VASPRINTF
 int int_vasprintf(char **result, const char *format, va_list *args);
