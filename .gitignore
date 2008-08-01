@@ -1,0 +1,15 @@
+configure
+config.guess
+config.h.in
+config.sub
+Makefile.in
+Makefile
+mkinstalldirs
+missing
+install-sh
+compile
+depcomp
+aclocal.m4
+ltmain.sh
+autom4te.cache
+gtk-doc.make
