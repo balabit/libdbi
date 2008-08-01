@@ -1,0 +1,3 @@
+include/dbi/dbd.h	/usr/include/dbi
+include/dbi/dbi-dev.h	/usr/include/dbi
+include/dbi/dbi.h	/usr/include/dbi

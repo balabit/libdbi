@@ -1,38 +1,93 @@
-This package was debianized by David Parker <david@neongoat.com> on
-Sat, 11 May 2002 17:46:28 -0700.
+This package was debianized by David Nebauer <david@nebauer.org> on
+Tue, 20 Sep 2005 18:40:46 +0930.
 
-It was downloaded from http://libdbi.sourceforge.net/
+Original source may be found at: http://libdbi.sourceforge.net/
 
-Upstream Authors: David Parker <david@neongoat.com>
-                  Mark Tobenkin <mark@brentwoodradio.com>
+Files: debian/*
+Copyright: (C) 2005-2007 David Nebauer <david@nebauer.org>
+	(C) 2001-2005, David A. Parker <david@neongoat.com>
+	(C) 2007, Thomas Goirand <thomas@goirand.fr>
+License: LGPL v2.1
 
-Copyright:
+Upstream Authors:
 
-Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
+	Main developers:
+	* David A. Parker <david@neongoat.com>
+	* Mark Tobenkin <mark@brentwoodradio.com>
+	* Markus Hoenicka <markus@mhoenicka.de>
 
-You are free to distribute this software under the terms of the
-GNU Lesser General Public License as published by the Free
-Software Foundation; either version 2 of the License, or (at your
-option) any later version.  
+	These people have also contributed to the project:
+	(if we forgot you, please let us know!)
+
+	* Peter O'Gorman <pogma@opendarwin.org>
+	  - configure/Makefile/libtool fixes, OSX guru
+
+	* Christian M. Stamgren <christian@centiongroup.com>
+	  - bugfixes, mysql tweaks, list_* tweaks, error tweaks
+
+	* Ashish Ranjan <ashishwave@yahoo.com>
+	  - Mingw port
+
+	* Ryan Eatmon <reatmon@jabber.org>
+	  - bugfixes
+
+	* Andreas Johansson <andreas.johansson@cention.se>
+	  - beginnings of sequencing
+
+	* Ron Arts <raarts@netland.nl>
+	  - caught large memory leak
+
+	* <sad@spider.ru>
+	  - atoll.c bugfix
+
+	* Christophe GIAUME <christophe@giaume.com>
+	  - Solaris asprintf bugfix
+
+	* jellifish <jellyfish@pisem.net>
+	  - fixed wrong mysql INSERT query behavior
+
+	* Ollie Cook <ollie@uk.clara.net>
+	  - fixed mysql driver returning empty string as NULL
+
+	* Martin Kutschker <Martin.T.Kutschker@blackbox.net>
+	  - assistance with bugfixes
+
+	* Toby Thain <qu1j0t3@sourceforge.net>
+	  - improve error handling, code cleanups
+
+	Licensed under the terms of LGPL V 2.1
+
+Files: *
+Copyright: (C) 2001-2005, David Parker <david@neongoat.com>
+	(C) 2001-2004, Mark Tobenkin <mark@brentwoodradio.com>
+	(C) 2001-2007, Markus Hoenicka <markus@mhoenicka.de>
+License: LGPL v2.1
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2 of the License, or (at your option) any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+	USA
+
+	The documentation of the project is licensed under the GFDL, granted
+	the fact that there are no invariant section so it remains fully free.
+
+Files: doc/*
+Copyright: (C) 2001-2005, Neon Goat Productions <david@neongoat.com>
+	(C) 2001-2007, Markus Hoenicka <mhoenicka@users.sourceforge.net>
+	(C) 2001-2005, David A. Parker <david@neongoat.com>
+License: GFDL
 
 On Debian systems, the complete text of the GNU Lesser General Public
-License can be found in /usr/share/common-licenses/LGPL-2.1 file.
-This package was debianized by David Parker <david@neongoat.com> on
-Sat, 11 May 2002 17:46:28 -0700.
+License (LGPL) may be found in /usr/share/common-licenses/LGPL-2.1.
 
-It was downloaded from http://libdbi.sourceforge.net/
-
-Upstream Author(s): David Parker <david@neongoat.com>
-                    Mark Tobenkin <mark@brentwoodradio.com>
-
-Copyright:
-
-Copyright (C) 2001-2002, David Parker and Mark Tobenkin.
-
-You are free to distribute this software under the terms of the
-GNU Lesser General Public License as published by the Free
-Software Foundation; either version 2 of the License, or (at your
-option) any later version.  
-
-On Debian systems, the complete text of the GNU Lesser General Public
-License can be found in /usr/share/common-licenses/LGPL-2.1 file.
+On Debian systems, the complete text of the GNU Free Documentation License
+(GFDL) may be found in /usr/share/common-licenses/GFDL.
