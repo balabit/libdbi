@@ -1,0 +1,7 @@
+opt/syslog-ng/lib/*.a
+opt/syslog-ng/lib/*.so
+opt/syslog-ng/lib/*.la
+opt/syslog-ng/include/dbi/dbi.h
+opt/syslog-ng/include/dbi/dbi-dev.h
+opt/syslog-ng/include/dbi/dbd.h
+opt/syslog-ng/lib/pkgconfig/*

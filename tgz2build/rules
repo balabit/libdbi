@@ -1,0 +1,54 @@
+#!/usr/local/bin/make -f                                                                                                                                           
+STAMPDIR=tgz2build/stamps
+
+CONFIGURE_OPTS := --prefix $(ZBS_PREFIX)
+
+ifneq (,$(findstring solaris,$(ZBS_DIST)))
+# Under solaris we need this switch to be able to use iconv.
+  CONFIGURE_OPTS +=
+endif
+
+ifneq (,$(findstring hpux,$(ZBS_DIST)))
+# Under hpux we need this switch to be able to use iconv.
+  CONFIGURE_OPTS +=
+endif
+
+ifneq (,$(findstring aix,$(ZBS_DIST)))
+# Under hpux we need this switch to be able to use iconv.
+  CONFIGURE_OPTS +=
+endif
+
+
+all: binary
+
+binary: setup configure build install
+
+setup:  $(STAMPDIR)/stamp-setup
+$(STAMPDIR)/stamp-setup:
+	mkdir tgz2build/stamps || true
+	touch $@
+
+configure: $(STAMPDIR)/stamp-configure
+	./configure $(CONFIGURE_OPTS)
+	touch $@
+
+$(STAMPDIR)/stamp-configure: setup
+
+build:  $(STAMPDIR)/stamp-build
+$(STAMPDIR)/stamp-build: configure
+	cd src/ && $(MAKE)
+	cd include && $(MAKE)
+	touch $@
+install: $(STAMPDIR)/stamp-install
+$(STAMPDIR)/stamp-install: build
+	rm -rf $(ZBS_STAGE_DIR) || true
+	cd src/ && $(MAKE) install DESTDIR=$(ZBS_STAGE_DIR)
+	cd include/ && $(MAKE) install DESTDIR=$(ZBS_STAGE_DIR)
+
+	touch $@
+clean:
+	rm -rf tgz2build/stamps || true
+	rm -rf tgz2build/staging || true
+	$(MAKE) clean
+
+.PHONY: build clean binary-indep binary-arch binary install
