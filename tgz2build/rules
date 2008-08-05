@@ -44,6 +44,9 @@ $(STAMPDIR)/stamp-install: build
 	rm -rf $(ZBS_STAGE_DIR) || true
 	cd src/ && $(MAKE) install DESTDIR=$(ZBS_STAGE_DIR)
 	cd include/ && $(MAKE) install DESTDIR=$(ZBS_STAGE_DIR)
+	cd ..
+	mkdir -p $(ZBS_STAGE_DIR)/$(ZBS_PREFIX)/lib/pkgconfig
+	cp dbi.pc $(ZBS_STAGE_DIR)/$(ZBS_PREFIX)/lib/pkgconfig
 
 	touch $@
 clean:
