@@ -23,7 +23,7 @@ config.status: configure
 	cp /usr/share/misc/config.sub .
 	cp /usr/share/misc/config.guess .
 	# Add here commands to configure the package.
-	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --disable-docs
 
 build: build-stamp
 
@@ -57,7 +57,7 @@ install: build
 	# Add here commands to install the package into debian/libdbi0.
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/libdbi0
 	# Remove the doc as we are producing a separate package
-	rm -r debian/libdbi0/usr/share/doc/libdbi-0.8.2/
+	#rm -r debian/libdbi0/usr/share/doc/libdbi-0.8.2/
 	# Remove the header files as we are production a separate package
 	rm -r debian/libdbi0/usr/include
 	# Remove the symlink as it should go in the -dev package
