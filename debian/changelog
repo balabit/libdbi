@@ -1,4 +1,10 @@
-libdbi (0.8.2-3) unstable; urgency=low
+libdbi (1.0pre1-1.syslogng30) syslogng30; urgency=low
+
+  * Modified debian packaging, deprecated lintian tags and removed docs.
+
+ -- ZorpOS Maintainers <zorpos@balabit.com>  Fri, 08 Aug 2008 13:57:52 +0200
+
+libdbi (0.8.2-3) syslogng30; urgency=low
 
   * New maintainer (Closes: #444424)
   * Now cleaning everything correctly on the clean target
