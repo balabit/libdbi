@@ -20,17 +20,8 @@ Description: Database Independent Abstraction Layer for C
 Package: libdbi0-dev
 Section: libs
 Architecture: any
-Depends: libdbi0 (= ${binary:Version})
+Depends: libdbi0 (= ${Source-Version})
 Description: DB Independent Abstraction Layer for C  -- development files
- libdbi implements a database-independent abstraction layer in C, similar to
- the DBI/DBD layer in Perl. Writing one generic set of code, programmers can
- leverage the power of multiple databases and multiple simultaneous database
- connections by using this framework.
-
-Package: libdbi-doc
-Section: doc
-Architecture: all
-Description: DB Independent Abstraction Layer for C  -- documentation
  libdbi implements a database-independent abstraction layer in C, similar to
  the DBI/DBD layer in Perl. Writing one generic set of code, programmers can
  leverage the power of multiple databases and multiple simultaneous database
