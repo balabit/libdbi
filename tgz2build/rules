@@ -5,7 +5,9 @@ CONFIGURE_OPTS := --prefix $(ZBS_PREFIX)
 
 ifneq (,$(findstring solaris,$(ZBS_DIST)))
 # Under solaris we need this switch to be able to use iconv.
-  CONFIGURE_OPTS +=
+  ifneq (,$(findstring amd64,$(ZBS_ARCH)))
+		CONFIGURE_OPTS += ABI=64
+  endif
 endif
 
 ifneq (,$(findstring hpux,$(ZBS_DIST)))
