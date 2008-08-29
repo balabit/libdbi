@@ -1,1 +1,1 @@
-opt/syslog-ng/lib/*.so*
+opt/syslog-ng/lib/*.s[o,l]*
