@@ -8,10 +8,10 @@
 : ${AUTOCONF=autoconf}
 
 
-${LIBTOOLIZE} --force --copy
-${ACLOCAL}
+${LIBTOOLIZE} --force --copy --install
+${ACLOCAL} --verbose  -I m4
 ${AUTOHEADER}
-${AUTOMAKE} --add-missing
+${AUTOMAKE} --add-missing --copy --force-missing
 
 echo
 echo "Using `${AUTOCONF} --version`, if you have problems"

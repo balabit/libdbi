@@ -1,3 +1,9 @@
+libdbi (1.0pre1-2.syslogng30) syslogng30; urgency=low
+
+  * Fixed packaging. Moved .a files to libdbi0 from libdbi0-dev.
+
+ -- Tamas Pal <folti@balabit.com>  Tue, 30 Sep 2008 13:17:03 +0200
+
 libdbi (1.0pre1-1.syslogng30) syslogng30; urgency=low
 
   * Modified debian packaging, deprecated lintian tags and removed docs.

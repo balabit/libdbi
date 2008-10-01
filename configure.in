@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/dbi_main.c)
 AM_MAINTAINER_MODE
+AC_CONFIG_MACRO_DIR([m4])
 
 dnl set up library versioning
 LIB_CURRENT=1
@@ -182,6 +183,7 @@ AC_OUTPUT([
 	doc/Makefile
 	include/Makefile
 	include/dbi/Makefile
+	m4/Makefile
 	dbi.pc
 	])
 

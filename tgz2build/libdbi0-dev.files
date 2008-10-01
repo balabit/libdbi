@@ -1,4 +1,3 @@
-opt/syslog-ng/lib/*.a
 opt/syslog-ng/lib/*.so
 opt/syslog-ng/lib/*.la
 opt/syslog-ng/include/dbi/dbi.h
