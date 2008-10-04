@@ -109,7 +109,6 @@ char *win_dlerror();
 
 /* declarations of optional external functions */
 #ifndef HAVE_VASPRINTF
-int int_vasprintf(char **result, const char *format, va_list *args);
 int vasprintf(char **result, const char *format, va_list args);
 #endif
 #ifndef HAVE_ASPRINTF

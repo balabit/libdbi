@@ -14,7 +14,7 @@
 
 #ifndef HAVE_VASPRINTF
 
-int int_vasprintf(char **result, const char *format, va_list *args)
+int vasprintf(char **result, const char *format, va_list args)
 {
         const char *p = format;
   /* Add one to make sure that it is never zero, which might cause malloc
@@ -22,13 +22,13 @@ int int_vasprintf(char **result, const char *format, va_list *args)
         int total_width = strlen(format) + 1;
         va_list ap;
 
-        memcpy((char*) &ap, (char*) args, sizeof(va_list));
+        va_copy(ap, args);
 
         while (*p != '\0') {
                 if (*p++ == '%') {
                         while (strchr ("-+ #0", *p)) {
-                ++p;
-            }
+                                ++p;
+                        }
 
                         if (*p == '*') {
                                 ++p;
@@ -46,8 +46,8 @@ int int_vasprintf(char **result, const char *format, va_list *args)
                                         total_width += abs(va_arg(ap, int));
                                 }
                                 else {
-                        total_width += (unsigned long) strtol(p, (char**) &p, 10);
-                }
+                                        total_width += (unsigned long) strtol(p, (char**) &p, 10);
+                                }
                         }
          
                         while (strchr ("hlL", *p)) {
@@ -89,18 +89,13 @@ int int_vasprintf(char **result, const char *format, va_list *args)
         }
 
         *result = malloc(total_width);
-
+        va_end(ap);
         if (*result != NULL) {
-                return vsprintf(*result, format, *args);
+                return vsprintf(*result, format, args);
         }
         else {
                 return 0;
         }
-}
-
-int vasprintf(char **result, const char *format, va_list args)
-{
-        return int_vasprintf(result, format, &args);
 }
 
 #endif /* !HAVE_VASPRINTF */
