@@ -143,7 +143,7 @@ int dbi_initialize_r(const char *driverdir, dbi_inst *pInst) {
 	DIR *dir;
 	struct dirent *driver_dirent = NULL;
 	struct stat statbuf;
-	char fullpath[FILENAME_MAX];
+	char fullpath[256];
 	char *effective_driverdir;
 	
 	int num_loaded = 0;
@@ -172,7 +172,7 @@ int dbi_initialize_r(const char *driverdir, dbi_inst *pInst) {
 	else {
 		while ((driver_dirent = readdir(dir)) != NULL) {
 			driver = NULL;
-			snprintf(fullpath, FILENAME_MAX, "%s%s%s", effective_driverdir, DBI_PATH_SEPARATOR, driver_dirent->d_name);
+			snprintf(fullpath, sizeof(fullpath), "%s%s%s", effective_driverdir, DBI_PATH_SEPARATOR, driver_dirent->d_name);
 			if ((stat(fullpath, &statbuf) == 0) && S_ISREG(statbuf.st_mode) && strrchr(driver_dirent->d_name, '.') && (!strcmp(strrchr(driver_dirent->d_name, '.'), DRIVER_EXT))) {
 				/* file is a stat'able regular file that ends in .so (or appropriate dynamic library extension) */
 				driver = _get_driver(fullpath, inst);
