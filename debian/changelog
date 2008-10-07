@@ -1,3 +1,11 @@
+libdbi (1.0pre1-4.syslogng30) syslogng30dbg; urgency=low
+
+  * Fixed dlopen() filename buffer size on HP-UX.
+  * Fixed shared library extension on HP-UX.
+  * Use LT_INIT instead of AC_PROG_LIBTOOL to work with libtool 2.2.x
+
+ -- Balazs Scheidler <bazsi@balabit.com>  Tue, 07 Oct 2008 10:04:48 +0200
+
 libdbi (1.0pre1-3.syslogng30) syslogng30dbg; urgency=low
 
   * Added asprintf fix for Solaris/x64.
