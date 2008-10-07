@@ -1,3 +1,10 @@
+libdbi (1.0pre1-5.syslogng30) syslogng30dbg; urgency=low
+
+  * Fixed dbi_conn_new() to actually return a value, it was coincidental
+    that it worked on x86, but does not work on AIX/powerpc. (fixes: #15847)
+
+ -- Balazs Scheidler <bazsi@balabit.com>  Tue, 07 Oct 2008 16:14:33 +0200
+
 libdbi (1.0pre1-4.syslogng30) syslogng30dbg; urgency=low
 
   * Fixed dlopen() filename buffer size on HP-UX.
