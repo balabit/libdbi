@@ -496,7 +496,7 @@ dbi_conn dbi_conn_new_r(const char *name, dbi_inst Inst) {
 	return conn;
 }
 dbi_conn dbi_conn_new(const char *name) {
-	dbi_conn_new_r(name, dbi_inst_legacy);
+	return dbi_conn_new_r(name, dbi_inst_legacy);
 }
 
 dbi_conn dbi_conn_open(dbi_driver Driver) {
