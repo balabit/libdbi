@@ -13,3 +13,6 @@ debug:
 
 profile:
 	$(MAKE) all CFLAGS="@PROFILE@"
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = dbi.pc
