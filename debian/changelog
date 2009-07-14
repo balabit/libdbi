@@ -1,3 +1,10 @@
+libdbi (1.0pre1-6.syslogng30) syslogng30; urgency=low
+
+  * Migrated to use balabit-build for ZWA local builds.
+  * Properly install dbi.pc file and fixed include directory.
+
+ -- Balazs Scheidler <bazsi@balabit.com>  Tue, 14 Jul 2009 09:31:32 +0200
+
 libdbi (1.0pre1-5.syslogng30) syslogng30dbg; urgency=low
 
   * Fixed dbi_conn_new() to actually return a value, it was coincidental
