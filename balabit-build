@@ -1,8 +1,10 @@
-#!/bin/sh
+#!/bin/sh -e
 
 cmd=$1
 shift
 case "$cmd" in
+  build-exclude-list|dist-exclude-list|prepare-dist)
+    ;;
   bootstrap)
     sh ./autogen.sh
     ;;
@@ -18,3 +20,5 @@ case "$cmd" in
     ;;
 esac
 exit 0
+
+# vim: ts=2 sw=2 expandtab
