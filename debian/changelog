@@ -1,3 +1,10 @@
+libdbi (1.0pre1-8.syslogng30) syslogngdeps10; urgency=low
+
+  * Release for syslog-ng 3.1.
+  * Code now builds with non-C99 compliant C compilers.
+
+ -- Tamas Pal <folti@balabit.com>  Tue, 03 Nov 2009 17:26:02 +0100
+
 libdbi (1.0pre1-7.syslogng30) syslogng30; urgency=low
 
   * Fixed packaging.
