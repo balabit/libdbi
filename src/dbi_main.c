@@ -147,12 +147,13 @@ int dbi_initialize_r(const char *driverdir, dbi_inst *pInst) {
 	char *effective_driverdir;
 	
 	int num_loaded = 0;
-	*pInst = NULL; /* use a defined value if the function fails */
 	dbi_driver_t *driver = NULL;
 	dbi_driver_t *prevdriver = NULL;
 #if HAVE_LTDL_H
         (void)lt_dlinit();
 #endif	
+
+	*pInst = NULL; /* use a defined value if the function fails */
 	/* init the instance */
 	inst = malloc(sizeof(dbi_inst_t));
 	if (!inst) {

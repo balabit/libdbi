@@ -54,6 +54,10 @@
 #include <strings.h>
 #endif
 
+#ifndef __USE_ISOC99
+# include <dbi/dbi.h>
+#endif
+
 #define UTYPE_MAX (~(unsigned long long) 0)
 #define TYPE_MIN LLONG_MIN
 #define TYPE_MAX LLONG_MAX

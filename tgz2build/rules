@@ -3,6 +3,7 @@ STAMPDIR=tgz2build/stamps
 
 CONFIGURE_OPTS := --prefix $(ZBS_PREFIX) --disable-docs
 
+CFLAGS=
 ifneq (,$(findstring solaris,$(ZBS_DIST)))
 # Under solaris we need this switch to be able to use iconv.
   ifneq (,$(findstring amd64,$(ZBS_ARCH)))
@@ -20,6 +21,9 @@ ifneq (,$(findstring aix,$(ZBS_DIST)))
   CONFIGURE_OPTS +=
 endif
 
+ifeq (,$(findstring linux-glibc2.1.3,$(ZBS_DIST)))
+  CFLAGS = -std=gnu99
+endif
 
 all: binary
 
@@ -31,7 +35,7 @@ $(STAMPDIR)/stamp-setup:
 	touch $@
 
 configure: $(STAMPDIR)/stamp-configure
-	./configure $(CONFIGURE_OPTS)
+	CFLAGS="$(CFLAGS)" ./configure $(CONFIGURE_OPTS)
 	touch $@
 
 $(STAMPDIR)/stamp-configure: setup

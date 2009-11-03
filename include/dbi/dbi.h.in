@@ -62,6 +62,21 @@ typedef enum {
   DBI_ERROR_CLIENT
 } dbi_error_flag;
 
+#ifndef __USE_ISOC99
+# ifndef LONG_LONG_MAX
+#  define LONG_LONG_MAX 0x7fffffffffffffff
+# endif
+# ifndef ULONG_LONG_MAX
+#  define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1ULL)
+# endif
+# ifndef LLONG_MAX
+#  define LLONG_MAX 0x8000000000000000
+# endif
+# ifndef LLONG_MIN
+#  define LLONG_MIN 0x7fffffffffffffff
+# endif
+#endif /* __USE_ISOC99 */
+
 /* some _MAX definitions. The size_t hack may not be portable */
 #ifndef SIZE_T_MAX
 #  define SIZE_T_MAX UINT_MAX
