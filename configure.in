@@ -122,6 +122,8 @@ case $host in
 		shlib_ext=.dll ;;
 	*-*-darwin*)
 		shlib_ext=.so ;;
+	ia64-*-hpux*)
+		shlib_ext=.so ;;
 	*-*-hpux*)
 		shlib_ext=.sl ;;
 	*)
