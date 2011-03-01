@@ -203,7 +203,7 @@ int dbi_initialize_r(const char *driverdir, dbi_inst *pInst) {
 }
 
 int dbi_initialize(const char *driverdir) {
-	dbi_initialize_r(driverdir, &dbi_inst_legacy);
+	return dbi_initialize_r(driverdir, &dbi_inst_legacy);
 }
 
 void dbi_shutdown_r(dbi_inst Inst) {
